@@ -98,53 +98,27 @@
 
 
     // ──────────────────────────────────────────────────────────────
-    // SHIFT SEARCH  (±9 on the BIT string)
+    // XOR KEY GENERATION
     // ──────────────────────────────────────────────────────────────
-
-    const MAX_SHIFT = 9;
 
     /**
-     * In the cover's BIT string, from position `basePos`,
-     * find the nearest bit that equals `desiredBit`.
-     * Searches ±1, ±2 … ±9, both directions simultaneously.
+     * Compare cover bit at each position with the desired message bit.
+     * If they match → '0', if they differ → '1'.
+     * Result: a binary string (only 0s and 1s) — easy to compress.
      */
-    function findNearestShift(coverBits, basePos, desiredBit) {
-      const len = coverBits.length;
-      if (parseInt(coverBits[basePos], 10) === desiredBit) return 0;
-
-      for (let d = 1; d <= MAX_SHIFT; d++) {
-        const fwd = basePos + d;
-        const bwd = basePos - d;
-        if (fwd < len && parseInt(coverBits[fwd], 10) === desiredBit) return +d;
-        if (bwd >= 0 && parseInt(coverBits[bwd], 10) === desiredBit) return -d;
+    function generateXORKey(coverBits, basePositions, msgBits) {
+      let key = '';
+      for (let i = 0; i < msgBits.length; i++) {
+        const coverBit = coverBits[basePositions[i]];
+        const msgBit   = msgBits[i];
+        key += (coverBit === msgBit) ? '0' : '1';
       }
-      return null; // Virtually impossible with real text
+      return key;
     }
 
 
     // ──────────────────────────────────────────────────────────────
-    // SHIFT KEY ENCODING  (2-digit pairs)
-    // ──────────────────────────────────────────────────────────────
-
-    /** [0, -1, 3] → "001103" */
-    function encodeShifts(shifts) {
-      return shifts.map(s => (s < 0 ? '1' : '0') + Math.abs(s)).join('');
-    }
-
-    /** "001103" → [0, -1, 3] */
-    function decodeShifts(str) {
-      const shifts = [];
-      for (let i = 0; i < str.length; i += 2) {
-        const mag = parseInt(str[i + 1], 10);
-        if (isNaN(mag)) throw new Error(`Bad digit at ${i + 1}`);
-        shifts.push(str[i] === '1' ? -mag : mag);
-      }
-      return shifts;
-    }
-
-
-    // ──────────────────────────────────────────────────────────────
-    // EMBEDDING  (Bit-Level — no fallback needed)
+    // EMBEDDING  (XOR-Based — Binary Key)
     // ──────────────────────────────────────────────────────────────
 
     function generateShiftMap() {
@@ -152,9 +126,9 @@
       const secret    = document.getElementById('embedSecret').value;
       const password  = document.getElementById('embedPassword').value;
 
-      if (!coverText.trim()) return showToast('⚠ Please provide cover text.');
-      if (!secret.trim())    return showToast('⚠ Please enter a secret message.');
-      if (!password.trim())  return showToast('⚠ Please enter a password.');
+      if (!coverText.trim()) return showToast('⚠ الرجاء إدخال النص الغلاف.');
+      if (!secret.trim())    return showToast('⚠ الرجاء إدخال الرسالة السرية.');
+      if (!password.trim())  return showToast('⚠ الرجاء إدخال كلمة المرور.');
 
       // 1. Convert BOTH to binary
       const coverBits = stringToBinary(coverText);
@@ -162,85 +136,76 @@
 
       // 2. Capacity check (bits vs bits)
       if (msgBits.length > coverBits.length) {
-        showToast(`❌ Need ${msgBits.length} bits but cover has ${coverBits.length} bits.`);
+        showToast(`❌ تحتاج ${msgBits.length} بت لكن الغلاف يحتوي ${coverBits.length} بت فقط.`);
         return;
       }
 
       // 3. Generate N unique positions in [0, coverBits.length - 1]
-      //    N = number of message bits
       const basePositions = generatePositions(coverBits.length, msgBits.length, password);
 
-      // 4. Find shift for each bit
-      const shifts = [];
-      for (let i = 0; i < msgBits.length; i++) {
-        const desiredBit = parseInt(msgBits[i], 10);
-        const shift = findNearestShift(coverBits, basePositions[i], desiredBit);
-
-        if (shift === null) {
-          // Should never happen with real text, but handle gracefully
-          showToast(`❌ No match within ±${MAX_SHIFT} at bit position ${basePositions[i]}.`);
-          return;
-        }
-        shifts.push(shift);
-      }
+      // 4. XOR key: compare cover bit with message bit
+      //    0 = match (correct), 1 = mismatch (flip needed)
+      const xorKey = generateXORKey(coverBits, basePositions, msgBits);
 
       // 5. Output
       document.getElementById('baseMapOutput').value =
         '[' + basePositions.join(', ') + ']';
-      document.getElementById('shiftKeyOutput').value = encodeShifts(shifts);
+      document.getElementById('shiftKeyOutput').value = xorKey;
       updateCapacityMeter();
-      showToast('✅ Shift key generated!');
+      showToast('✅ تم توليد المفتاح الثنائي!');
     }
 
 
     // ──────────────────────────────────────────────────────────────
-    // EXTRACTION  (Simple — no fallback needed)
+    // EXTRACTION  (XOR-Based — Binary Key)
     // ──────────────────────────────────────────────────────────────
 
     /**
      * 1. Convert cover to bits
      * 2. Regenerate same base positions (same password, same count)
-     * 3. actualBitPos = basePos + shift → read bit
+     * 3. Read cover bit at base position, XOR with key bit
      * 4. Collect bits → text
      */
     function extractSecretMessage() {
       const coverText = document.getElementById('extractCover').value;
       const password  = document.getElementById('extractPassword').value;
-      const shiftRaw  = document.getElementById('extractShiftKey').value.trim();
+      const keyRaw    = document.getElementById('extractShiftKey').value.trim();
 
-      if (!coverText.trim()) return showToast('⚠ Please provide the cover text.');
-      if (!password.trim())  return showToast('⚠ Please enter the password.');
-      if (!shiftRaw)         return showToast('⚠ Please paste the shift key.');
+      if (!coverText.trim()) return showToast('⚠ الرجاء إدخال النص الغلاف.');
+      if (!password.trim())  return showToast('⚠ الرجاء إدخال كلمة المرور.');
+      if (!keyRaw)           return showToast('⚠ الرجاء لصق المفتاح الثنائي.');
 
       try {
-        const cleanKey = shiftRaw.replace(/[\[\]\s,]/g, '');
-        if (cleanKey.length % 2 !== 0)
-          throw new Error('Key length must be even (2 digits per shift).');
-        const shifts = decodeShifts(cleanKey);
+        // Clean key: keep only 0s and 1s
+        const xorKey = keyRaw.replace(/[^01]/g, '');
+        if (xorKey.length === 0)
+          throw new Error('المفتاح غير صالح — يجب أن يحتوي على 0 و 1 فقط.');
 
         // Convert cover to bits
         const coverBits = stringToBinary(coverText);
 
-        if (shifts.length > coverBits.length)
-          throw new Error(`Key has ${shifts.length} shifts but cover has ${coverBits.length} bits.`);
+        if (xorKey.length > coverBits.length)
+          throw new Error(`المفتاح يحتوي ${xorKey.length} بت لكن الغلاف يحتوي ${coverBits.length} بت فقط.`);
 
         // Regenerate same positions
-        const basePositions = generatePositions(coverBits.length, shifts.length, password);
+        const basePositions = generatePositions(coverBits.length, xorKey.length, password);
 
-        // Read bits
+        // Reconstruct message bits: coverBit XOR keyBit
+        // If key=0 → cover bit IS the message bit (match)
+        // If key=1 → cover bit is FLIPPED → flip it back
         let binaryStr = '';
-        for (let i = 0; i < shifts.length; i++) {
-          const actualPos = basePositions[i] + shifts[i];
-          if (actualPos < 0 || actualPos >= coverBits.length)
-            throw new Error(`Bit position ${actualPos} out of range [0, ${coverBits.length - 1}].`);
-          binaryStr += coverBits[actualPos];
+        for (let i = 0; i < xorKey.length; i++) {
+          const coverBit = coverBits[basePositions[i]];
+          const keyBit   = xorKey[i];
+          // XOR: same → '0', different → '1'
+          binaryStr += (coverBit === keyBit) ? '0' : '1';
         }
 
-        // Decode
+        // Decode bits → text
         const decoded = binaryToString(binaryStr);
         document.getElementById('extractResultCard').style.display = 'block';
         document.getElementById('extractedResult').textContent = decoded;
-        showToast('✅ Message extracted!');
+        showToast('✅ تم استخراج الرسالة بنجاح!');
       } catch (e) {
         showToast('❌ ' + e.message);
       }
@@ -310,3 +275,4 @@
 
     // Initialize
     updateCapacityMeter();
+ 

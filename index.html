@@ -172,7 +172,7 @@
           </div>
 
           <button id="btnGenerateMap" class="btn-primary mt-2" onclick="generateShiftMap()">
-            ▶ Generate Shift Key
+            ▶ توليد المفتاح الثنائي (Generate Binary Key)
           </button>
         </div>
       </div>
@@ -190,23 +190,23 @@
         </div>
       </div>
 
-      <!-- Step 3 — Shift Offsets (the Key) -->
+      <!-- Step 3 — Binary XOR Key -->
       <div class="step-card">
         <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
           <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">3</span>
-          Shift Offset Key
+          المفتاح الثنائي (Binary XOR Key)
         </h2>
 
         <div class="space-y-4">
           <div>
             <label for="shiftKeyOutput" class="field-label">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              Computed Shift Offsets (forward/backward corrections)
+              مفتاح XOR — سلسلة من 0 و 1 (0 = تطابق، 1 = اختلاف)
             </label>
-            <textarea id="shiftKeyOutput" rows="3" class="w-full rounded-lg px-4 py-3 text-sm resize-y" readonly placeholder="Shift key will appear here…"></textarea>
+            <textarea id="shiftKeyOutput" rows="3" class="w-full rounded-lg px-4 py-3 text-sm resize-y" readonly placeholder="المفتاح الثنائي سيظهر هنا…"></textarea>
           </div>
 
-          <button class="btn-secondary" onclick="copyToClipboard('shiftKeyOutput')">📋 Copy Shift Key</button>
+          <button class="btn-secondary" onclick="copyToClipboard('shiftKeyOutput')">📋 نسخ المفتاح (Copy Key)</button>
         </div>
       </div>
     </section>
@@ -239,13 +239,13 @@
             <input id="extractPassword" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter the same password used during embedding…" />
           </div>
 
-          <!-- Shift Key -->
+          <!-- Binary XOR Key -->
           <div>
             <label for="extractShiftKey" class="field-label">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              Shift Offset Key
+              المفتاح الثنائي (Binary XOR Key)
             </label>
-            <textarea id="extractShiftKey" rows="3" class="w-full rounded-lg px-4 py-3 text-sm resize-y" placeholder="Paste the shift key here…"></textarea>
+            <textarea id="extractShiftKey" rows="3" class="w-full rounded-lg px-4 py-3 text-sm resize-y" placeholder="الصق المفتاح الثنائي هنا…"></textarea>
           </div>
 
           <button class="btn-primary" onclick="extractSecretMessage()">
