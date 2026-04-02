@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASCII-Stego Delta — Zero-Distortion Text Steganography</title>
+  <meta name="description" content="A proof-of-concept zero-distortion text steganography tool that embeds secret messages within ASCII Art using shift-based statistical matching." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Consolas', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50:  '#e6ffe6',
+              100: '#b3ffb3',
+              200: '#80ff80',
+              300: '#4dff4d',
+              400: '#00ff41',
+              500: '#00cc34',
+              600: '#009926',
+              700: '#006619',
+              800: '#00330d',
+              900: '#001a06',
+            },
+            surface: {
+              900: '#0a0a0f',
+              800: '#0f0f1a',
+              700: '#141425',
+              600: '#1a1a30',
+              500: '#22223b',
+            },
+          },
+          boxShadow: {
+            glow:   '0 0 20px rgba(0,255,65,0.15)',
+            'glow-lg': '0 0 40px rgba(0,255,65,0.2)',
+          },
+          keyframes: {
+            'scan-line': {
+              '0%':   { transform: 'translateY(-100%)' },
+              '100%': { transform: 'translateY(100vh)' },
+            },
+            'fade-in-up': {
+              '0%':   { opacity: '0', transform: 'translateY(16px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            pulse_glow: {
+              '0%, 100%': { boxShadow: '0 0 12px rgba(0,255,65,0.25)' },
+              '50%':      { boxShadow: '0 0 28px rgba(0,255,65,0.50)' },
+            },
+          },
+          animation: {
+            'scan-line':  'scan-line 6s linear infinite',
+            'fade-in-up': 'fade-in-up .5s ease-out both',
+            pulse_glow:   'pulse_glow 2.5s ease-in-out infinite',
+          },
+        },
+      },
+    };
+  </script>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body class="font-sans text-gray-300 antialiased relative overflow-x-hidden">
+
+  <!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+  <header class="relative z-10 border-b border-brand-400/10">
+    <div class="max-w-5xl mx-auto px-4 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-brand-400/10 flex items-center justify-center border border-brand-400/20 shadow-glow">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-brand-400" style="text-shadow:0 0 12px rgba(0,255,65,.35);">
+            ASCII-Stego Delta
+          </h1>
+          <p class="text-[.65rem] text-brand-400/40 tracking-widest uppercase">Zero-Distortion Steganography</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-xs text-brand-400/45">
+        <span class="status-dot"></span>
+        <span>System Active</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════ MAIN  ═══════════════════════════ -->
+  <main class="relative z-10 max-w-5xl mx-auto px-4 py-8">
+
+    <!-- ── Tab Navigation ──────────────────────────────────────── -->
+    <nav class="flex gap-1 mb-8 border-b border-brand-400/10 pb-1" role="tablist">
+      <button id="tab-embed" class="tab-btn active px-5 py-2.5 rounded-t-lg text-sm font-semibold tracking-wide text-brand-400/60 hover:text-brand-400" role="tab" aria-selected="true" aria-controls="panel-embed" onclick="switchTab('embed')">
+        <span class="inline-flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          التضمين (Embedding)
+        </span>
+      </button>
+      <button id="tab-extract" class="tab-btn px-5 py-2.5 rounded-t-lg text-sm font-semibold tracking-wide text-brand-400/60 hover:text-brand-400" role="tab" aria-selected="false" aria-controls="panel-extract" onclick="switchTab('extract')">
+        <span class="inline-flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+          الاستخراج (Extraction)
+        </span>
+      </button>
+    </nav>
+
+    <!-- ════════════════════ TAB 1 — EMBEDDING ════════════════════ -->
+    <section id="panel-embed" class="tab-panel active space-y-6" role="tabpanel" aria-labelledby="tab-embed">
+
+      <!-- Step 1 — Inputs -->
+      <div class="step-card">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">1</span>
+          User Inputs
+        </h2>
+
+        <div class="space-y-4">
+          <!-- Cover Text -->
+          <div>
+            <label for="embedCover" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Cover Text (ASCII Art)
+            </label>
+            <textarea id="embedCover" rows="10" class="w-full rounded-lg px-4 py-3 text-sm leading-relaxed resize-y" placeholder="Paste your ASCII art here…" oninput="updateCapacityMeter()"></textarea>
+          </div>
+
+          <!-- ── CAPACITY METER ── -->
+          <div id="capacityMeterPanel" class="p-4 rounded-lg border border-brand-400/10" style="background:rgba(0,255,65,0.02);">
+            <div class="flex items-center justify-between mb-2">
+              <span class="field-label mb-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Capacity Meter
+              </span>
+              <span id="meterPercent" class="text-xs font-mono font-bold text-brand-400/50">0%</span>
+            </div>
+            <div class="meter-bar-bg mb-3">
+              <div id="meterFill" class="meter-bar-fill" style="width:0%"></div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="meter-stat"><span>Cover:</span> <span class="val" id="mCoverLen">0</span> <span>bits</span></div>
+              <div class="meter-stat"><span>Capacity:</span> <span class="val" id="mMaxChars">0</span> <span>chars</span></div>
+              <div class="meter-stat"><span>Msg:</span> <span class="val" id="mMsgBits">0</span> <span>bits</span></div>
+              <div class="meter-stat"><span>Usage:</span> <span class="val" id="mUsage">0 / 0</span> <span>bits</span></div>
+            </div>
+          </div>
+
+          <!-- Secret Message -->
+          <div>
+            <label for="embedSecret" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+              Secret Message
+            </label>
+            <input id="embedSecret" type="text" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter the secret message to embed…" oninput="updateCapacityMeter()" />
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label for="embedPassword" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+              Secret Password (Seed)
+            </label>
+            <input id="embedPassword" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter a password to seed the PRNG…" />
+          </div>
+
+          <button id="btnGenerateMap" class="btn-primary mt-2" onclick="generateShiftMap()">
+            ▶ Generate Shift Key
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2 — Random Base Map -->
+      <div class="step-card">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">2</span>
+          Random Base Positions
+        </h2>
+        <label for="baseMapOutput" class="field-label">PRNG-Generated Unique Positions (≤ cover length, no duplicates)</label>
+        <textarea id="baseMapOutput" rows="4" class="w-full rounded-lg px-4 py-3 text-sm resize-y" readonly placeholder="Base positions will appear here after generation…"></textarea>
+        <div class="flex gap-3 mt-3">
+          <button class="btn-secondary" onclick="copyToClipboard('baseMapOutput')">📋 Copy Base Map</button>
+        </div>
+      </div>
+
+      <!-- Step 3 — Shift Offsets (the Key) -->
+      <div class="step-card">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">3</span>
+          Shift Offset Key
+        </h2>
+
+        <div class="space-y-4">
+          <div>
+            <label for="shiftKeyOutput" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Computed Shift Offsets (forward/backward corrections)
+            </label>
+            <textarea id="shiftKeyOutput" rows="3" class="w-full rounded-lg px-4 py-3 text-sm resize-y" readonly placeholder="Shift key will appear here…"></textarea>
+          </div>
+
+          <button class="btn-secondary" onclick="copyToClipboard('shiftKeyOutput')">📋 Copy Shift Key</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════ TAB 2 — EXTRACTION ════════════════════ -->
+    <section id="panel-extract" class="tab-panel space-y-6" role="tabpanel" aria-labelledby="tab-extract">
+
+      <div class="step-card">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-5 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">⟲</span>
+          Extraction &amp; Decryption
+        </h2>
+
+        <div class="space-y-4">
+          <!-- Cover Text -->
+          <div>
+            <label for="extractCover" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Original Cover Text (ASCII Art)
+            </label>
+            <textarea id="extractCover" rows="10" class="w-full rounded-lg px-4 py-3 text-sm leading-relaxed resize-y" placeholder="Paste the original ASCII art…"></textarea>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label for="extractPassword" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+              Secret Password (Seed)
+            </label>
+            <input id="extractPassword" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter the same password used during embedding…" />
+          </div>
+
+          <!-- Shift Key -->
+          <div>
+            <label for="extractShiftKey" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Shift Offset Key
+            </label>
+            <textarea id="extractShiftKey" rows="3" class="w-full rounded-lg px-4 py-3 text-sm resize-y" placeholder="Paste the shift key here…"></textarea>
+          </div>
+
+          <button class="btn-primary" onclick="extractSecretMessage()">
+            🔓 Extract Secret Message
+          </button>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div class="step-card" id="extractResultCard" style="display:none;">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">✓</span>
+          Decrypted Message
+        </h2>
+        <div id="extractedResult" class="result-box text-lg text-center py-6 animate-pulse_glow"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
+  <footer class="relative z-10 border-t border-brand-400/10 mt-12">
+    <div class="max-w-5xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-brand-400/30">
+      <span>ASCII-Stego Delta &mdash; Proof of Concept</span>
+      <span>Zero-Distortion &bull; No Cover Modification</span>
+    </div>
+  </footer>
+
+
+  <!-- ═══════════════════════════ JS LOGIC ═══════════════════════════ -->
+<script src="main.js"></script>
+</body>
+</html>
