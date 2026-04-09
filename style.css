@@ -154,3 +154,49 @@
       font-size: .75rem; color: rgba(0,255,65,0.6);
     }
     .meter-stat .val { color: #00ff41; font-weight: 600; }
+
+    /* ─── Emoji Selector Grid ───────────────────────────────── */
+    .emoji-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .emoji-selector-btn {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(0,255,65,0.15);
+      border-radius: 8px;
+      background: rgba(0,255,65,0.04);
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all .2s ease;
+      color: inherit;
+      user-select: none;
+    }
+    .emoji-selector-btn:hover {
+      background: rgba(0,255,65,0.12);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .emoji-selector-btn:active {
+      transform: scale(0.92);
+    }
+    .emoji-selector-btn.selected {
+      background: rgba(0,255,65,0.18);
+      border-color: #00ff41;
+      box-shadow: 0 0 12px rgba(0,255,65,0.3);
+    }
+
+    /* ─── VS Hex Visualization ──────────────────────────────── */
+    .vs-viz-box {
+      background: #080812 !important;
+      color: #00ff41 !important;
+      font-family: 'JetBrains Mono', monospace !important;
+      font-size: .72rem !important;
+      line-height: 1.7;
+      border-color: rgba(0,255,65,0.1) !important;
+    }

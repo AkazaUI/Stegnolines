@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Hide secret messages and files inside emojis using Unicode Variation Selectors steganography">
+    <title>Emoji Steganography — Hide Messages & Files in Emojis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ═══════════════════════════════════════════
+           CSS Custom Properties & Reset
+           ═══════════════════════════════════════════ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-gradient-1: #7c3aed;
+            --bg-gradient-2: #ec4899;
+            --bg-gradient-3: #ef4444;
+            --card-bg: rgba(255, 255, 255, 0.12);
+            --card-border: rgba(255, 255, 255, 0.2);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --text-muted: rgba(255, 255, 255, 0.55);
+            --input-bg: rgba(255, 255, 255, 0.08);
+            --input-border: rgba(255, 255, 255, 0.15);
+            --input-focus: rgba(255, 255, 255, 0.3);
+            --accent: #a78bfa;
+            --accent-glow: rgba(167, 139, 250, 0.4);
+            --btn-bg: rgba(255, 255, 255, 0.08);
+            --btn-hover: rgba(255, 255, 255, 0.18);
+            --btn-selected: rgba(167, 139, 250, 0.35);
+            --btn-selected-border: #a78bfa;
+            --error-color: #fca5a5;
+            --success-color: #86efac;
+            --toggle-bg: rgba(255, 255, 255, 0.15);
+            --toggle-active: #a78bfa;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ═══════════════════════════════════════════
+           Body & Background
+           ═══════════════════════════════════════════ */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));
+            background-size: 400% 400%;
+            animation: gradientShift 12s ease infinite;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating orbs */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::before {
+            width: 500px;
+            height: 500px;
+            background: #8b5cf6;
+            top: -150px;
+            left: -100px;
+            animation: float1 18s ease-in-out infinite;
+        }
+        body::after {
+            width: 400px;
+            height: 400px;
+            background: #f472b6;
+            bottom: -100px;
+            right: -80px;
+            animation: float2 22s ease-in-out infinite;
+        }
+
+        @keyframes float1 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(60px, 40px); }
+        }
+        @keyframes float2 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-50px, -30px); }
+        }
+
+        /* ═══════════════════════════════════════════
+           Card (Glassmorphism)
+           ═══════════════════════════════════════════ */
+        .card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: var(--card-shadow);
+            padding: 36px 32px 28px;
+            animation: cardEnter 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px) scale(0.97);
+        }
+
+        @keyframes cardEnter {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ═══════════════════════════════════════════
+           Title
+           ═══════════════════════════════════════════ */
+        h1 {
+            text-align: center;
+            font-size: 1.55rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, #fff 0%, #e0d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 22px;
+            line-height: 1.5;
+        }
+
+        /* ═══════════════════════════════════════════
+           Mode Toggle (Encode / Decode)
+           ═══════════════════════════════════════════ */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            transition: color var(--transition);
+            cursor: pointer;
+            user-select: none;
+        }
+        .toggle-label.active {
+            color: var(--text-primary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            background: var(--toggle-bg);
+            border-radius: 14px;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background var(--transition);
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            transition: transform var(--transition), background var(--transition);
+        }
+        .toggle-switch.encode::after {
+            transform: translateX(24px);
+            background: var(--toggle-active);
+        }
+        .toggle-switch.encode {
+            background: rgba(167, 139, 250, 0.25);
+        }
+
+        /* ═══════════════════════════════════════════
+           Type Tabs (Text / File)
+           ═══════════════════════════════════════════ */
+        .type-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            background: rgba(255,255,255, 0.06);
+            border-radius: 10px;
+            padding: 3px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .type-tab {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .type-tab:hover {
+            color: var(--text-secondary);
+        }
+        .type-tab.active {
+            background: rgba(167, 139, 250, 0.3);
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+        .type-tab-icon {
+            font-size: 1rem;
+        }
+
+        /* ═══════════════════════════════════════════
+           Textarea
+           ═══════════════════════════════════════════ */
+        .field-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 90px;
+            padding: 12px 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.92rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+        textarea:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        textarea[readonly] {
+            cursor: default;
+            opacity: 0.85;
+        }
+
+        .textarea-group {
+            margin-bottom: 14px;
+        }
+
+        /* ═══════════════════════════════════════════
+           File Drop Zone
+           ═══════════════════════════════════════════ */
+        .file-drop-zone {
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: var(--radius-sm);
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            margin-bottom: 14px;
+            background: var(--input-bg);
+            position: relative;
+        }
+        .file-drop-zone:hover,
+        .file-drop-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(167, 139, 250, 0.1);
+            transform: scale(1.01);
+        }
+        .file-drop-zone.dragover {
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        .file-drop-zone.has-file {
+            border-style: solid;
+            border-color: var(--accent);
+            padding: 16px 20px;
+        }
+
+        .drop-content {
+            pointer-events: none;
+        }
+        .drop-icon {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .drop-text {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+        .browse-link {
+            color: var(--accent);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .drop-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .file-info-icon {
+            font-size: 1.6rem;
+            flex-shrink: 0;
+        }
+        .file-info-details {
+            flex: 1;
+            text-align: left;
+            min-width: 0;
+        }
+        .file-info-name {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .file-info-size {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .file-remove-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+            flex-shrink: 0;
+        }
+        .file-remove-btn:hover {
+            background: rgba(239, 68, 68, 0.4);
+            color: #fff;
+        }
+
+        /* ═══════════════════════════════════════════
+           Capacity Indicator
+           ═══════════════════════════════════════════ */
+        .capacity-container {
+            margin-bottom: 14px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .capacity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .capacity-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .capacity-value {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .capacity-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .capacity-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+            width: 0%;
+            background: var(--success-color);
+        }
+        .capacity-fill.warn {
+            background: #fbbf24;
+        }
+        .capacity-fill.danger {
+            background: #f87171;
+        }
+
+        .capacity-info {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+        .capacity-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.08);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .capacity-badge .cb-icon {
+            font-size: 0.8rem;
+        }
+
+        /* ═══════════════════════════════════════════
+           Emoji / Alphabet Selector
+           ═══════════════════════════════════════════ */
+        .selector-section {
+            margin-bottom: 14px;
+        }
+
+        .selector-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .selector-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .selector-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            background: var(--btn-bg);
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all var(--transition);
+            color: var(--text-primary);
+            user-select: none;
+        }
+        .selector-btn:hover:not(.disabled) {
+            background: var(--btn-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .selector-btn:active:not(.disabled) {
+            transform: scale(0.93);
+        }
+        .selector-btn.selected {
+            background: var(--btn-selected);
+            border-color: var(--btn-selected-border);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+        .selector-btn.disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .selector-btn.letter {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* ═══════════════════════════════════════════
+           Custom Emoji Input
+           ═══════════════════════════════════════════ */
+        .custom-emoji-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .custom-emoji-input {
+            flex: 1;
+            padding: 8px 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+        .custom-emoji-input::placeholder {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+        .custom-emoji-input:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+        .custom-emoji-btn {
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            background: rgba(167, 139, 250, 0.25);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+        .custom-emoji-btn:hover {
+            background: rgba(167, 139, 250, 0.4);
+            transform: translateY(-1px);
+        }
+        .custom-emoji-btn:active {
+            transform: scale(0.96);
+        }
+        .custom-emoji-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ═══════════════════════════════════════════
+           File Decode Result
+           ═══════════════════════════════════════════ */
+        .file-result {
+            background: rgba(134, 239, 172, 0.1);
+            border: 1px solid rgba(134, 239, 172, 0.25);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 14px;
+            animation: fadeIn 0.4s ease;
+        }
+        .file-result-icon {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+        .file-result-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            word-break: break-all;
+        }
+        .file-result-size {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(134,239,172,0.35), rgba(74,222,128,0.3));
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            border: 1px solid rgba(134,239,172,0.2);
+        }
+        .download-btn:hover {
+            background: linear-gradient(135deg, rgba(134,239,172,0.5), rgba(74,222,128,0.45));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(74,222,128,0.3);
+        }
+
+        /* ═══════════════════════════════════════════
+           Copy Button
+           ═══════════════════════════════════════════ */
+        .copy-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 11px;
+            margin-top: 4px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, rgba(167,139,250,0.35), rgba(236,72,153,0.3));
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            letter-spacing: 0.02em;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .copy-btn:hover {
+            background: linear-gradient(135deg, rgba(167,139,250,0.5), rgba(236,72,153,0.45));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(167,139,250,0.3);
+        }
+        .copy-btn:active {
+            transform: scale(0.98);
+        }
+        .copy-btn.copied {
+            background: linear-gradient(135deg, rgba(134,239,172,0.35), rgba(74,222,128,0.3));
+        }
+
+        .copy-icon {
+            width: 15px;
+            height: 15px;
+        }
+
+        /* ═══════════════════════════════════════════
+           Error
+           ═══════════════════════════════════════════ */
+        .error-text {
+            text-align: center;
+            color: var(--error-color);
+            font-size: 0.82rem;
+            margin-top: 8px;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        /* ═══════════════════════════════════════════
+           Footer
+           ═══════════════════════════════════════════ */
+        .footer {
+            text-align: center;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .footer a {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+        .footer a:hover {
+            color: var(--text-primary);
+        }
+
+        /* ═══════════════════════════════════════════
+           Carrier Mode Selector
+           ═══════════════════════════════════════════ */
+        .carrier-section {
+            margin-bottom: 14px;
+        }
+        .carrier-mode-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255, 0.06);
+            border-radius: 8px;
+            padding: 3px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .carrier-mode-tab {
+            flex: 1;
+            padding: 7px 10px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .carrier-mode-tab:hover {
+            color: var(--text-secondary);
+        }
+        .carrier-mode-tab.active {
+            background: rgba(167, 139, 250, 0.3);
+            color: var(--text-primary);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .carrier-message-group {
+            margin-top: 8px;
+        }
+        .carrier-message-group textarea {
+            min-height: 60px;
+            font-size: 0.88rem;
+        }
+        .carrier-hint {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+        .carrier-hint strong {
+            color: var(--text-secondary);
+        }
+
+        /* ═══════════════════════════════════════════
+           Utility: Hidden
+           ═══════════════════════════════════════════ */
+        .hidden {
+            display: none !important;
+        }
+
+        /* ═══════════════════════════════════════════
+           Responsive
+           ═══════════════════════════════════════════ */
+        @media (max-width: 520px) {
+            .card {
+                padding: 24px 18px 20px;
+            }
+            h1 {
+                font-size: 1.3rem;
+            }
+            .selector-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 0.95rem;
+            }
+            .type-tab {
+                font-size: 0.78rem;
+                padding: 7px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card" id="app-card">
+    <!-- Title -->
+    <h1>Hide a message in an emoji</h1>
+    <p class="subtitle">Encode secret messages &amp; files into emojis using invisible steganography ✨</p>
+
+    <!-- Mode Toggle: Encode / Decode -->
+    <div class="toggle-container">
+        <span class="toggle-label active" id="label-decode" onclick="setMode('decode')">Decode</span>
+        <div class="toggle-switch encode" id="mode-toggle" onclick="toggleMode()"></div>
+        <span class="toggle-label" id="label-encode" onclick="setMode('encode')">Encode</span>
+    </div>
+
+    <!-- Type Tabs: Text / File (encode mode only) -->
+    <div class="type-tabs" id="type-tabs">
+        <button class="type-tab active" id="tab-text" onclick="setInputType('text')">
+            <span class="type-tab-icon">📝</span> Text
+        </button>
+        <button class="type-tab" id="tab-file" onclick="setInputType('file')">
+            <span class="type-tab-icon">📁</span> File
+        </button>
+    </div>
+
+    <!-- Text Input (encode-text mode & decode mode) -->
+    <div class="textarea-group" id="text-input-group">
+        <div class="field-label" id="input-label">Enter text to encode</div>
+        <textarea id="input-text" placeholder="Type your secret message here…"></textarea>
+    </div>
+
+    <!-- File Drop Zone (encode-file mode) -->
+    <div class="file-drop-zone hidden" id="file-drop-zone">
+        <div class="drop-content" id="drop-content">
+            <div class="drop-icon">📂</div>
+            <div class="drop-text">Drop a file here or <span class="browse-link">browse</span></div>
+            <div class="drop-hint">Maximum file size: 100 KB</div>
+        </div>
+        <div class="file-info hidden" id="file-info">
+            <div class="file-info-icon" id="file-info-icon">📄</div>
+            <div class="file-info-details">
+                <div class="file-info-name" id="file-info-name"></div>
+                <div class="file-info-size" id="file-info-size"></div>
+            </div>
+            <button class="file-remove-btn" id="file-remove-btn" onclick="removeFile(event)">✕</button>
+        </div>
+        <input type="file" id="file-input" style="display:none">
+    </div>
+
+    <!-- Carrier Mode (file encode mode) -->
+    <div class="carrier-section hidden" id="carrier-section">
+        <div class="field-label">Carrier mode</div>
+        <div class="carrier-mode-tabs">
+            <button class="carrier-mode-tab active" id="carrier-tab-emoji" onclick="setCarrierMode('emoji')">
+                🔁 Unified Emoji
+            </button>
+            <button class="carrier-mode-tab" id="carrier-tab-message" onclick="setCarrierMode('message')">
+                💬 Custom Message
+            </button>
+        </div>
+        <div class="carrier-message-group hidden" id="carrier-message-group">
+            <textarea id="carrier-message" placeholder="Type a cover message… e.g. I love this so much haha 😂"></textarea>
+            <div class="carrier-hint">Each character of your message will carry hidden data. The output will <strong>look like your message</strong> but contain the hidden file.</div>
+        </div>
+    </div>
+
+    <!-- Capacity Indicator -->
+    <div class="capacity-container hidden" id="capacity-container">
+        <div class="capacity-header">
+            <span class="capacity-label">Capacity</span>
+            <span class="capacity-value" id="capacity-value">0 bytes</span>
+        </div>
+        <div class="capacity-bar">
+            <div class="capacity-fill" id="capacity-fill"></div>
+        </div>
+        <div class="capacity-info" id="capacity-info"></div>
+    </div>
+
+    <!-- Emoji Selector -->
+    <div class="selector-section" id="emoji-section">
+        <div class="selector-title">Pick an emoji</div>
+        <div class="selector-grid" id="emoji-grid"></div>
+        <!-- Custom Emoji Input -->
+        <div class="custom-emoji-row">
+            <input type="text" class="custom-emoji-input" id="custom-emoji-input" placeholder="Or type any emoji / character…" maxlength="10">
+            <button class="custom-emoji-btn" id="custom-emoji-btn" onclick="useCustomEmoji()">Use</button>
+        </div>
+    </div>
+
+    <!-- Alphabet Selector -->
+    <div class="selector-section" id="alpha-section">
+        <div class="selector-title">Or pick an alphabet letter</div>
+        <div class="selector-grid" id="alpha-grid"></div>
+    </div>
+
+    <!-- Text Output -->
+    <div class="textarea-group" id="text-output-group">
+        <div class="field-label" id="output-label">Encoded output</div>
+        <textarea id="output-text" placeholder="Result will appear here…" readonly></textarea>
+    </div>
+
+    <!-- File Decode Result -->
+    <div class="file-result hidden" id="file-result">
+        <div class="file-result-icon" id="file-result-icon">📄</div>
+        <div class="file-result-name" id="file-result-name"></div>
+        <div class="file-result-size" id="file-result-size"></div>
+        <button class="download-btn" id="download-btn" onclick="downloadDecodedFile()">
+            ⬇️ Download File
+        </button>
+    </div>
+
+    <!-- Copy Button -->
+    <button class="copy-btn" id="copy-btn" onclick="copyOutput()">
+        <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        <span id="copy-label">Copy to Clipboard</span>
+    </button>
+
+    <!-- Error -->
+    <div class="error-text hidden" id="error-text"></div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <a href="https://github.com/paulgb/emoji-encoder" target="_blank" rel="noopener noreferrer">Source on GitHub</a>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// Data
+// ═══════════════════════════════════════════════════
+const EMOJI_LIST = [
+    "😀","😂","🥰","😎","🤔","👍","👎","👏","😅","🤝",
+    "🎉","🎂","🍕","🌈","🌞","🌙","🔥","💯","🚀","👀","💀","🥹"
+];
+
+const ALPHABET_LIST = [
+    'a','b','c','d','e','f','g','h','i','j','k','l','m',
+    'n','o','p','q','r','s','t','u','v','w','x','y','z'
+];
+
+const MAX_FILE_SIZE = 100 * 1024;       // 100 KB
+const BYTES_PER_EMOJI = 200;            // bytes per carrier emoji for file encoding
+const CAPACITY_SOFT_MAX = 500;          // bytes — soft cap for text capacity bar
+const FILE_MARKER = 0xFF;              // marker byte to identify file encoding
+
+// File extension → icon mapping
+const FILE_ICONS = {
+    pdf: '📕', doc: '📘', docx: '📘', txt: '📝', csv: '📊',
+    xls: '📊', xlsx: '📊', png: '🖼️', jpg: '🖼️', jpeg: '🖼️',
+    gif: '🖼️', svg: '🖼️', webp: '🖼️', bmp: '🖼️',
+    mp3: '🎵', wav: '🎵', mp4: '🎬', zip: '📦', rar: '📦',
+    '7z': '📦', html: '🌐', css: '🎨', js: '⚡', json: '📋',
+    py: '🐍', java: '☕', default: '📄'
+};
+
+// ═══════════════════════════════════════════════════
+// Encoding / Decoding Core Logic
+// ═══════════════════════════════════════════════════
+
+const VARIATION_SELECTOR_START = 0xFE00;
+const VARIATION_SELECTOR_END   = 0xFE0F;
+const VARIATION_SELECTOR_SUPPLEMENT_START = 0xE0100;
+const VARIATION_SELECTOR_SUPPLEMENT_END   = 0xE01EF;
+
+function toVariationSelector(byte) {
+    if (byte >= 0 && byte < 16) {
+        return String.fromCodePoint(VARIATION_SELECTOR_START + byte);
+    } else if (byte >= 16 && byte < 256) {
+        return String.fromCodePoint(VARIATION_SELECTOR_SUPPLEMENT_START + byte - 16);
+    }
+    return null;
+}
+
+function fromVariationSelector(codePoint) {
+    if (codePoint >= VARIATION_SELECTOR_START && codePoint <= VARIATION_SELECTOR_END) {
+        return codePoint - VARIATION_SELECTOR_START;
+    } else if (codePoint >= VARIATION_SELECTOR_SUPPLEMENT_START && codePoint <= VARIATION_SELECTOR_SUPPLEMENT_END) {
+        return codePoint - VARIATION_SELECTOR_SUPPLEMENT_START + 16;
+    }
+    return null;
+}
+
+// --- Text Encoding ---
+function encodeText(emoji, text) {
+    const bytes = new TextEncoder().encode(text);
+    let encoded = emoji;
+    for (const byte of bytes) {
+        encoded += toVariationSelector(byte);
+    }
+    return encoded;
+}
+
+// --- Text Decoding (single emoji — original algorithm) ---
+function decodeText(text) {
+    let decoded = [];
+    const chars = Array.from(text);
+    for (const char of chars) {
+        const byte = fromVariationSelector(char.codePointAt(0));
+        if (byte === null && decoded.length > 0) break;
+        else if (byte === null) continue;
+        decoded.push(byte);
+    }
+    return new TextDecoder().decode(new Uint8Array(decoded));
+}
+
+// --- Multi-emoji: extract ALL variation selector bytes ---
+function decodeAllBytes(text) {
+    const bytes = [];
+    const chars = Array.from(text);
+    for (const char of chars) {
+        const byte = fromVariationSelector(char.codePointAt(0));
+        if (byte !== null) bytes.push(byte);
+    }
+    return new Uint8Array(bytes);
+}
+
+// ═══════════════════════════════════════════════════
+// File Encoding / Decoding
+// ═══════════════════════════════════════════════════
+//
+// Binary format:
+//   [0xFF marker] [nameLen: 1 byte] [fileName: nameLen bytes]
+//   [fileSize: 4 bytes big-endian] [fileData: fileSize bytes]
+//
+// Data is split into chunks of BYTES_PER_EMOJI bytes.
+// Each chunk is appended as variation selectors after a carrier emoji.
+
+function encodeFile(carrierEmojis, fileBytes, fileName) {
+    const nameBytes = new TextEncoder().encode(fileName);
+    const nameLen = Math.min(nameBytes.length, 255);
+
+    // Build header + data
+    const headerSize = 1 + 1 + nameLen + 4;
+    const totalSize = headerSize + fileBytes.length;
+    const allData = new Uint8Array(totalSize);
+
+    let offset = 0;
+    allData[offset++] = FILE_MARKER;
+    allData[offset++] = nameLen;
+    allData.set(nameBytes.subarray(0, nameLen), offset);
+    offset += nameLen;
+
+    // File size — 4 bytes big-endian
+    const size = fileBytes.length;
+    allData[offset++] = (size >>> 24) & 0xFF;
+    allData[offset++] = (size >>> 16) & 0xFF;
+    allData[offset++] = (size >>> 8) & 0xFF;
+    allData[offset++] = size & 0xFF;
+
+    allData.set(new Uint8Array(fileBytes), offset);
+
+    // Split into chunks → one emoji per chunk
+    let result = '';
+    let emojiIdx = 0;
+    for (let i = 0; i < allData.length; i += BYTES_PER_EMOJI) {
+        const chunk = allData.slice(i, Math.min(i + BYTES_PER_EMOJI, allData.length));
+        const emoji = carrierEmojis[emojiIdx % carrierEmojis.length];
+        emojiIdx++;
+
+        result += emoji;
+        for (const byte of chunk) {
+            result += toVariationSelector(byte);
+        }
+    }
+    return result;
+}
+
+function tryDecodeFile(allBytes) {
+    if (allBytes.length < 6 || allBytes[0] !== FILE_MARKER) return null;
+
+    const nameLen = allBytes[1];
+    if (allBytes.length < 2 + nameLen + 4) return null;
+
+    const nameBytes = allBytes.slice(2, 2 + nameLen);
+    const fileName = new TextDecoder().decode(nameBytes);
+
+    const sOff = 2 + nameLen;
+    const fileSize = (allBytes[sOff] << 24) | (allBytes[sOff + 1] << 16) |
+                     (allBytes[sOff + 2] << 8) | allBytes[sOff + 3];
+
+    const dataStart = sOff + 4;
+    if (allBytes.length < dataStart + fileSize) return null;
+
+    const fileData = allBytes.slice(dataStart, dataStart + fileSize);
+    return { fileName, fileData: new Uint8Array(fileData), fileSize };
+}
+
+// ═══════════════════════════════════════════════════
+// State
+// ═══════════════════════════════════════════════════
+let currentMode = 'encode';     // 'encode' | 'decode'
+let inputType   = 'text';       // 'text' | 'file'
+let selectedEmoji = '😀';
+let carrierMode = 'emoji';      // 'emoji' | 'message'
+let uploadedFile = null;        // { name, data: Uint8Array, size }
+let decodedFileResult = null;   // { fileName, fileData, fileSize }
+
+// ═══════════════════════════════════════════════════
+// DOM References
+// ═══════════════════════════════════════════════════
+const $inputText       = document.getElementById('input-text');
+const $outputText      = document.getElementById('output-text');
+const $errorText       = document.getElementById('error-text');
+const $modeToggle      = document.getElementById('mode-toggle');
+const $labelEncode     = document.getElementById('label-encode');
+const $labelDecode     = document.getElementById('label-decode');
+const $inputLabel      = document.getElementById('input-label');
+const $outputLabel     = document.getElementById('output-label');
+const $emojiGrid       = document.getElementById('emoji-grid');
+const $alphaGrid       = document.getElementById('alpha-grid');
+const $emojiSection    = document.getElementById('emoji-section');
+const $alphaSection    = document.getElementById('alpha-section');
+const $typeTabs        = document.getElementById('type-tabs');
+const $tabText         = document.getElementById('tab-text');
+const $tabFile         = document.getElementById('tab-file');
+const $textInputGroup  = document.getElementById('text-input-group');
+const $fileDropZone    = document.getElementById('file-drop-zone');
+const $dropContent     = document.getElementById('drop-content');
+const $fileInfo        = document.getElementById('file-info');
+const $fileInfoIcon    = document.getElementById('file-info-icon');
+const $fileInfoName    = document.getElementById('file-info-name');
+const $fileInfoSize    = document.getElementById('file-info-size');
+const $fileInput       = document.getElementById('file-input');
+const $capacityContainer = document.getElementById('capacity-container');
+const $capacityValue   = document.getElementById('capacity-value');
+const $capacityFill    = document.getElementById('capacity-fill');
+const $capacityInfo    = document.getElementById('capacity-info');
+const $textOutputGroup = document.getElementById('text-output-group');
+const $fileResult      = document.getElementById('file-result');
+const $fileResultIcon  = document.getElementById('file-result-icon');
+const $fileResultName  = document.getElementById('file-result-name');
+const $fileResultSize  = document.getElementById('file-result-size');
+const $copyBtn         = document.getElementById('copy-btn');
+const $customEmojiInput = document.getElementById('custom-emoji-input');
+const $customEmojiBtn  = document.getElementById('custom-emoji-btn');
+const $carrierSection  = document.getElementById('carrier-section');
+const $carrierTabEmoji = document.getElementById('carrier-tab-emoji');
+const $carrierTabMsg   = document.getElementById('carrier-tab-message');
+const $carrierMsgGroup = document.getElementById('carrier-message-group');
+const $carrierMessage  = document.getElementById('carrier-message');
+
+// ═══════════════════════════════════════════════════
+// Utility Helpers
+// ═══════════════════════════════════════════════════
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    if (bytes < 1024) return bytes + ' B';
+    return (bytes / 1024).toFixed(1) + ' KB';
+}
+
+function getFileIcon(filename) {
+    const ext = (filename.split('.').pop() || '').toLowerCase();
+    return FILE_ICONS[ext] || FILE_ICONS.default;
+}
+
+function show(el) { el.classList.remove('hidden'); }
+function hide(el) { el.classList.add('hidden'); }
+
+// ═══════════════════════════════════════════════════
+// Build Emoji / Alphabet Grids
+// ═══════════════════════════════════════════════════
+function buildGrid(container, list, isLetter) {
+    container.innerHTML = '';
+    list.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'selector-btn' + (isLetter ? ' letter' : '');
+        btn.textContent = item;
+        btn.dataset.value = item;
+        btn.addEventListener('click', () => selectEmoji(item));
+        container.appendChild(btn);
+    });
+}
+
+buildGrid($emojiGrid, EMOJI_LIST, false);
+buildGrid($alphaGrid, ALPHABET_LIST, true);
+
+// ═══════════════════════════════════════════════════
+// Custom Emoji
+// ═══════════════════════════════════════════════════
+function useCustomEmoji() {
+    const raw = $customEmojiInput.value.trim();
+    if (!raw) return;
+
+    // Extract first grapheme cluster
+    let firstChar;
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+        const seg = new Intl.Segmenter('en', { granularity: 'grapheme' });
+        const segments = [...seg.segment(raw)];
+        firstChar = segments[0]?.segment;
+    } else {
+        firstChar = Array.from(raw)[0];
+    }
+
+    if (!firstChar) return;
+
+    selectedEmoji = firstChar;
+    $customEmojiInput.value = firstChar;
+    updateSelection();
+    processInput();
+}
+
+$customEmojiInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        useCustomEmoji();
+    }
+});
+
+// ═══════════════════════════════════════════════════
+// Emoji Selection
+// ═══════════════════════════════════════════════════
+function selectEmoji(emoji) {
+    if (currentMode !== 'encode') return;
+    selectedEmoji = emoji;
+    $customEmojiInput.value = '';
+    updateSelection();
+    processInput();
+}
+
+function updateSelection() {
+    const allBtns = document.querySelectorAll('.selector-btn');
+    allBtns.forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.value === selectedEmoji);
+    });
+}
+
+// ═══════════════════════════════════════════════════
+// Mode & Type Switching
+// ═══════════════════════════════════════════════════
+function toggleMode() {
+    setMode(currentMode === 'encode' ? 'decode' : 'encode');
+}
+
+function setMode(mode) {
+    if (currentMode === mode) return;
+    currentMode = mode;
+    clearAll();
+    updateUI();
+}
+
+function setInputType(type) {
+    if (inputType === type) return;
+    inputType = type;
+    clearAll();
+    updateUI();
+}
+
+function setCarrierMode(mode) {
+    if (carrierMode === mode) return;
+    carrierMode = mode;
+    $carrierTabEmoji.classList.toggle('active', mode === 'emoji');
+    $carrierTabMsg.classList.toggle('active', mode === 'message');
+    if (mode === 'message') {
+        show($carrierMsgGroup);
+    } else {
+        hide($carrierMsgGroup);
+    }
+    processInput();
+}
+
+$carrierMessage.addEventListener('input', processInput);
+
+function clearAll() {
+    $inputText.value = '';
+    $outputText.value = '';
+    hide($errorText);
+    uploadedFile = null;
+    decodedFileResult = null;
+    hide($fileResult);
+    hide($fileInfo);
+    show($dropContent);
+    $fileDropZone.classList.remove('has-file');
+    $fileInput.value = '';
+    updateCapacity(0, 0);
+}
+
+// ═══════════════════════════════════════════════════
+// UI State Update
+// ═══════════════════════════════════════════════════
+function updateUI() {
+    const isEncode = currentMode === 'encode';
+    const isText = inputType === 'text';
+
+    // Toggle switch
+    $modeToggle.classList.toggle('encode', isEncode);
+    $labelEncode.classList.toggle('active', isEncode);
+    $labelDecode.classList.toggle('active', !isEncode);
+
+    // Type tabs — only in encode mode
+    if (isEncode) { show($typeTabs); } else { hide($typeTabs); }
+
+    // Tab active state
+    $tabText.classList.toggle('active', isText);
+    $tabFile.classList.toggle('active', !isText);
+
+    // Input areas
+    if (isEncode && !isText) {
+        // File encode mode
+        hide($textInputGroup);
+        show($fileDropZone);
+        show($carrierSection);
+        // Show/hide carrier message based on current carrier mode
+        if (carrierMode === 'message') { show($carrierMsgGroup); } else { hide($carrierMsgGroup); }
+    } else {
+        // Text encode or Decode mode
+        show($textInputGroup);
+        hide($fileDropZone);
+        hide($carrierSection);
+    }
+
+    // Labels for text areas
+    if (isEncode) {
+        $inputLabel.textContent = 'Enter text to encode';
+        $outputLabel.textContent = 'Encoded output';
+        $inputText.placeholder = 'Type your secret message here…';
+        $outputText.placeholder = 'Encoded emoji will appear here…';
+    } else {
+        $inputLabel.textContent = 'Paste encoded text to decode';
+        $outputLabel.textContent = 'Decoded output';
+        $inputText.placeholder = 'Paste an emoji with a hidden message…';
+        $outputText.placeholder = 'Decoded message will appear here…';
+    }
+
+    // Selector enabled state
+    const selectorBtns = document.querySelectorAll('.selector-btn');
+    selectorBtns.forEach(btn => {
+        btn.classList.toggle('disabled', !isEncode);
+    });
+
+    // Custom emoji controls
+    $customEmojiInput.disabled = !isEncode;
+    $customEmojiBtn.disabled = !isEncode;
+
+    // Output areas — always show text output; file result is toggled dynamically during decode
+    show($textOutputGroup);
+    hide($fileResult);
+    show($copyBtn);
+
+    // Capacity — show in encode mode
+    if (isEncode) { show($capacityContainer); } else { hide($capacityContainer); }
+
+    updateSelection();
+}
+
+// ═══════════════════════════════════════════════════
+// Capacity Bar
+// ═══════════════════════════════════════════════════
+function updateCapacity(byteCount, emojiCount) {
+    if (currentMode !== 'encode') {
+        hide($capacityContainer);
+        return;
+    }
+    show($capacityContainer);
+
+    const isFile = inputType === 'file';
+    let percent, fillClass;
+
+    if (isFile) {
+        // For files: show percentage of max file size
+        percent = Math.min((byteCount / MAX_FILE_SIZE) * 100, 100);
+    } else {
+        // For text: use soft max
+        percent = Math.min((byteCount / CAPACITY_SOFT_MAX) * 100, 100);
+    }
+
+    if (percent < 40) fillClass = '';
+    else if (percent < 75) fillClass = 'warn';
+    else fillClass = 'danger';
+
+    $capacityFill.style.width = percent + '%';
+    $capacityFill.className = 'capacity-fill' + (fillClass ? ' ' + fillClass : '');
+
+    $capacityValue.textContent = formatBytes(byteCount);
+
+    // Info badges
+    let badges = '';
+    if (isFile && emojiCount > 0) {
+        badges += `<span class="capacity-badge"><span class="cb-icon">🔣</span> ${emojiCount} emoji${emojiCount > 1 ? 's' : ''}</span>`;
+    }
+    if (byteCount > 0) {
+        if (!isFile && byteCount <= 150) {
+            badges += `<span class="capacity-badge"><span class="cb-icon">✅</span> Safe for most platforms</span>`;
+        } else if (!isFile && byteCount <= 350) {
+            badges += `<span class="capacity-badge"><span class="cb-icon">⚠️</span> May be stripped on some platforms</span>`;
+        } else if (!isFile && byteCount > 350) {
+            badges += `<span class="capacity-badge"><span class="cb-icon">🔴</span> Large — may not survive copy/paste</span>`;
+        }
+    }
+    $capacityInfo.innerHTML = badges;
+}
+
+// ═══════════════════════════════════════════════════
+// Process Input
+// ═══════════════════════════════════════════════════
+function processInput() {
+    if (currentMode === 'encode') {
+        processEncode();
+    } else {
+        processDecode();
+    }
+}
+
+function processEncode() {
+    hide($errorText);
+    decodedFileResult = null;
+    hide($fileResult);
+    show($textOutputGroup);
+    show($copyBtn);
+
+    if (inputType === 'text') {
+        // --- Text encode ---
+        const value = $inputText.value;
+        if (!value) {
+            $outputText.value = '';
+            updateCapacity(0, 0);
+            return;
+        }
+        try {
+            const bytes = new TextEncoder().encode(value);
+            $outputText.value = encodeText(selectedEmoji, value);
+            updateCapacity(bytes.length, 1);
+        } catch (e) {
+            $outputText.value = '';
+            showError('Error encoding: Invalid input');
+        }
+    } else {
+        // --- File encode ---
+        if (!uploadedFile) {
+            $outputText.value = '';
+            updateCapacity(0, 0);
+            return;
+        }
+        try {
+            let carriers;
+
+            if (carrierMode === 'message') {
+                // Custom message mode — each character carries a chunk
+                const msg = $carrierMessage.value.trim();
+                if (!msg) {
+                    $outputText.value = '';
+                    updateCapacity(0, 0);
+                    showError('Please type a cover message to hide the file inside.');
+                    return;
+                }
+                // Split message into grapheme clusters
+                if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+                    const seg = new Intl.Segmenter('en', { granularity: 'grapheme' });
+                    carriers = [...seg.segment(msg)].map(s => s.segment);
+                } else {
+                    carriers = Array.from(msg);
+                }
+                // Filter out whitespace-only segments, keep them as carriers too
+            } else {
+                // Unified emoji mode — use the selected emoji for all chunks
+                carriers = [selectedEmoji];
+            }
+
+            const encoded = encodeFile(carriers, uploadedFile.data, uploadedFile.name);
+            $outputText.value = encoded;
+
+            const totalBytes = uploadedFile.data.length;
+            const headerSize = 1 + 1 + new TextEncoder().encode(uploadedFile.name).length + 4;
+            const emojiCount = Math.ceil((totalBytes + headerSize) / BYTES_PER_EMOJI);
+            updateCapacity(totalBytes, emojiCount);
+        } catch (e) {
+            $outputText.value = '';
+            showError('Error encoding file: ' + e.message);
+        }
+    }
+}
+
+function processDecode() {
+    hide($errorText);
+    decodedFileResult = null;
+    hide($fileResult);
+    show($textOutputGroup);
+    show($copyBtn);
+
+    const value = $inputText.value;
+    if (!value) {
+        $outputText.value = '';
+        return;
+    }
+
+    try {
+        // Try to decode all bytes and check for file marker
+        const allBytes = decodeAllBytes(value);
+
+        if (allBytes.length > 0 && allBytes[0] === FILE_MARKER) {
+            const fileResult = tryDecodeFile(allBytes);
+            if (fileResult) {
+                // It's a file!
+                decodedFileResult = fileResult;
+                hide($textOutputGroup);
+                hide($copyBtn);
+                show($fileResult);
+
+                $fileResultIcon.textContent = getFileIcon(fileResult.fileName);
+                $fileResultName.textContent = fileResult.fileName;
+                $fileResultSize.textContent = formatBytes(fileResult.fileSize);
+
+                $outputText.value = '';
+                return;
+            }
+        }
+
+        // Fall back to text decode
+        $outputText.value = decodeText(value);
+    } catch (e) {
+        $outputText.value = '';
+        showError('Error decoding: Invalid input');
+    }
+}
+
+function showError(msg) {
+    $errorText.textContent = msg;
+    show($errorText);
+}
+
+$inputText.addEventListener('input', processInput);
+
+// ═══════════════════════════════════════════════════
+// File Upload Handling
+// ═══════════════════════════════════════════════════
+$fileDropZone.addEventListener('click', (e) => {
+    if (e.target.closest('.file-remove-btn')) return;
+    $fileInput.click();
+});
+
+$fileDropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    $fileDropZone.classList.add('dragover');
+});
+
+$fileDropZone.addEventListener('dragleave', () => {
+    $fileDropZone.classList.remove('dragover');
+});
+
+$fileDropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    $fileDropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+});
+
+$fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleFileSelect(file);
+});
+
+function handleFileSelect(file) {
+    hide($errorText);
+
+    if (file.size > MAX_FILE_SIZE) {
+        showError(`File too large (${formatBytes(file.size)}). Maximum: ${formatBytes(MAX_FILE_SIZE)}`);
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        uploadedFile = {
+            name: file.name,
+            data: new Uint8Array(e.target.result),
+            size: file.size
+        };
+
+        // Update UI to show file info
+        $fileInfoIcon.textContent = getFileIcon(file.name);
+        $fileInfoName.textContent = file.name;
+        $fileInfoSize.textContent = formatBytes(file.size);
+        hide($dropContent);
+        show($fileInfo);
+        $fileDropZone.classList.add('has-file');
+
+        processInput();
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function removeFile(e) {
+    e.stopPropagation();
+    uploadedFile = null;
+    $fileInput.value = '';
+    show($dropContent);
+    hide($fileInfo);
+    $fileDropZone.classList.remove('has-file');
+    $outputText.value = '';
+    updateCapacity(0, 0);
+}
+
+// ═══════════════════════════════════════════════════
+// File Download (Decode)
+// ═══════════════════════════════════════════════════
+function downloadDecodedFile() {
+    if (!decodedFileResult) return;
+
+    const blob = new Blob([decodedFileResult.fileData]);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = decodedFileResult.fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════════
+// Copy to Clipboard
+// ═══════════════════════════════════════════════════
+function copyOutput() {
+    const text = $outputText.value;
+    if (!text) return;
+
+    navigator.clipboard.writeText(text).then(() => {
+        const label = document.getElementById('copy-label');
+        $copyBtn.classList.add('copied');
+        label.textContent = '✓ Copied!';
+        setTimeout(() => {
+            $copyBtn.classList.remove('copied');
+            label.textContent = 'Copy to Clipboard';
+        }, 2000);
+    });
+}
+
+// ═══════════════════════════════════════════════════
+// Initialize
+// ═══════════════════════════════════════════════════
+updateUI();
+</script>
+
+</body>
+</html>

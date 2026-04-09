@@ -46,6 +46,87 @@
 
 
     // ──────────────────────────────────────────────────────────────
+    // VARIATION SELECTORS  (Unicode Steganography)
+    // ──────────────────────────────────────────────────────────────
+
+    const VS_START      = 0xFE00;   // VS1  (byte 0-15)
+    const VS_END        = 0xFE0F;   // VS16
+    const VS_SUP_START  = 0xE0100;  // VS17 (byte 16-255)
+    const VS_SUP_END    = 0xE01EF;  // VS256
+
+    /** Convert a byte (0–255) → invisible Variation Selector character. */
+    function toVariationSelector(byte) {
+      if (byte >= 0 && byte < 16) {
+        return String.fromCodePoint(VS_START + byte);
+      } else if (byte >= 16 && byte < 256) {
+        return String.fromCodePoint(VS_SUP_START + byte - 16);
+      }
+      return null;
+    }
+
+    /** Convert a Variation Selector codePoint back → byte (0–255). */
+    function fromVariationSelector(codePoint) {
+      if (codePoint >= VS_START && codePoint <= VS_END) {
+        return codePoint - VS_START;
+      } else if (codePoint >= VS_SUP_START && codePoint <= VS_SUP_END) {
+        return codePoint - VS_SUP_START + 16;
+      }
+      return null;
+    }
+
+    /**
+     * Convert binary XOR key → array of bytes → VS string.
+     * Pads the binary to a multiple of 8, then converts each byte.
+     */
+    function xorKeyToVSString(binaryKey) {
+      const padded = binaryKey.padEnd(Math.ceil(binaryKey.length / 8) * 8, '0');
+      let vsStr = '';
+      const bytesArr = [];
+      for (let i = 0; i + 8 <= padded.length; i += 8) {
+        const b = parseInt(padded.substring(i, i + 8), 2);
+        bytesArr.push(b);
+        vsStr += toVariationSelector(b);
+      }
+      return { vsStr, bytesArr };
+    }
+
+    /**
+     * Extract all VS bytes from a text string.
+     * Returns { vsBytes: Uint8Array, cleanText: string }
+     */
+    function extractVSFromText(text) {
+      const vsBytes = [];
+      let cleanText = '';
+      const chars = Array.from(text);
+      for (const char of chars) {
+        const cp = char.codePointAt(0);
+        const b = fromVariationSelector(cp);
+        if (b !== null) {
+          vsBytes.push(b);
+        } else {
+          cleanText += char;
+        }
+      }
+      return { vsBytes: new Uint8Array(vsBytes), cleanText };
+    }
+
+    /**
+     * Build the final output based on emoji mode.
+     * - No emoji: [VS key] + [cover text]
+     * - With emoji: [cover text] + [emoji + VS key]
+     */
+    function buildFinalOutput(coverText, vsKeyStr, emoji) {
+      if (!emoji || emoji === 'none') {
+        // بدون إيموجي: المفتاح المخفي ثم نص الغلاف
+        return vsKeyStr + coverText;
+      } else {
+        // مع إيموجي: نص الغلاف ثم الإيموجي + المفتاح المخفي
+        return coverText + emoji + vsKeyStr;
+      }
+    }
+
+
+    // ──────────────────────────────────────────────────────────────
     // SEEDED PRNG  (Mulberry32)
     // ──────────────────────────────────────────────────────────────
 
@@ -109,7 +190,13 @@
 
 
     // ──────────────────────────────────────────────────────────────
-    // EMBEDDING  (XOR-Based — Binary Key)
+    // EMOJI STATE
+    // ──────────────────────────────────────────────────────────────
+    let selectedCarrierEmoji = 'none'; // 'none' or an emoji character
+
+
+    // ──────────────────────────────────────────────────────────────
+    // EMBEDDING  (XOR-Based + VS Key Embedding)
     // ──────────────────────────────────────────────────────────────
 
     function generateShiftMap() {
@@ -135,64 +222,142 @@
       const basePositions = generatePositions(coverBits.length, msgBits.length, password);
 
       // 4. XOR key: compare cover bit with message bit
-      //    0 = match (correct), 1 = mismatch (flip needed)
       const xorKey = generateXORKey(coverBits, basePositions, msgBits);
 
-      // 5. Output
+      // 5. Output — Base Positions & Binary XOR Key
       document.getElementById('baseMapOutput').value =
         '[' + basePositions.join(', ') + ']';
       document.getElementById('shiftKeyOutput').value = xorKey;
+
+      // 6. Convert XOR key → VS characters
+      const { vsStr, bytesArr } = xorKeyToVSString(xorKey);
+
+      // 7. Build Visual Hex Display
+      updateVSVisualization(xorKey, bytesArr);
+
+      // 8. Build Final Output
+      const finalOutput = buildFinalOutput(coverText, vsStr, selectedCarrierEmoji);
+      document.getElementById('finalOutput').value = finalOutput;
+
+      // 9. Update Key Size Meter
+      updateKeySizeMeter(bytesArr.length, coverText.length);
+
       updateCapacityMeter();
-      showToast('✅ تم توليد المفتاح الثنائي!');
+      showToast('✅ تم توليد المفتاح وتضمينه في الغلاف!');
+    }
+
+
+    /**
+     * Update the VS Visualization box with hex representation.
+     */
+    function updateVSVisualization(binaryKey, bytesArr) {
+      const vizBox = document.getElementById('vsVisualization');
+      if (!vizBox) return;
+
+      // Build visualization lines
+      let lines = [];
+      lines.push(`── المفتاح الثنائي (${binaryKey.length} بت) ──`);
+
+      // Show bytes in groups
+      let hexLine = '';
+      let binLine = '';
+      for (let i = 0; i < bytesArr.length; i++) {
+        const hexVal = '0x' + bytesArr[i].toString(16).toUpperCase().padStart(2, '0');
+        const binVal = bytesArr[i].toString(2).padStart(8, '0');
+        const vsCodePoint = bytesArr[i] < 16
+          ? 'U+' + (VS_START + bytesArr[i]).toString(16).toUpperCase()
+          : 'U+' + (VS_SUP_START + bytesArr[i] - 16).toString(16).toUpperCase();
+
+        lines.push(`بايت ${(i+1).toString().padStart(3)}: ${binVal}  →  ${hexVal}  →  VS[${vsCodePoint}]`);
+      }
+
+      lines.push('');
+      lines.push(`── المجموع: ${bytesArr.length} بايت = ${bytesArr.length} حرف VS مخفي ──`);
+
+      vizBox.value = lines.join('\n');
+    }
+
+
+    /**
+     * Update the key size meter.
+     */
+    function updateKeySizeMeter(keyBytes, coverLen) {
+      const countEl = document.getElementById('vsKeyCount');
+      const meterEl = document.getElementById('vsKeyMeter');
+      if (!countEl || !meterEl) return;
+
+      countEl.textContent = `${keyBytes} bytes / ${coverLen} chars`;
+
+      // Ratio: key bytes vs cover characters
+      const ratio = coverLen > 0 ? Math.min(100, (keyBytes / coverLen) * 100) : 0;
+      meterEl.style.width = ratio + '%';
+      meterEl.style.background = ratio > 80 ? '#ef4444' : (ratio > 50 ? '#eab308' : '#00cc34');
     }
 
 
     // ──────────────────────────────────────────────────────────────
-    // EXTRACTION  (XOR-Based — Binary Key)
+    // EXTRACTION  (Smart — auto-detect VS key in message)
     // ──────────────────────────────────────────────────────────────
 
     /**
-     * 1. Convert cover to bits
-     * 2. Regenerate same base positions (same password, same count)
-     * 3. Read cover bit at base position, XOR with key bit
-     * 4. Collect bits → text
+     * Smart extraction:
+     * 1. Extract VS bytes from the final message → XOR key
+     * 2. Clean text (without VS) = cover text (may have trailing emoji)
+     * 3. Regenerate positions using password + cover bits length
+     * 4. XOR to recover secret
      */
     function extractSecretMessage() {
-      const coverText = document.getElementById('extractCover').value;
-      const password  = document.getElementById('extractPassword').value;
-      const keyRaw    = document.getElementById('extractShiftKey').value.trim();
+      const finalMessage = document.getElementById('extractCover').value;
+      const password     = document.getElementById('extractPassword').value;
 
-      if (!coverText.trim()) return showToast('⚠ الرجاء إدخال النص الغلاف.');
-      if (!password.trim())  return showToast('⚠ الرجاء إدخال كلمة المرور.');
-      if (!keyRaw)           return showToast('⚠ الرجاء لصق المفتاح الثنائي.');
+      if (!finalMessage.trim()) return showToast('⚠ الرجاء إدخال الرسالة النهائية.');
+      if (!password.trim())     return showToast('⚠ الرجاء إدخال كلمة المرور.');
 
       try {
-        // Clean key: keep only 0s and 1s
-        const xorKey = keyRaw.replace(/[^01]/g, '');
-        if (xorKey.length === 0)
-          throw new Error('المفتاح غير صالح — يجب أن يحتوي على 0 و 1 فقط.');
+        // 1. Extract VS bytes and clean text
+        const { vsBytes, cleanText } = extractVSFromText(finalMessage);
 
-        // Convert cover to bits
+        let xorKeyBinary = '';
+        let coverText = cleanText;
+
+        if (vsBytes.length > 0) {
+          // Auto-detection: VS bytes found → reconstruct binary key
+          for (let i = 0; i < vsBytes.length; i++) {
+            xorKeyBinary += vsBytes[i].toString(2).padStart(8, '0');
+          }
+
+          // Show the extracted key in the key field for visibility
+          const keyField = document.getElementById('extractShiftKey');
+          if (keyField) keyField.value = xorKeyBinary;
+
+        } else {
+          // Fallback: no VS bytes found, try reading from the key field
+          const keyRaw = document.getElementById('extractShiftKey').value.trim();
+          if (!keyRaw) return showToast('⚠ لا توجد أحرف VS مخفية ولم يتم إدخال مفتاح يدوي.');
+          xorKeyBinary = keyRaw.replace(/[^01]/g, '');
+          if (xorKeyBinary.length === 0)
+            throw new Error('المفتاح غير صالح — يجب أن يحتوي على 0 و 1 فقط.');
+        }
+
+        // 2. Convert cover to bits
         const coverBits = stringToBinary(coverText);
 
-        if (xorKey.length > coverBits.length)
-          throw new Error(`المفتاح يحتوي ${xorKey.length} بت لكن الغلاف يحتوي ${coverBits.length} بت فقط.`);
+        if (xorKeyBinary.length > coverBits.length)
+          throw new Error(`المفتاح يحتوي ${xorKeyBinary.length} بت لكن الغلاف يحتوي ${coverBits.length} بت فقط.`);
 
-        // Regenerate same positions
-        const basePositions = generatePositions(coverBits.length, xorKey.length, password);
+        // 3. Regenerate same positions
+        const basePositions = generatePositions(coverBits.length, xorKeyBinary.length, password);
 
-        // Reconstruct message bits: coverBit XOR keyBit
-        // If key=0 → cover bit IS the message bit (match)
-        // If key=1 → cover bit is FLIPPED → flip it back
+        // 4. Reconstruct message bits
         let binaryStr = '';
-        for (let i = 0; i < xorKey.length; i++) {
+        for (let i = 0; i < xorKeyBinary.length; i++) {
           const coverBit = coverBits[basePositions[i]];
-          const keyBit   = xorKey[i];
-          // XOR: same → '0', different → '1'
+          const keyBit   = xorKeyBinary[i];
           binaryStr += (coverBit === keyBit) ? '0' : '1';
         }
 
-        // Decode bits → text
+        // 5. Decode bits → text
+        // Trim the binary key to actual message length (remove padding bits)
         const decoded = binaryToString(binaryStr);
         document.getElementById('extractResultCard').style.display = 'block';
         document.getElementById('extractedResult').textContent = decoded;
@@ -204,7 +369,7 @@
 
 
     // ──────────────────────────────────────────────────────────────
-    // CAPACITY METER  (Bit-level, language-aware)
+    // CAPACITY METER  (Bit-level)
     // ──────────────────────────────────────────────────────────────
 
     function updateCapacityMeter() {
@@ -243,11 +408,66 @@
 
 
     // ──────────────────────────────────────────────────────────────
+    // EMOJI SELECTION
+    // ──────────────────────────────────────────────────────────────
+
+    function selectCarrierEmoji(emoji) {
+      selectedCarrierEmoji = emoji;
+
+      // Update button states
+      document.querySelectorAll('.emoji-selector-btn').forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.dataset.emoji === emoji) btn.classList.add('selected');
+      });
+    }
+
+
+    // ──────────────────────────────────────────────────────────────
+    // TOGGLE DETAILS (Base Map + Binary Key)
+    // ──────────────────────────────────────────────────────────────
+
+    let detailsVisible = false;
+
+    function toggleDetails() {
+      detailsVisible = !detailsVisible;
+      const sections = document.querySelectorAll('.detail-section');
+      const btn = document.getElementById('toggleDetailsBtn');
+      sections.forEach(s => {
+        s.style.display = detailsVisible ? 'block' : 'none';
+      });
+      btn.textContent = detailsVisible ? '🔽 إخفاء التفاصيل' : '🔼 عرض التفاصيل (Base Map + XOR Key)';
+    }
+
+
+    // ──────────────────────────────────────────────────────────────
+    // COPY TO EXTRACT TAB
+    // ──────────────────────────────────────────────────────────────
+
+    function copyToExtractTab() {
+      const finalOutput = document.getElementById('finalOutput').value;
+      if (!finalOutput) return showToast('⚠ لا يوجد ناتج نهائي للنسخ.');
+
+      // Copy password too
+      const password = document.getElementById('embedPassword').value;
+
+      // Switch to extract tab
+      switchTab('extract');
+
+      // Fill in the fields
+      document.getElementById('extractCover').value = finalOutput;
+      document.getElementById('extractPassword').value = password;
+
+      showToast('📋 تم نسخ الناتج وكلمة المرور إلى صفحة الفك!');
+    }
+
+
+    // ──────────────────────────────────────────────────────────────
     // UTILITIES
     // ──────────────────────────────────────────────────────────────
 
     function copyToClipboard(elementId) {
-      const text = document.getElementById(elementId).value;
+      const el = document.getElementById(elementId);
+      const text = el.value || el.textContent;
       if (!text) return showToast('⚠ Nothing to copy.');
       navigator.clipboard.writeText(text).then(
         () => showToast('📋 Copied!'),
@@ -266,4 +486,3 @@
 
     // Initialize
     updateCapacityMeter();
- 

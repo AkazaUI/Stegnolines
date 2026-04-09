@@ -171,14 +171,44 @@
             <input id="embedPassword" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter a password to seed the PRNG…" />
           </div>
 
+          <!-- Emoji Carrier Selection -->
+          <div>
+            <label class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              إيموجي حامل (اختياري)
+            </label>
+            <div class="emoji-grid" id="emojiGrid">
+              <button class="emoji-selector-btn selected" data-emoji="none" onclick="selectCarrierEmoji('none')">🚫</button>
+              <button class="emoji-selector-btn" data-emoji="😀" onclick="selectCarrierEmoji('😀')">😀</button>
+              <button class="emoji-selector-btn" data-emoji="😂" onclick="selectCarrierEmoji('😂')">😂</button>
+              <button class="emoji-selector-btn" data-emoji="🥰" onclick="selectCarrierEmoji('🥰')">🥰</button>
+              <button class="emoji-selector-btn" data-emoji="😎" onclick="selectCarrierEmoji('😎')">😎</button>
+              <button class="emoji-selector-btn" data-emoji="👍" onclick="selectCarrierEmoji('👍')">👍</button>
+              <button class="emoji-selector-btn" data-emoji="🔥" onclick="selectCarrierEmoji('🔥')">🔥</button>
+              <button class="emoji-selector-btn" data-emoji="🚀" onclick="selectCarrierEmoji('🚀')">🚀</button>
+              <button class="emoji-selector-btn" data-emoji="💯" onclick="selectCarrierEmoji('💯')">💯</button>
+              <button class="emoji-selector-btn" data-emoji="🎉" onclick="selectCarrierEmoji('🎉')">🎉</button>
+              <button class="emoji-selector-btn" data-emoji="👀" onclick="selectCarrierEmoji('👀')">👀</button>
+              <button class="emoji-selector-btn" data-emoji="💀" onclick="selectCarrierEmoji('💀')">💀</button>
+            </div>
+            <p class="text-xs text-brand-400/30 mt-2">🚫 = بدون إيموجي (المفتاح يُضاف في بداية النص)</p>
+          </div>
+
           <button id="btnGenerateMap" class="btn-primary mt-2" onclick="generateShiftMap()">
-            ▶ توليد المفتاح الثنائي (Generate Binary Key)
+            ▶ توليد وتضمين المفتاح (Generate & Embed)
           </button>
         </div>
       </div>
 
-      <!-- Step 2 — Random Base Map -->
-      <div class="step-card">
+      <!-- Toggle Details Button -->
+      <div class="text-center">
+        <button id="toggleDetailsBtn" class="btn-secondary text-xs" onclick="toggleDetails()">
+          🔼 عرض التفاصيل (Base Map + XOR Key)
+        </button>
+      </div>
+
+      <!-- Step 2 — Random Base Map (Detail — hidden by default) -->
+      <div class="step-card detail-section" style="display:none;">
         <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
           <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">2</span>
           Random Base Positions
@@ -190,8 +220,8 @@
         </div>
       </div>
 
-      <!-- Step 3 — Binary XOR Key -->
-      <div class="step-card">
+      <!-- Step 3 — Binary XOR Key (Detail — hidden by default) -->
+      <div class="step-card detail-section" style="display:none;">
         <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
           <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">3</span>
           المفتاح الثنائي (Binary XOR Key)
@@ -209,6 +239,60 @@
           <button class="btn-secondary" onclick="copyToClipboard('shiftKeyOutput')">📋 نسخ المفتاح (Copy Key)</button>
         </div>
       </div>
+
+      <!-- Step 4 — VS Hex Visualization -->
+      <div class="step-card">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">4</span>
+          عرض التحويل (Binary → VS Hex)
+        </h2>
+
+        <div class="space-y-3">
+          <!-- Key Size Meter -->
+          <div class="flex items-center justify-between">
+            <span class="field-label mb-0">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+              حجم المفتاح
+            </span>
+            <span id="vsKeyCount" class="text-xs font-mono font-bold text-brand-400/50">0 bytes</span>
+          </div>
+          <div class="meter-bar-bg" style="height:8px;">
+            <div id="vsKeyMeter" class="meter-bar-fill" style="width: 0%; height: 100%;"></div>
+          </div>
+
+          <!-- Hex Visualization -->
+          <div>
+            <label for="vsVisualization" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              تحويل البتات → بايتات → أحرف VS (Hex)
+            </label>
+            <textarea id="vsVisualization" rows="6" class="w-full rounded-lg px-4 py-3 text-xs resize-y font-mono vs-viz-box" readonly placeholder="عرض التحويل المرئي سيظهر هنا بعد التوليد…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5 — Final Output -->
+      <div class="step-card">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">5</span>
+          الناتج النهائي (الغلاف + المفتاح المخفي)
+        </h2>
+
+        <div class="space-y-4">
+          <div>
+            <label for="finalOutput" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              الرسالة الجاهزة للإرسال (النص يبدو عادياً — المفتاح مخفي بداخله)
+            </label>
+            <textarea id="finalOutput" rows="8" class="w-full rounded-lg px-4 py-3 text-sm leading-relaxed resize-y" readonly placeholder="الناتج النهائي سيظهر هنا…"></textarea>
+          </div>
+
+          <div class="flex gap-3">
+            <button class="btn-secondary flex-1" onclick="copyToClipboard('finalOutput')">📋 نسخ الناتج</button>
+            <button class="btn-primary flex-1" onclick="copyToExtractTab()">🔓 نسخ إلى صفحة الفك</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ════════════════════ TAB 2 — EXTRACTION ════════════════════ -->
@@ -221,13 +305,13 @@
         </h2>
 
         <div class="space-y-4">
-          <!-- Cover Text -->
+          <!-- Final Message (Cover + Hidden Key) -->
           <div>
             <label for="extractCover" class="field-label">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              Original Cover Text (ASCII Art)
+              الرسالة النهائية (الغلاف + المفتاح المخفي)
             </label>
-            <textarea id="extractCover" rows="10" class="w-full rounded-lg px-4 py-3 text-sm leading-relaxed resize-y" placeholder="Paste the original ASCII art…"></textarea>
+            <textarea id="extractCover" rows="10" class="w-full rounded-lg px-4 py-3 text-sm leading-relaxed resize-y" placeholder="الصق الرسالة النهائية هنا (تحتوي على الغلاف + المفتاح المخفي)…"></textarea>
           </div>
 
           <!-- Password -->
@@ -239,13 +323,13 @@
             <input id="extractPassword" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter the same password used during embedding…" />
           </div>
 
-          <!-- Binary XOR Key -->
+          <!-- Binary XOR Key (manual fallback) -->
           <div>
             <label for="extractShiftKey" class="field-label">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              المفتاح الثنائي (Binary XOR Key)
+              المفتاح الثنائي (اختياري — يتم استخراجه تلقائياً من الأحرف المخفية)
             </label>
-            <textarea id="extractShiftKey" rows="3" class="w-full rounded-lg px-4 py-3 text-sm resize-y" placeholder="الصق المفتاح الثنائي هنا…"></textarea>
+            <textarea id="extractShiftKey" rows="3" class="w-full rounded-lg px-4 py-3 text-sm resize-y" placeholder="يُملأ تلقائياً عند وجود أحرف VS، أو أدخل المفتاح يدوياً…"></textarea>
           </div>
 
           <button class="btn-primary" onclick="extractSecretMessage()">
