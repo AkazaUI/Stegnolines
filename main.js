@@ -325,18 +325,8 @@
           for (let i = 0; i < vsBytes.length; i++) {
             xorKeyBinary += vsBytes[i].toString(2).padStart(8, '0');
           }
-
-          // Show the extracted key in the key field for visibility
-          const keyField = document.getElementById('extractShiftKey');
-          if (keyField) keyField.value = xorKeyBinary;
-
         } else {
-          // Fallback: no VS bytes found, try reading from the key field
-          const keyRaw = document.getElementById('extractShiftKey').value.trim();
-          if (!keyRaw) return showToast('⚠ لا توجد أحرف VS مخفية ولم يتم إدخال مفتاح يدوي.');
-          xorKeyBinary = keyRaw.replace(/[^01]/g, '');
-          if (xorKeyBinary.length === 0)
-            throw new Error('المفتاح غير صالح — يجب أن يحتوي على 0 و 1 فقط.');
+          throw new Error('لا توجد أحرف مخفية (VS) في الرسالة. تأكد من لصق الرسالة النهائية كاملة.');
         }
 
         // 2. Convert cover to bits
