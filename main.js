@@ -17,40 +17,31 @@
 
 
     // ──────────────────────────────────────────────────────────────
-    // STRING ⇋ BINARY  (7-bit ASCII for ≤127, 16-bit for >127)
+    // STRING ⇋ BINARY  (UTF-8)
     // ──────────────────────────────────────────────────────────────
 
     /**
      * String → binary.
-     * charCode ≤ 127 → 7 bits (ASCII-128),
-     * charCode > 127 → 16 bits (Unicode).
+     * UTF-8 Encoding (8 bits per byte)
      */
     function stringToBinary(str) {
+      if (!str) return '';
+      const bytes = new TextEncoder().encode(str);
       let bin = '';
-      for (let i = 0; i < str.length; i++) {
-        const c = str.charCodeAt(i);
-        bin += c > 127
-          ? c.toString(2).padStart(16, '0')
-          : c.toString(2).padStart(7, '0');
+      for (let i = 0; i < bytes.length; i++) {
+        bin += bytes[i].toString(2).padStart(8, '0');
       }
       return bin;
     }
 
-    /** Binary string → readable text (7 bits at a time for ASCII-128). */
+    /** Binary string → readable text (UTF-8). */
     function binaryToString(bin) {
-      let result = '';
-      for (let i = 0; i + 7 <= bin.length; i += 7) {
-        result += String.fromCharCode(parseInt(bin.substring(i, i + 7), 2));
+      if (!bin) return '';
+      const bytes = new Uint8Array(Math.floor(bin.length / 8));
+      for (let i = 0; i + 8 <= bin.length; i += 8) {
+        bytes[i / 8] = parseInt(bin.substring(i, i + 8), 2);
       }
-      return result;
-    }
-
-    /** Returns 16 if any char > 127, else 7. */
-    function detectBitsPerChar(str) {
-      for (let i = 0; i < str.length; i++) {
-        if (str.charCodeAt(i) > 127) return 16;
-      }
-      return 7;
+      return new TextDecoder().decode(bytes);
     }
 
 
@@ -227,7 +218,7 @@
       const msgBits = secret.length > 0 ? stringToBinary(secret).length : 0;
 
       // Bits per char for the message language
-      const bpc = secret.length > 0 ? detectBitsPerChar(secret) : 8;
+      const bpc = 8; // UTF-8 base bit length (1 byte)
 
       // Max message chars at this encoding
       const maxChars = coverBitsCount > 0 ? Math.floor(coverBitsCount / bpc) : 0;
@@ -238,7 +229,7 @@
       // Update DOM
       document.getElementById('mCoverLen').textContent = coverBitsCount.toLocaleString();
       document.getElementById('mMaxChars').textContent =
-        maxChars.toLocaleString() + ` (${bpc}bit)`;
+        maxChars.toLocaleString() + ` (byte)`;
       document.getElementById('mMsgBits').textContent = msgBits.toLocaleString();
       document.getElementById('mUsage').textContent = `${msgBits} / ${coverBitsCount}`;
       document.getElementById('meterPercent').textContent = pct.toFixed(1) + '%';
