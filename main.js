@@ -46,6 +46,23 @@
 
 
     // ──────────────────────────────────────────────────────────────
+    // SHA-256 HASH  (for auto-password from cover text)
+    // ──────────────────────────────────────────────────────────────
+
+    /**
+     * Compute SHA-256 hash of a string synchronously using SubtleCrypto.
+     * Returns a Promise<string> (hex digest).
+     */
+    async function sha256(message) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+
+    // ──────────────────────────────────────────────────────────────
     // VARIATION SELECTORS  (Unicode Steganography)
     // ──────────────────────────────────────────────────────────────
 
@@ -199,14 +216,19 @@
     // EMBEDDING  (XOR-Based + VS Key Embedding)
     // ──────────────────────────────────────────────────────────────
 
-    function generateShiftMap() {
+    async function generateShiftMap() {
       const coverText = document.getElementById('embedCover').value;
       const secret    = document.getElementById('embedSecret').value;
-      const password  = document.getElementById('embedPassword').value;
+      let   password  = document.getElementById('embedPassword').value;
 
       if (!coverText.trim()) return showToast('⚠ الرجاء إدخال النص الغلاف.');
       if (!secret.trim())    return showToast('⚠ الرجاء إدخال الرسالة السرية.');
-      if (!password.trim())  return showToast('⚠ الرجاء إدخال كلمة المرور.');
+
+      // إذا لم يُدخل المستخدم كلمة مرور → نستخدم SHA-256 للنص الغلاف
+      if (!password.trim()) {
+        password = await sha256(coverText);
+        showToast('🔑 لم تُدخل كلمة مرور — تم توليدها تلقائياً من هاش الغلاف (SHA-256).');
+      }
 
       // 1. Convert BOTH to binary
       const coverBits = stringToBinary(coverText);
@@ -306,12 +328,11 @@
      * 3. Regenerate positions using password + cover bits length
      * 4. XOR to recover secret
      */
-    function extractSecretMessage() {
+    async function extractSecretMessage() {
       const finalMessage = document.getElementById('extractCover').value;
-      const password     = document.getElementById('extractPassword').value;
+      let   password     = document.getElementById('extractPassword').value;
 
       if (!finalMessage.trim()) return showToast('⚠ الرجاء إدخال الرسالة النهائية.');
-      if (!password.trim())     return showToast('⚠ الرجاء إدخال كلمة المرور.');
 
       try {
         // 1. Extract VS bytes and clean text
@@ -327,6 +348,12 @@
           }
         } else {
           throw new Error('لا توجد أحرف مخفية (VS) في الرسالة. تأكد من لصق الرسالة النهائية كاملة.');
+        }
+
+        // إذا لم يُدخل المستخدم كلمة مرور → نستخدم SHA-256 للنص الغلاف (النظيف)
+        if (!password.trim()) {
+          password = await sha256(coverText);
+          showToast('🔑 لم تُدخل كلمة مرور — تم توليدها تلقائياً من هاش الغلاف (SHA-256).');
         }
 
         // 2. Convert cover to bits
