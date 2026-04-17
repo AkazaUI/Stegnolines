@@ -111,6 +111,12 @@
           الاستخراج (Extraction)
         </span>
       </button>
+      <button id="tab-hints" class="tab-btn px-5 py-2.5 rounded-t-lg text-sm font-semibold tracking-wide text-brand-400/60 hover:text-brand-400" role="tab" aria-selected="false" aria-controls="panel-hints" onclick="switchTab('hints')">
+        <span class="inline-flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+          التلميحات (Hints)
+        </span>
+      </button>
     </nav>
 
     <!-- ════════════════════ TAB 1 — EMBEDDING ════════════════════ -->
@@ -171,27 +177,14 @@
             <input id="embedPassword" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter a password to seed the PRNG…" />
           </div>
 
-          <!-- Emoji Carrier Selection -->
+          <!-- Hint (Optional) -->
           <div>
-            <label class="field-label">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              إيموجي حامل (اختياري)
+            <label for="embedHint" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+              تلميح الرسالة القادمة (اختياري)
             </label>
-            <div class="emoji-grid" id="emojiGrid">
-              <button class="emoji-selector-btn selected" data-emoji="none" onclick="selectCarrierEmoji('none')">🚫</button>
-              <button class="emoji-selector-btn" data-emoji="😀" onclick="selectCarrierEmoji('😀')">😀</button>
-              <button class="emoji-selector-btn" data-emoji="😂" onclick="selectCarrierEmoji('😂')">😂</button>
-              <button class="emoji-selector-btn" data-emoji="🥰" onclick="selectCarrierEmoji('🥰')">🥰</button>
-              <button class="emoji-selector-btn" data-emoji="😎" onclick="selectCarrierEmoji('😎')">😎</button>
-              <button class="emoji-selector-btn" data-emoji="👍" onclick="selectCarrierEmoji('👍')">👍</button>
-              <button class="emoji-selector-btn" data-emoji="🔥" onclick="selectCarrierEmoji('🔥')">🔥</button>
-              <button class="emoji-selector-btn" data-emoji="🚀" onclick="selectCarrierEmoji('🚀')">🚀</button>
-              <button class="emoji-selector-btn" data-emoji="💯" onclick="selectCarrierEmoji('💯')">💯</button>
-              <button class="emoji-selector-btn" data-emoji="🎉" onclick="selectCarrierEmoji('🎉')">🎉</button>
-              <button class="emoji-selector-btn" data-emoji="👀" onclick="selectCarrierEmoji('👀')">👀</button>
-              <button class="emoji-selector-btn" data-emoji="💀" onclick="selectCarrierEmoji('💀')">💀</button>
-            </div>
-            <p class="text-xs text-brand-400/30 mt-2">🚫 = بدون إيموجي (المفتاح يُضاف في بداية النص)</p>
+            <input id="embedHint" type="text" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="أدخل تلميحاً — مثال: 📧 أو أي إيموجي يدل على موقع الرسالة القادمة" oninput="updateCapacityMeter()" />
+            <p class="text-xs text-brand-400/30 mt-1">💡 التلميح يُخبر المستلم أين ستكون الرسالة التالية — يُخزّن تلقائياً</p>
           </div>
 
           <button id="btnGenerateMap" class="btn-primary mt-2" onclick="generateShiftMap()">
@@ -335,8 +328,56 @@
           الرسالة السرية
         </h2>
         <div id="extractedResult" class="result-box text-lg text-center py-6 animate-pulse_glow"></div>
+
+        <!-- Hint Display -->
+        <div id="extractHintCard" class="hint-result-card" style="display:none;">
+          <div class="hint-result-header">
+            <span class="hint-badge">💡 تلميح الرسالة القادمة</span>
+          </div>
+          <div class="hint-result-body">
+            <span id="extractHintEmoji" class="hint-big-emoji"></span>
+            <p id="extractHintText" class="hint-result-text"></p>
+          </div>
+        </div>
       </div>
     </section>
+
+    <!-- ════════════════════ TAB 3 — HINTS ════════════════════ -->
+    <section id="panel-hints" class="tab-panel space-y-6" role="tabpanel" aria-labelledby="tab-hints">
+
+      <!-- Latest Active Hint -->
+      <div id="latestHintCard" class="step-card hint-active-card" style="display:none;">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-400/20 text-yellow-300 text-xs font-bold border border-yellow-400/30">⚡</span>
+          التلميح النشط — الرسالة القادمة
+        </h2>
+        <div id="latestHintContent" class="hint-active-display"></div>
+      </div>
+
+      <!-- Received Hints Log -->
+      <div class="step-card hints-section-received">
+        <h2 class="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2" style="color: rgba(96, 165, 250, 0.7);">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold" style="background:rgba(96,165,250,0.1); color:#60a5fa; border:1px solid rgba(96,165,250,0.25);">↙</span>
+          تلميحات مُستقبلة
+        </h2>
+        <div id="hintsReceivedContainer"></div>
+      </div>
+
+      <!-- Sent Hints Log -->
+      <div class="step-card hints-section-sent">
+        <h2 class="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2" style="color: rgba(0, 255, 65, 0.7);">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold" style="background:rgba(0,255,65,0.1); color:#00ff41; border:1px solid rgba(0,255,65,0.25);">↗</span>
+          تلميحات مُرسلة
+        </h2>
+        <div id="hintsSentContainer"></div>
+      </div>
+
+      <!-- Clear Button -->
+      <div class="text-center">
+        <button id="btnClearHints" class="btn-secondary" onclick="clearHintsLog()" style="display:none;">🗑 مسح جميع التلميحات</button>
+      </div>
+    </section>
+
   </main>
 
   <!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->

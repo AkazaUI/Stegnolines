@@ -200,3 +200,149 @@
       line-height: 1.7;
       border-color: rgba(0,255,65,0.1) !important;
     }
+
+    /* ─── Hint System ────────────────────────────────────────── */
+
+    /* Hint result card (shown after extraction) */
+    .hint-result-card {
+      margin-top: 1rem;
+      padding: 1rem 1.25rem;
+      border-radius: 10px;
+      border: 1px solid rgba(250, 204, 21, 0.25);
+      background: linear-gradient(135deg, rgba(250, 204, 21, 0.06), rgba(250, 204, 21, 0.02));
+      animation: fade-in-up .5s ease-out both;
+    }
+
+    .hint-result-header {
+      margin-bottom: .75rem;
+    }
+
+    .hint-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .25rem .75rem;
+      border-radius: 20px;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      background: rgba(250, 204, 21, 0.12);
+      color: #facc15;
+      border: 1px solid rgba(250, 204, 21, 0.25);
+    }
+
+    .hint-result-body {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: .5rem 0;
+    }
+
+    .hint-big-emoji {
+      font-size: 2.5rem;
+      line-height: 1;
+      filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.3));
+    }
+
+    .hint-result-text {
+      font-size: .85rem;
+      color: rgba(250, 204, 21, 0.7);
+      font-weight: 500;
+    }
+
+    /* Active hint card (hints tab — latest) */
+    .hint-active-card {
+      border-color: rgba(250, 204, 21, 0.2) !important;
+      background: linear-gradient(145deg, rgba(250, 204, 21, 0.05), rgba(10, 10, 15, 0.95)) !important;
+      animation: pulse_hint 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse_hint {
+      0%, 100% { box-shadow: 0 0 8px rgba(250, 204, 21, 0.1); }
+      50%      { box-shadow: 0 0 20px rgba(250, 204, 21, 0.2); }
+    }
+
+    .hint-active-inner {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      padding: .75rem;
+      border-radius: 8px;
+      background: rgba(250, 204, 21, 0.04);
+      border: 1px solid rgba(250, 204, 21, 0.1);
+    }
+
+    .hint-active-info {
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+    }
+
+    /* Type badges */
+    .hint-type-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: .15rem .6rem;
+      border-radius: 12px;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+      font-family: 'JetBrains Mono', monospace;
+      width: fit-content;
+    }
+
+    .hint-type-sent {
+      background: rgba(0, 255, 65, 0.1);
+      color: #00ff41;
+      border: 1px solid rgba(0, 255, 65, 0.2);
+    }
+
+    .hint-type-received {
+      background: rgba(96, 165, 250, 0.1);
+      color: #60a5fa;
+      border: 1px solid rgba(96, 165, 250, 0.2);
+    }
+
+    .hint-time {
+      font-size: .7rem;
+      color: rgba(255, 255, 255, 0.3);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Hints log list */
+    .hints-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .hint-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .6rem .75rem;
+      border-radius: 8px;
+      background: rgba(0, 255, 65, 0.02);
+      border: 1px solid rgba(0, 255, 65, 0.06);
+      transition: all .2s ease;
+    }
+
+    .hint-row:hover {
+      background: rgba(0, 255, 65, 0.05);
+      border-color: rgba(0, 255, 65, 0.12);
+    }
+
+    .hint-row-emoji {
+      font-size: 1.4rem;
+      line-height: 1;
+      min-width: 28px;
+      text-align: center;
+    }
+
+    .hint-row-time {
+      margin-left: auto;
+      font-size: .65rem;
+      color: rgba(255, 255, 255, 0.25);
+      font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap;
+    }

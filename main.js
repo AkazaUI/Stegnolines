@@ -12,6 +12,9 @@
       document.getElementById('tab-' + tab).classList.add('active');
       document.getElementById('tab-' + tab).setAttribute('aria-selected', 'true');
       document.getElementById('panel-' + tab).classList.add('active');
+
+      // Render hints log when switching to hints tab
+      if (tab === 'hints') renderHintsLog();
     }
 
 
@@ -27,6 +30,18 @@
     function stringToBinary(str) {
       if (!str) return '';
       const bytes = new TextEncoder().encode(str);
+      return bytesToBinary(bytes);
+    }
+
+    /** Binary string → readable text (UTF-8). */
+    function binaryToString(bin) {
+      if (!bin) return '';
+      const bytes = binaryToBytes(bin);
+      return new TextDecoder().decode(bytes);
+    }
+
+    /** Uint8Array → binary string. */
+    function bytesToBinary(bytes) {
       let bin = '';
       for (let i = 0; i < bytes.length; i++) {
         bin += bytes[i].toString(2).padStart(8, '0');
@@ -34,14 +49,62 @@
       return bin;
     }
 
-    /** Binary string → readable text (UTF-8). */
-    function binaryToString(bin) {
-      if (!bin) return '';
+    /** Binary string → Uint8Array. */
+    function binaryToBytes(bin) {
       const bytes = new Uint8Array(Math.floor(bin.length / 8));
       for (let i = 0; i + 8 <= bin.length; i += 8) {
         bytes[i / 8] = parseInt(bin.substring(i, i + 8), 2);
       }
-      return new TextDecoder().decode(bytes);
+      return bytes;
+    }
+
+
+    // ──────────────────────────────────────────────────────────────
+    // PAYLOAD FORMAT  (Message + Optional Hint)
+    // ──────────────────────────────────────────────────────────────
+    //
+    // New format:  [0xFF marker] [1 byte hint_length] [hint bytes...] [message bytes...]
+    // Legacy:      [message bytes...]  (first byte ≠ 0xFF since 0xFF is invalid UTF-8)
+    //
+    const PAYLOAD_MARKER = 0xFF;
+
+    /**
+     * Build payload bytes from secret message and optional hint.
+     * Returns Uint8Array.
+     */
+    function buildPayload(secret, hint) {
+      const secretBytes = new TextEncoder().encode(secret);
+      const hintBytes = (hint && hint.trim())
+        ? new TextEncoder().encode(hint.trim())
+        : new Uint8Array(0);
+
+      const payload = new Uint8Array(2 + hintBytes.length + secretBytes.length);
+      payload[0] = PAYLOAD_MARKER;
+      payload[1] = hintBytes.length;
+      if (hintBytes.length > 0) {
+        payload.set(hintBytes, 2);
+      }
+      payload.set(secretBytes, 2 + hintBytes.length);
+      return payload;
+    }
+
+    /**
+     * Parse payload bytes → { secret, hint }.
+     * Handles both new format (with marker) and legacy (raw message).
+     */
+    function parsePayload(bytes) {
+      if (bytes.length >= 2 && bytes[0] === PAYLOAD_MARKER) {
+        // New format
+        const hintLen = bytes[1];
+        const hint = hintLen > 0
+          ? new TextDecoder().decode(bytes.slice(2, 2 + hintLen))
+          : '';
+        const secret = new TextDecoder().decode(bytes.slice(2 + hintLen));
+        return { secret, hint };
+      } else {
+        // Legacy format — entire payload is the message
+        return { secret: new TextDecoder().decode(bytes), hint: '' };
+      }
     }
 
 
@@ -128,18 +191,11 @@
     }
 
     /**
-     * Build the final output based on emoji mode.
-     * - No emoji: [VS key] + [cover text]
-     * - With emoji: [cover text] + [emoji + VS key]
+     * Build the final output.
+     * Always: [VS key] + [cover text]
      */
-    function buildFinalOutput(coverText, vsKeyStr, emoji) {
-      if (!emoji || emoji === 'none') {
-        // بدون إيموجي: المفتاح المخفي ثم نص الغلاف
-        return vsKeyStr + coverText;
-      } else {
-        // مع إيموجي: نص الغلاف ثم الإيموجي + المفتاح المخفي
-        return coverText + emoji + vsKeyStr;
-      }
+    function buildFinalOutput(coverText, vsKeyStr) {
+      return vsKeyStr + coverText;
     }
 
 
@@ -207,18 +263,13 @@
 
 
     // ──────────────────────────────────────────────────────────────
-    // EMOJI STATE
-    // ──────────────────────────────────────────────────────────────
-    let selectedCarrierEmoji = 'none'; // 'none' or an emoji character
-
-
-    // ──────────────────────────────────────────────────────────────
-    // EMBEDDING  (XOR-Based + VS Key Embedding)
+    // EMBEDDING  (XOR-Based + VS Key + Optional Hint)
     // ──────────────────────────────────────────────────────────────
 
     async function generateShiftMap() {
       const coverText = document.getElementById('embedCover').value;
       const secret    = document.getElementById('embedSecret').value;
+      const hint      = document.getElementById('embedHint').value;
       let   password  = document.getElementById('embedPassword').value;
 
       if (!coverText.trim()) return showToast('⚠ الرجاء إدخال النص الغلاف.');
@@ -230,39 +281,51 @@
         showToast('🔑 لم تُدخل كلمة مرور — تم توليدها تلقائياً من هاش الغلاف (SHA-256).');
       }
 
-      // 1. Convert BOTH to binary
-      const coverBits = stringToBinary(coverText);
-      const msgBits   = stringToBinary(secret);
+      // 1. Build payload (message + optional hint)
+      const payloadBytes = buildPayload(secret, hint);
+      const msgBits = bytesToBinary(payloadBytes);
 
-      // 2. Capacity check (bits vs bits)
+      // 2. Convert cover to binary
+      const coverBits = stringToBinary(coverText);
+
+      // 3. Capacity check (bits vs bits)
       if (msgBits.length > coverBits.length) {
         showToast(`❌ تحتاج ${msgBits.length} بت لكن الغلاف يحتوي ${coverBits.length} بت فقط.`);
         return;
       }
 
-      // 3. Generate N unique positions in [0, coverBits.length - 1]
+      // 4. Generate N unique positions in [0, coverBits.length - 1]
       const basePositions = generatePositions(coverBits.length, msgBits.length, password);
 
-      // 4. XOR key: compare cover bit with message bit
+      // 5. XOR key: compare cover bit with payload bit
       const xorKey = generateXORKey(coverBits, basePositions, msgBits);
 
-      // 5. Output — Base Positions & Binary XOR Key
+      // 6. Output — Base Positions & Binary XOR Key
       document.getElementById('baseMapOutput').value =
         '[' + basePositions.join(', ') + ']';
       document.getElementById('shiftKeyOutput').value = xorKey;
 
-      // 6. Convert XOR key → VS characters
+      // 7. Convert XOR key → VS characters
       const { vsStr, bytesArr } = xorKeyToVSString(xorKey);
 
-      // 7. Build Visual Hex Display
+      // 8. Build Visual Hex Display
       updateVSVisualization(xorKey, bytesArr);
 
-      // 8. Build Final Output
-      const finalOutput = buildFinalOutput(coverText, vsStr, selectedCarrierEmoji);
+      // 9. Build Final Output (always VS + cover, no emoji carrier)
+      const finalOutput = buildFinalOutput(coverText, vsStr);
       document.getElementById('finalOutput').value = finalOutput;
 
-      // 9. Update Key Size Meter
+      // 10. Update Key Size Meter
       updateKeySizeMeter(bytesArr.length, coverText.length);
+
+      // 11. Save hint to localStorage if provided
+      if (hint && hint.trim()) {
+        saveHint({
+          type: 'sent',
+          emoji: hint.trim(),
+          timestamp: new Date().toISOString()
+        });
+      }
 
       updateCapacityMeter();
       showToast('✅ تم توليد المفتاح وتضمينه في الغلاف!');
@@ -281,8 +344,6 @@
       lines.push(`── المفتاح الثنائي (${binaryKey.length} بت) ──`);
 
       // Show bytes in groups
-      let hexLine = '';
-      let binLine = '';
       for (let i = 0; i < bytesArr.length; i++) {
         const hexVal = '0x' + bytesArr[i].toString(16).toUpperCase().padStart(2, '0');
         const binVal = bytesArr[i].toString(2).padStart(8, '0');
@@ -318,15 +379,15 @@
 
 
     // ──────────────────────────────────────────────────────────────
-    // EXTRACTION  (Smart — auto-detect VS key in message)
+    // EXTRACTION  (Smart — auto-detect VS key + parse hint)
     // ──────────────────────────────────────────────────────────────
 
     /**
      * Smart extraction:
      * 1. Extract VS bytes from the final message → XOR key
-     * 2. Clean text (without VS) = cover text (may have trailing emoji)
+     * 2. Clean text (without VS) = cover text
      * 3. Regenerate positions using password + cover bits length
-     * 4. XOR to recover secret
+     * 4. XOR to recover payload → parse into secret + hint
      */
     async function extractSecretMessage() {
       const finalMessage = document.getElementById('extractCover').value;
@@ -365,7 +426,7 @@
         // 3. Regenerate same positions
         const basePositions = generatePositions(coverBits.length, xorKeyBinary.length, password);
 
-        // 4. Reconstruct message bits
+        // 4. Reconstruct payload bits
         let binaryStr = '';
         for (let i = 0; i < xorKeyBinary.length; i++) {
           const coverBit = coverBits[basePositions[i]];
@@ -373,11 +434,31 @@
           binaryStr += (coverBit === keyBit) ? '0' : '1';
         }
 
-        // 5. Decode bits → text
-        // Trim the binary key to actual message length (remove padding bits)
-        const decoded = binaryToString(binaryStr);
+        // 5. Parse payload → secret + hint
+        const payloadBytes = binaryToBytes(binaryStr);
+        const { secret, hint } = parsePayload(payloadBytes);
+
+        // 6. Display secret message
         document.getElementById('extractResultCard').style.display = 'block';
-        document.getElementById('extractedResult').textContent = decoded;
+        document.getElementById('extractedResult').textContent = secret;
+
+        // 7. Display hint if present
+        const hintCard = document.getElementById('extractHintCard');
+        if (hint) {
+          hintCard.style.display = 'block';
+          document.getElementById('extractHintEmoji').textContent = hint;
+          document.getElementById('extractHintText').textContent = 'الرسالة القادمة ستكون هنا ☝️';
+
+          // Save hint to localStorage
+          saveHint({
+            type: 'received',
+            emoji: hint,
+            timestamp: new Date().toISOString()
+          });
+        } else {
+          hintCard.style.display = 'none';
+        }
+
         showToast('✅ تم استخراج الرسالة بنجاح!');
       } catch (e) {
         showToast('❌ ' + e.message);
@@ -386,24 +467,29 @@
 
 
     // ──────────────────────────────────────────────────────────────
-    // CAPACITY METER  (Bit-level)
+    // CAPACITY METER  (Bit-level, accounts for hint overhead)
     // ──────────────────────────────────────────────────────────────
 
     function updateCapacityMeter() {
       const coverText = document.getElementById('embedCover').value;
       const secret    = document.getElementById('embedSecret').value;
+      const hintEl    = document.getElementById('embedHint');
+      const hint      = hintEl ? hintEl.value : '';
 
       // Cover bits (full binary representation of cover)
       const coverBitsCount = stringToBinary(coverText).length;
 
-      // Message bits (actual encoding)
-      const msgBits = secret.length > 0 ? stringToBinary(secret).length : 0;
+      // Build payload to get actual bits needed
+      let msgBits = 0;
+      if (secret.length > 0 || (hint && hint.trim())) {
+        const payload = buildPayload(secret || '', hint || '');
+        msgBits = bytesToBinary(payload).length;
+      }
 
-      // Bits per char for the message language
-      const bpc = 8; // UTF-8 base bit length (1 byte)
-
-      // Max message chars at this encoding
-      const maxChars = coverBitsCount > 0 ? Math.floor(coverBitsCount / bpc) : 0;
+      // Max message chars (subtract overhead: 2 bytes marker+hintLen + hint bytes)
+      const hintOverheadBytes = 2 + ((hint && hint.trim()) ? new TextEncoder().encode(hint.trim()).length : 0);
+      const availableBits = Math.max(0, coverBitsCount - (hintOverheadBytes * 8));
+      const maxChars = availableBits > 0 ? Math.floor(availableBits / 8) : 0;
 
       // Usage %
       const pct = coverBitsCount > 0 ? Math.min(100, (msgBits / coverBitsCount) * 100) : 0;
@@ -425,17 +511,132 @@
 
 
     // ──────────────────────────────────────────────────────────────
-    // EMOJI SELECTION
+    // HINT MANAGEMENT  (localStorage)
     // ──────────────────────────────────────────────────────────────
 
-    function selectCarrierEmoji(emoji) {
-      selectedCarrierEmoji = emoji;
+    const HINTS_STORAGE_KEY = 'stego_hints_log';
 
-      // Update button states
-      document.querySelectorAll('.emoji-selector-btn').forEach(btn => {
-        btn.classList.remove('selected');
-        if (btn.dataset.emoji === emoji) btn.classList.add('selected');
-      });
+    /** Load all hints from localStorage. */
+    function loadHints() {
+      try {
+        const data = localStorage.getItem(HINTS_STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    /** Save a new hint entry to localStorage. */
+    function saveHint(entry) {
+      const hints = loadHints();
+      entry.id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+      hints.unshift(entry); // newest first
+      // Keep max 100 entries
+      if (hints.length > 100) hints.length = 100;
+      localStorage.setItem(HINTS_STORAGE_KEY, JSON.stringify(hints));
+    }
+
+    /** Clear all hints from localStorage. */
+    function clearHintsLog() {
+      if (!confirm('هل تريد مسح جميع التلميحات المحفوظة؟')) return;
+      localStorage.removeItem(HINTS_STORAGE_KEY);
+      renderHintsLog();
+      showToast('🗑 تم مسح سجل التلميحات.');
+    }
+
+    /** Get the most recent hint. */
+    function getLatestHint() {
+      const hints = loadHints();
+      return hints.length > 0 ? hints[0] : null;
+    }
+
+    /** Render the hints log in the hints tab (separated by type). */
+    function renderHintsLog() {
+      const receivedContainer = document.getElementById('hintsReceivedContainer');
+      const sentContainer = document.getElementById('hintsSentContainer');
+      const latestCard = document.getElementById('latestHintCard');
+      const clearBtn = document.getElementById('btnClearHints');
+      if (!receivedContainer || !sentContainer) return;
+
+      const hints = loadHints();
+      const received = hints.filter(h => h.type === 'received');
+      const sent = hints.filter(h => h.type === 'sent');
+
+      // Latest hint card
+      if (hints.length > 0 && latestCard) {
+        latestCard.style.display = 'block';
+        const latest = hints[0];
+        const typeLabel = latest.type === 'sent' ? '↗ مُرسل' : '↙ مُستقبل';
+        const typeClass = latest.type === 'sent' ? 'hint-type-sent' : 'hint-type-received';
+        const time = formatHintTime(latest.timestamp);
+        document.getElementById('latestHintContent').innerHTML = `
+          <div class="hint-active-inner">
+            <span class="hint-big-emoji">${escapeHtml(latest.emoji)}</span>
+            <div class="hint-active-info">
+              <span class="hint-type-badge ${typeClass}">${typeLabel}</span>
+              <span class="hint-time">${time}</span>
+            </div>
+          </div>
+        `;
+      } else if (latestCard) {
+        latestCard.style.display = 'none';
+      }
+
+      // Clear button
+      if (clearBtn) {
+        clearBtn.style.display = hints.length > 0 ? 'inline-flex' : 'none';
+      }
+
+      // Render received hints
+      receivedContainer.innerHTML = renderHintsList(received, 'received');
+
+      // Render sent hints
+      sentContainer.innerHTML = renderHintsList(sent, 'sent');
+    }
+
+    /** Render a list of hints of a specific type. */
+    function renderHintsList(hints, type) {
+      if (hints.length === 0) {
+        const icon = type === 'received' ? '↙' : '↗';
+        const label = type === 'received' ? 'لا توجد تلميحات مُستقبلة بعد' : 'لا توجد تلميحات مُرسلة بعد';
+        return `
+          <div class="text-center py-6">
+            <span class="text-2xl mb-2 block opacity-20">${icon}</span>
+            <p class="text-sm" style="color: rgba(255,255,255,0.2);">${label}</p>
+          </div>
+        `;
+      }
+
+      let html = '<div class="hints-list">';
+      for (const h of hints) {
+        const time = formatHintTime(h.timestamp);
+        html += `
+          <div class="hint-row">
+            <span class="hint-row-emoji">${escapeHtml(h.emoji)}</span>
+            <span class="hint-row-time">${time}</span>
+          </div>
+        `;
+      }
+      html += '</div>';
+      return html;
+    }
+
+    /** Format timestamp for display. */
+    function formatHintTime(isoStr) {
+      try {
+        const d = new Date(isoStr);
+        return d.toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' }) +
+               ' ' + d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+      } catch {
+        return isoStr;
+      }
+    }
+
+    /** Escape HTML to prevent XSS. */
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
     }
 
 
