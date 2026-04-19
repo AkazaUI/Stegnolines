@@ -390,6 +390,26 @@
 
 
   <!-- ═══════════════════════════ JS LOGIC ═══════════════════════════ -->
-<script src="main.js"></script>
+
+  <!-- ═══ Stage 3: Hide — Steps 1→4 ═══ -->
+  <script src="js/stage3_hide/step1_cover_binary.js"></script>
+  <script src="js/stage3_hide/step2_stego_payload.js"></script>
+  <script src="js/stage3_hide/step3_stego_key.js"></script>
+  <script src="js/stage3_hide/step4_stego_channel.js"></script>
+
+  <!-- ═══ Shared Utilities ═══ -->
+  <script src="js/utils.js"></script>
+
+  <!-- ═══ Features ═══ -->
+  <script src="js/features/F_stego_capacity.js"></script>
+  <script src="js/features/F_stego_hint.js"></script>
+  <script src="js/features/F_stego_analysis.js"></script>
+
+  <!-- ═══ Stage 3: Orchestrators (depend on all above) ═══ -->
+  <script src="js/stage3_hide/embedding.js"></script>
+  <script src="js/stage3_hide/extraction.js"></script>
+
+  <!-- ═══ Initialize ═══ -->
+  <script>updateCapacityMeter();</script>
 </body>
 </html>
