@@ -2,56 +2,96 @@
 // Feature: Stego Analysis (Visual Key Inspection)
 // ══════════════════════════════════════════════════════════════
 //
-// العرض المرئي للمفتاح — يعرض تفاصيل تحويل البتات:
-//   Binary → Bytes → Hex → VS Codepoints
+// Visual inspection tools for the steganographic key:
+//   - Hex visualization: shows each byte as Binary → Hex → VS Codepoint
+//   - Key size meter: displays the ratio of key bytes to cover characters
 //
-// + عداد حجم Stego-Key مقارنة بحجم Cover
-//
-// Dependencies: step4_stego_channel (VS_START, VS_SUP_START)
+// Dependencies: step4_stego_channel (VS_BASE_START, VS_SUPPLEMENT_START)
 // ══════════════════════════════════════════════════════════════
 
 
 /**
- * Update the VS Visualization box with hex representation.
+ * Format a single key byte into a visualization line.
+ *
+ * Shows the byte index, its binary representation, hex value,
+ * and the corresponding VS Unicode codepoint.
+ *
+ * @param {number} byteValue - The byte value (0–255).
+ * @param {number} index     - The zero-based byte index.
+ * @returns {string} A formatted visualization line.
  */
-function updateVSVisualization(binaryKey, bytesArr) {
-  const vizBox = document.getElementById('vsVisualization');
-  if (!vizBox) return;
+function formatKeyByteLine(byteValue, index) {
+  const hexValue = '0x' + byteValue.toString(16).toUpperCase().padStart(2, '0');
+  const binaryValue = byteValue.toString(2).padStart(8, '0');
 
-  // Build visualization lines
-  let lines = [];
-  lines.push(`── المفتاح الثنائي (${binaryKey.length} بت) ──`);
+  // Determine the VS codepoint based on the byte range
+  const vsCodePoint = byteValue < 16
+    ? 'U+' + (VS_BASE_START + byteValue).toString(16).toUpperCase()
+    : 'U+' + (VS_SUPPLEMENT_START + byteValue - 16).toString(16).toUpperCase();
 
-  // Show bytes in groups
-  for (let i = 0; i < bytesArr.length; i++) {
-    const hexVal = '0x' + bytesArr[i].toString(16).toUpperCase().padStart(2, '0');
-    const binVal = bytesArr[i].toString(2).padStart(8, '0');
-    const vsCodePoint = bytesArr[i] < 16
-      ? 'U+' + (VS_START + bytesArr[i]).toString(16).toUpperCase()
-      : 'U+' + (VS_SUP_START + bytesArr[i] - 16).toString(16).toUpperCase();
-
-    lines.push(`بايت ${(i+1).toString().padStart(3)}: ${binVal}  →  ${hexVal}  →  VS[${vsCodePoint}]`);
-  }
-
-  lines.push('');
-  lines.push(`── المجموع: ${bytesArr.length} بايت = ${bytesArr.length} حرف VS مخفي ──`);
-
-  vizBox.value = lines.join('\n');
+  const paddedIndex = (index + 1).toString().padStart(3);
+  return `بايت ${paddedIndex}: ${binaryValue}  →  ${hexValue}  →  VS[${vsCodePoint}]`;
 }
 
 
 /**
- * Update the key size meter.
+ * Update the VS Visualization textarea with a hex breakdown of the key.
+ *
+ * Displays the total key length in bits, each byte's binary → hex → VS
+ * conversion, and a summary of the total invisible characters embedded.
+ *
+ * @param {string}   binaryKey - The XOR key as a binary string.
+ * @param {number[]} bytesArr  - The key's byte values (for per-byte display).
  */
-function updateKeySizeMeter(keyBytes, coverLen) {
-  const countEl = document.getElementById('vsKeyCount');
-  const meterEl = document.getElementById('vsKeyMeter');
-  if (!countEl || !meterEl) return;
+function updateVSVisualization(binaryKey, bytesArr) {
+  const visualizationElement = document.getElementById('vsVisualization');
+  if (!visualizationElement) return;
 
-  countEl.textContent = `${keyBytes} bytes / ${coverLen} chars`;
+  const outputLines = [];
+  outputLines.push(`── المفتاح الثنائي (${binaryKey.length} بت) ──`);
 
-  // Ratio: key bytes vs cover characters
-  const ratio = coverLen > 0 ? Math.min(100, (keyBytes / coverLen) * 100) : 0;
-  meterEl.style.width = ratio + '%';
-  meterEl.style.background = ratio > 80 ? '#ef4444' : (ratio > 50 ? '#eab308' : '#00cc34');
+  for (let i = 0; i < bytesArr.length; i++) {
+    outputLines.push(formatKeyByteLine(bytesArr[i], i));
+  }
+
+  outputLines.push('');
+  outputLines.push(`── المجموع: ${bytesArr.length} بايت = ${bytesArr.length} حرف VS مخفي ──`);
+
+  visualizationElement.value = outputLines.join('\n');
+}
+
+
+/**
+ * Update the key size meter that shows the ratio of key bytes to cover length.
+ *
+ * The meter bar changes color based on the ratio:
+ *   - Green  (≤ 50%): healthy — key is small relative to cover
+ *   - Yellow (50–80%): warning — key is getting large
+ *   - Red    (> 80%): danger — key approaches cover size
+ *
+ * @param {number} keyByteCount     - Number of bytes in the VS key.
+ * @param {number} coverCharCount   - Number of characters in the cover text.
+ */
+function updateKeySizeMeter(keyByteCount, coverCharCount) {
+  const countElement = document.getElementById('vsKeyCount');
+  const meterElement = document.getElementById('vsKeyMeter');
+  if (!countElement || !meterElement) return;
+
+  countElement.textContent = `${keyByteCount} bytes / ${coverCharCount} chars`;
+
+  // Calculate the ratio as a percentage (capped at 100%)
+  const ratioPercent = coverCharCount > 0
+    ? Math.min(100, (keyByteCount / coverCharCount) * 100)
+    : 0;
+
+  meterElement.style.width = ratioPercent + '%';
+
+  // Color coding based on severity thresholds
+  if (ratioPercent > 80) {
+    meterElement.style.background = '#ef4444';      // Red — danger
+  } else if (ratioPercent > 50) {
+    meterElement.style.background = '#eab308';       // Yellow — warning
+  } else {
+    meterElement.style.background = '#00cc34';       // Green — healthy
+  }
 }

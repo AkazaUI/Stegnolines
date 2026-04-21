@@ -2,50 +2,87 @@
 // Stage 3 — Hide | Step 2: Stego-Payload
 // ══════════════════════════════════════════════════════════════
 //
-// بناء وتحليل الحمولة (Payload)
-// تنسيق الحمولة: [0xFF marker] [1 byte hint_length] [hint bytes...] [message bytes...]
-// التنسيق القديم:  [message bytes...]  (أول بايت ≠ 0xFF)
+// Builds and parses the steganographic payload.
+//
+// Payload Format (v2 — with marker):
+//   Byte 0:        0xFF marker (signals new format)
+//   Byte 1:        Hint length in bytes (0–255)
+//   Bytes 2..N:    Hint string (UTF-8 encoded)
+//   Bytes N+1..M:  Secret message (UTF-8 encoded)
+//
+// Legacy Format (v1 — no marker):
+//   Entire payload is the raw secret message (first byte ≠ 0xFF)
 //
 // ══════════════════════════════════════════════════════════════
 
 
-const PAYLOAD_MARKER = 0xFF;
+// Shared encoder/decoder instances to avoid repeated instantiation (DRY).
+const PAYLOAD_TEXT_ENCODER = new TextEncoder();
+const PAYLOAD_TEXT_DECODER = new TextDecoder();
 
 /**
- * Build payload bytes from secret message and optional hint.
- * Returns Uint8Array.
+ * Marker byte that distinguishes the v2 payload format from legacy.
+ *
+ * 0xFF is chosen because it is never the leading byte of a valid
+ * UTF-8 sequence, so it unambiguously flags a structured payload
+ * versus raw text.
+ */
+const PAYLOAD_MARKER = 0xFF;
+
+
+/**
+ * Build a structured payload from a secret message and an optional hint.
+ *
+ * The payload is assembled in the v2 format:
+ *   [0xFF] [hintLength] [hintBytes...] [secretBytes...]
+ *
+ * @param {string} secret - The secret message to embed.
+ * @param {string} hint   - An optional hint string (e.g., emoji or text).
+ * @returns {Uint8Array} The assembled payload byte array.
  */
 function buildPayload(secret, hint) {
-  const secretBytes = new TextEncoder().encode(secret);
-  const hintBytes = (hint && hint.trim())
-    ? new TextEncoder().encode(hint.trim())
+  const secretBytes = PAYLOAD_TEXT_ENCODER.encode(secret);
+  const trimmedHint = hint && hint.trim();
+  const hintBytes   = trimmedHint
+    ? PAYLOAD_TEXT_ENCODER.encode(trimmedHint)
     : new Uint8Array(0);
 
+  // Allocate: 1 byte marker + 1 byte hint length + hint + secret
   const payload = new Uint8Array(2 + hintBytes.length + secretBytes.length);
   payload[0] = PAYLOAD_MARKER;
   payload[1] = hintBytes.length;
+
   if (hintBytes.length > 0) {
     payload.set(hintBytes, 2);
   }
   payload.set(secretBytes, 2 + hintBytes.length);
+
   return payload;
 }
 
+
 /**
- * Parse payload bytes → { secret, hint }.
- * Handles both new format (with marker) and legacy (raw message).
+ * Parse a payload byte array into its secret message and hint components.
+ *
+ * Automatically detects the payload format:
+ * - If the first byte is 0xFF → v2 format (extract hint + secret).
+ * - Otherwise → legacy format (entire payload is the secret).
+ *
+ * @param {Uint8Array} bytes - The raw payload bytes.
+ * @returns {{ secret: string, hint: string }} The parsed components.
  */
 function parsePayload(bytes) {
-  if (bytes.length >= 2 && bytes[0] === PAYLOAD_MARKER) {
-    // New format
-    const hintLen = bytes[1];
-    const hint = hintLen > 0
-      ? new TextDecoder().decode(bytes.slice(2, 2 + hintLen))
+  const isNewFormat = bytes.length >= 2 && bytes[0] === PAYLOAD_MARKER;
+
+  if (isNewFormat) {
+    const hintLength = bytes[1];
+    const hint = hintLength > 0
+      ? PAYLOAD_TEXT_DECODER.decode(bytes.subarray(2, 2 + hintLength))
       : '';
-    const secret = new TextDecoder().decode(bytes.slice(2 + hintLen));
+    const secret = PAYLOAD_TEXT_DECODER.decode(bytes.subarray(2 + hintLength));
     return { secret, hint };
-  } else {
-    // Legacy format — entire payload is the message
-    return { secret: new TextDecoder().decode(bytes), hint: '' };
   }
+
+  // Legacy format — entire payload is the raw message
+  return { secret: PAYLOAD_TEXT_DECODER.decode(bytes), hint: '' };
 }

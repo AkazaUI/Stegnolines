@@ -3,7 +3,7 @@
       min-height: 100vh;
     }
 
-    /* Faint CRT scan-line overlay */
+    /* Faint CRT scan-line overlay — adds a subtle retro terminal aesthetic */
     body::before {
       content: '';
       position: fixed;
@@ -19,7 +19,7 @@
       );
     }
 
-    /* Textarea & input styling overrides */
+    /* ─── Form Element Overrides ──────────────────────────────── */
     textarea, input[type="text"], input[type="password"] {
       background: #0f0f1a !important;
       border: 1px solid rgba(0,255,65,0.15);
@@ -36,13 +36,13 @@
       color: rgba(0,255,65,0.3);
     }
 
-    /* Custom scrollbar */
+    /* ─── Custom Scrollbar ────────────────────────────────────── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #0a0a0f; }
     ::-webkit-scrollbar-thumb { background: rgba(0,255,65,0.25); border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(0,255,65,0.45); }
 
-    /* Tab transitions */
+    /* ─── Tab Navigation ──────────────────────────────────────── */
     .tab-btn { transition: all .25s ease; position: relative; }
     .tab-btn::after {
       content: '';
@@ -55,7 +55,7 @@
     .tab-btn.active::after { width: 80%; }
     .tab-btn.active { color: #00ff41; text-shadow: 0 0 8px rgba(0,255,65,0.5); }
 
-    /* Toast */
+    /* ─── Toast Notification ──────────────────────────────────── */
     .toast-msg {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
       padding: 10px 28px; border-radius: 8px; font-size: 14px;
@@ -65,7 +65,7 @@
       animation: fade-in-up .35s ease-out both;
     }
 
-    /* Label style */
+    /* ─── Field Label ─────────────────────────────────────────── */
     .field-label {
       font-size: .75rem; font-weight: 600; text-transform: uppercase;
       letter-spacing: .08em; color: rgba(0,255,65,0.55);
@@ -73,7 +73,7 @@
     }
     .field-label svg { width: 14px; height: 14px; opacity: .65; }
 
-    /* Step cards */
+    /* ─── Step Cards (glassmorphism containers) ────────────────── */
     .step-card {
       background: linear-gradient(145deg, rgba(20,20,37,.85), rgba(10,10,15,.95));
       border: 1px solid rgba(0,255,65,0.08);
@@ -83,7 +83,7 @@
     }
     .step-card:hover { border-color: rgba(0,255,65,0.2); }
 
-    /* Primary button */
+    /* ─── Primary Button ──────────────────────────────────────── */
     .btn-primary {
       background: linear-gradient(135deg, #00ff41 0%, #00cc34 100%);
       color: #0a0a0f; font-weight: 700; border-radius: 8px;
@@ -97,7 +97,7 @@
     }
     .btn-primary:active { transform: translateY(0); }
 
-    /* Secondary button */
+    /* ─── Secondary Button ────────────────────────────────────── */
     .btn-secondary {
       background: rgba(0,255,65,0.08);
       color: #00ff41; font-weight: 600; border-radius: 8px;
@@ -110,7 +110,7 @@
       box-shadow: 0 0 12px rgba(0,255,65,0.2);
     }
 
-    /* Result box */
+    /* ─── Result Box (extracted message display) ──────────────── */
     .result-box {
       background: rgba(0,255,65,0.06);
       border: 1px solid rgba(0,255,65,0.25);
@@ -120,18 +120,18 @@
       min-height: 48px; word-break: break-all;
     }
 
-    /* Hide / show tab panels */
+    /* ─── Tab Panel Visibility ────────────────────────────────── */
     .tab-panel { display: none; }
     .tab-panel.active { display: block; animation: fade-in-up .4s ease-out both; }
 
-    /* Status indicator */
+    /* ─── Status Indicator (pulsing green dot) ────────────────── */
     .status-dot {
       width: 8px; height: 8px; border-radius: 50%;
       background: #00ff41; display: inline-block;
       animation: pulse_glow 2.5s ease-in-out infinite;
     }
 
-    /* ─── Capacity Meter ─────────────────────────────────────── */
+    /* ─── Capacity Meter ──────────────────────────────────────── */
     .meter-bar-bg {
       background: rgba(0,255,65,0.06);
       border: 1px solid rgba(0,255,65,0.12);
@@ -155,7 +155,7 @@
     }
     .meter-stat .val { color: #00ff41; font-weight: 600; }
 
-    /* ─── Emoji Selector Grid ───────────────────────────────── */
+    /* ─── Emoji Selector Grid ─────────────────────────────────── */
     .emoji-grid {
       display: flex;
       flex-wrap: wrap;
@@ -191,7 +191,7 @@
       box-shadow: 0 0 12px rgba(0,255,65,0.3);
     }
 
-    /* ─── VS Hex Visualization ──────────────────────────────── */
+    /* ─── VS Hex Visualization Box ────────────────────────────── */
     .vs-viz-box {
       background: #080812 !important;
       color: #00ff41 !important;
@@ -201,9 +201,9 @@
       border-color: rgba(0,255,65,0.1) !important;
     }
 
-    /* ─── Hint System ────────────────────────────────────────── */
+    /* ─── Hint System ─────────────────────────────────────────── */
 
-    /* Hint result card (shown after extraction) */
+    /* Hint result card (shown in extraction tab after decoding) */
     .hint-result-card {
       margin-top: 1rem;
       padding: 1rem 1.25rem;
@@ -217,6 +217,7 @@
       margin-bottom: .75rem;
     }
 
+    /* Badge label for hint type indicator */
     .hint-badge {
       display: inline-flex;
       align-items: center;
@@ -238,6 +239,7 @@
       padding: .5rem 0;
     }
 
+    /* Large emoji display in hint cards */
     .hint-big-emoji {
       font-size: 2.5rem;
       line-height: 1;
@@ -250,7 +252,7 @@
       font-weight: 500;
     }
 
-    /* Active hint card (hints tab — latest) */
+    /* Active hint card (hints tab — pulsing highlight for latest hint) */
     .hint-active-card {
       border-color: rgba(250, 204, 21, 0.2) !important;
       background: linear-gradient(145deg, rgba(250, 204, 21, 0.05), rgba(10, 10, 15, 0.95)) !important;
@@ -278,7 +280,7 @@
       gap: .35rem;
     }
 
-    /* Type badges */
+    /* ─── Hint Type Badges (sent vs received) ─────────────────── */
     .hint-type-badge {
       display: inline-flex;
       align-items: center;
@@ -309,7 +311,7 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Hints log list */
+    /* ─── Hints Log List ──────────────────────────────────────── */
     .hints-list {
       display: flex;
       flex-direction: column;
