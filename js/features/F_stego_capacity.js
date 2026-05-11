@@ -2,7 +2,7 @@
 // Feature: Stego Capacity Meter
 // ══════════════════════════════════════════════════════════════
 //
-// Displays the cover text's embedding capacity and current usage:
+// Displays the cover-text's embedding capacity and current usage:
 //   - Total cover bits available
 //   - Maximum characters that can be embedded
 //   - Current message bit consumption
@@ -49,18 +49,18 @@ const CapacityMeterElements = (function () {
  * Pure computation — no DOM interaction. This makes the logic
  * testable and separates concerns from the display layer.
  *
- * @param {string} coverText - The cover text from the input field.
- * @param {string} secret    - The secret message from the input field.
- * @param {string} hint      - The optional hint string.
+ * @param {string} coverText      - The cover-text from the input field.
+ * @param {string} secretMessage   - The secret message from the input field.
+ * @param {string} hint            - The optional hint string.
  * @returns {{ coverBitsCount: number, maxChars: number, msgBits: number, usagePercent: number }}
  */
-function calculateCapacity(coverText, secret, hint) {
+function calculateEmbeddingCapacity(coverText, secretMessage, hint) {
   const coverBitsCount = stringToBinary(coverText).length;
 
   // Calculate actual message bits if there's content to embed
   let msgBits = 0;
-  if (secret.length > 0 || (hint && hint.trim())) {
-    const payload = buildPayload(secret || '', hint || '');
+  if (secretMessage.length > 0 || (hint && hint.trim())) {
+    const payload = buildPayload(secretMessage || '', hint || '');
     msgBits = bytesToBinary(payload).length;
   }
 
@@ -88,12 +88,12 @@ function calculateCapacity(coverText, secret, hint) {
  * green → yellow (>70%) → red (>90%) based on usage percentage.
  */
 function updateCapacityMeter() {
-  const coverText = document.getElementById('embedCover').value;
-  const secret    = document.getElementById('embedSecret').value;
-  const hintEl    = document.getElementById('embedHint');
-  const hint      = hintEl ? hintEl.value : '';
+  const coverText      = document.getElementById('embedCover').value;
+  const secretMessage  = document.getElementById('embedSecretMessage').value;
+  const hintEl         = document.getElementById('embedHint');
+  const hint           = hintEl ? hintEl.value : '';
 
-  const { coverBitsCount, maxChars, msgBits, usagePercent } = calculateCapacity(coverText, secret, hint);
+  const { coverBitsCount, maxChars, msgBits, usagePercent } = calculateEmbeddingCapacity(coverText, secretMessage, hint);
 
   // Update DOM elements from cache
   const elements = CapacityMeterElements.get();

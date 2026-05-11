@@ -34,28 +34,28 @@ const PAYLOAD_MARKER = 0xFF;
  * Build a structured payload from a secret message and an optional hint.
  *
  * The payload is assembled in the v2 format:
- *   [0xFF] [hintLength] [hintBytes...] [secretBytes...]
+ *   [0xFF] [hintLength] [hintBytes...] [secretMessageBytes...]
  *
- * @param {string} secret - The secret message to embed.
- * @param {string} hint   - An optional hint string (e.g., emoji or text).
+ * @param {string} secretMessage - The secret message to embed.
+ * @param {string} hint          - An optional hint string (e.g., emoji or text).
  * @returns {Uint8Array} The assembled payload byte array.
  */
-function buildPayload(secret, hint) {
-  const secretBytes = PAYLOAD_TEXT_ENCODER.encode(secret);
+function buildPayload(secretMessage, hint) {
+  const secretMessageBytes = PAYLOAD_TEXT_ENCODER.encode(secretMessage);
   const trimmedHint = hint && hint.trim();
   const hintBytes   = trimmedHint
     ? PAYLOAD_TEXT_ENCODER.encode(trimmedHint)
     : new Uint8Array(0);
 
-  // Allocate: 1 byte marker + 1 byte hint length + hint + secret
-  const payload = new Uint8Array(2 + hintBytes.length + secretBytes.length);
+  // Allocate: 1 byte marker + 1 byte hint length + hint + secretMessage
+  const payload = new Uint8Array(2 + hintBytes.length + secretMessageBytes.length);
   payload[0] = PAYLOAD_MARKER;
   payload[1] = hintBytes.length;
 
   if (hintBytes.length > 0) {
     payload.set(hintBytes, 2);
   }
-  payload.set(secretBytes, 2 + hintBytes.length);
+  payload.set(secretMessageBytes, 2 + hintBytes.length);
 
   return payload;
 }
@@ -65,11 +65,11 @@ function buildPayload(secret, hint) {
  * Parse a payload byte array into its secret message and hint components.
  *
  * Automatically detects the payload format:
- * - If the first byte is 0xFF → v2 format (extract hint + secret).
- * - Otherwise → legacy format (entire payload is the secret).
+ * - If the first byte is 0xFF → v2 format (extract hint + secret message).
+ * - Otherwise → legacy format (entire payload is the secret message).
  *
  * @param {Uint8Array} bytes - The raw payload bytes.
- * @returns {{ secret: string, hint: string }} The parsed components.
+ * @returns {{ secretMessage: string, hint: string }} The parsed components.
  */
 function parsePayload(bytes) {
   const isNewFormat = bytes.length >= 2 && bytes[0] === PAYLOAD_MARKER;
@@ -79,10 +79,10 @@ function parsePayload(bytes) {
     const hint = hintLength > 0
       ? PAYLOAD_TEXT_DECODER.decode(bytes.subarray(2, 2 + hintLength))
       : '';
-    const secret = PAYLOAD_TEXT_DECODER.decode(bytes.subarray(2 + hintLength));
-    return { secret, hint };
+    const secretMessage = PAYLOAD_TEXT_DECODER.decode(bytes.subarray(2 + hintLength));
+    return { secretMessage, hint };
   }
 
-  // Legacy format — entire payload is the raw message
-  return { secret: PAYLOAD_TEXT_DECODER.decode(bytes), hint: '' };
+  // Legacy format — entire payload is the raw secret message
+  return { secretMessage: PAYLOAD_TEXT_DECODER.decode(bytes), hint: '' };
 }
