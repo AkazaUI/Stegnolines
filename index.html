@@ -161,20 +161,19 @@
 
           <!-- Secret Message -->
           <div>
-            <label for="embedSecret" class="field-label">
+            <label for="embedSecretMessage" class="field-label">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
               Secret Message
             </label>
-            <input id="embedSecret" type="text" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter the secret message to embed…" oninput="updateCapacityMeter()" />
-          </div>
+            <input id="embedSecretMessage" type="text" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter the secret message to embed…" oninput="updateCapacityMeter()" />
 
-          <!-- Password -->
+          <!-- Stego-Key -->
           <div>
-            <label for="embedPassword" class="field-label">
+            <label for="embedStegoKey" class="field-label">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-              Secret Password (Seed)
+              Stego-Key (Seed)
             </label>
-            <input id="embedPassword" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter a password to seed the PRNG…" />
+            <input id="embedStegoKey" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter a stego-key to seed the PRNG…" />
           </div>
 
           <!-- Hint (Optional) -->
@@ -268,20 +267,20 @@
       <div class="step-card">
         <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
           <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">5</span>
-          الناتج النهائي (الغلاف + المفتاح المخفي)
+          Stego-Object — الناتج النهائي (الغلاف + المفتاح المخفي)
         </h2>
 
         <div class="space-y-4">
           <div>
-            <label for="finalOutput" class="field-label">
+            <label for="stegoObject" class="field-label">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-              الرسالة الجاهزة للإرسال (النص يبدو عادياً — المفتاح مخفي بداخله)
+              Stego-Object — الرسالة الجاهزة للإرسال (النص يبدو عادياً — المفتاح مخفي بداخله)
             </label>
-            <textarea id="finalOutput" rows="8" class="w-full rounded-lg px-4 py-3 text-sm leading-relaxed resize-y" readonly placeholder="الناتج النهائي سيظهر هنا…"></textarea>
+            <textarea id="stegoObject" rows="8" class="w-full rounded-lg px-4 py-3 text-sm leading-relaxed resize-y" readonly placeholder="الناتج النهائي (Stego-Object) سيظهر هنا…"></textarea>
           </div>
 
           <div class="flex gap-3">
-            <button class="btn-secondary flex-1" onclick="copyToClipboard('finalOutput')">📋 نسخ الناتج</button>
+            <button class="btn-secondary flex-1" onclick="copyToClipboard('stegoObject')">📋 نسخ الناتج</button>
             <button class="btn-primary flex-1" onclick="copyToExtractTab()">🔓 نسخ إلى صفحة الفك</button>
           </div>
         </div>
@@ -299,24 +298,24 @@
         </h2>
         <label for="extractCover" class="field-label">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          الصق الرسالة هنا (الغلاف + المفتاح المخفي)
+          الصق الـ Stego-Object هنا (الغلاف + المفتاح المخفي)
         </label>
-        <textarea id="extractCover" rows="10" class="w-full rounded-lg px-4 py-3 text-sm leading-relaxed resize-y" placeholder="الصق الرسالة النهائية هنا…"></textarea>
+        <textarea id="extractCover" rows="10" class="w-full rounded-lg px-4 py-3 text-sm leading-relaxed resize-y" placeholder="الصق الـ Stego-Object هنا…"></textarea>
       </div>
 
-      <!-- Box 2 — Password -->
+      <!-- Box 2 — Stego-Key -->
       <div class="step-card">
         <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
           <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">2</span>
-          كلمة المرور
+          مفتاح الإخفاء (Stego-Key)
         </h2>
-        <label for="extractPassword" class="field-label">
+        <label for="extractStegoKey" class="field-label">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-          أدخل كلمة المرور المستخدمة أثناء التضمين
+          أدخل مفتاح الإخفاء المستخدم أثناء التضمين
         </label>
-        <input id="extractPassword" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="كلمة المرور…" />
+        <input id="extractStegoKey" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="مفتاح الإخفاء (Stego-Key)…" />
 
-        <button class="btn-primary mt-4 w-full" onclick="extractSecretMessage()">
+        <button class="btn-primary mt-4 w-full" onclick="performExtraction()">
           🔓 فك التشفير واستخراج الرسالة
         </button>
       </div>

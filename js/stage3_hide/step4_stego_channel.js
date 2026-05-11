@@ -160,15 +160,15 @@ function extractVSFromText(text) {
 
 
 /**
- * Build the final stego-object by prepending the VS key to the cover text.
+ * Build the stego-object by prepending the VS key to the cover-text.
  *
- * The VS characters are invisible, so the output looks identical to the
- * original cover text to the human eye.
+ * The VS characters are invisible, so the stego-object looks identical
+ * to the original cover-text to the human eye.
  *
- * @param {string} coverText - The original cover text.
+ * @param {string} coverText - The original cover-text.
  * @param {string} vsKeyStr  - The invisible VS-encoded XOR key.
- * @returns {string} The final stego-object ready for transmission.
+ * @returns {string} The stego-object ready for transmission.
  */
-function buildFinalOutput(coverText, vsKeyStr) {
+function buildStegoObject(coverText, vsKeyStr) {
   return vsKeyStr + coverText;
 }

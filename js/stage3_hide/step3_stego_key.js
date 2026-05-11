@@ -37,19 +37,19 @@ async function sha256(message) {
 // ── SEEDED PRNG (Mulberry32) ──────────────────────────────────
 
 /**
- * Convert a password string to a 32-bit unsigned integer seed.
+ * Convert a stego-key string to a 32-bit unsigned integer seed.
  *
  * Uses the DJB2 hash algorithm (Dan Bernstein), which is a fast
  * non-cryptographic hash suitable for seeding a PRNG. The formula is:
  *   hash = hash * 33 + charCode   (for each character)
  *
- * @param {string} password - The password string to hash.
+ * @param {string} stegoKey - The stego-key string to hash.
  * @returns {number} A 32-bit unsigned integer seed.
  */
-function passwordToSeed(password) {
+function stegoKeyToSeed(stegoKey) {
   let hash = 5381;
-  for (let i = 0; i < password.length; i++) {
-    hash = ((hash << 5) + hash + password.charCodeAt(i)) | 0;
+  for (let i = 0; i < stegoKey.length; i++) {
+    hash = ((hash << 5) + hash + stegoKey.charCodeAt(i)) | 0;
   }
   return hash >>> 0;
 }
@@ -83,17 +83,17 @@ function mulberry32(seed) {
  *
  * Uses a partial Fisher-Yates shuffle: instead of shuffling the entire
  * array, we only shuffle the first `count` elements, making it O(count)
- * rather than O(maxLength). The PRNG is seeded by the password, so the
- * same password always produces the same positions — this is what allows
+ * rather than O(maxLength). The PRNG is seeded by the stego-key, so the
+ * same stego-key always produces the same positions — this is what allows
  * the receiver to reconstruct the same mapping during extraction.
  *
  * @param {number} maxLength - The total number of available positions (cover bit length).
  * @param {number} count     - How many unique positions to select.
- * @param {string} password  - The password used to seed the PRNG.
+ * @param {string} stegoKey  - The stego-key used to seed the PRNG.
  * @returns {number[]} An array of `count` unique position indices.
  */
-function generatePositions(maxLength, count, password) {
-  const rng = mulberry32(passwordToSeed(password));
+function generatePositions(maxLength, count, stegoKey) {
+  const rng = mulberry32(stegoKeyToSeed(stegoKey));
   const pool = Array.from({ length: maxLength }, (_, index) => index);
   const positions = [];
 
