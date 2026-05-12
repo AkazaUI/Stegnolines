@@ -391,14 +391,16 @@
 
   <!-- ═══════════════════════════ JS LOGIC ═══════════════════════════ -->
 
-  <!-- ═══ Stage 3: Hide — Steps 1→4 ═══ -->
-  <script src="js/stage3_hide/step1_cover_binary.js" defer></script>
-  <script src="js/stage3_hide/step2_stego_payload.js" defer></script>
-  <script src="js/stage3_hide/step3_stego_key.js" defer></script>
-  <script src="js/stage3_hide/step4_stego_channel.js" defer></script>
-
   <!-- ═══ Shared Utilities ═══ -->
+  <script src="js/shared/text_codec.js" defer></script>
   <script src="js/utils.js" defer></script>
+
+  <!-- ═══ Stage 3: Hide — Steps 1→5 ═══ -->
+  <script src="js/stage3_hide/step1_payload.js" defer></script>
+  <script src="js/stage3_hide/step2_prng.js" defer></script>
+  <script src="js/stage3_hide/step3_xor.js" defer></script>
+  <script src="js/stage3_hide/step4_vs_codec.js" defer></script>
+  <script src="js/stage3_hide/step5_stego_object.js" defer></script>
 
   <!-- ═══ Features ═══ -->
   <script src="js/features/F_stego_capacity.js" defer></script>

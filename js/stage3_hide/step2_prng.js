@@ -1,16 +1,20 @@
 // ══════════════════════════════════════════════════════════════
-// Stage 3 — Hide | Step 3: Stego-Key Generation
+// Stage 3 — Hide | Step 2: PRNG Position Generator
 // ══════════════════════════════════════════════════════════════
 //
-// Generates the steganographic key from a password:
-//   Password → DJB2 Hash → Seed → Mulberry32 PRNG → Positions → XOR Key
+// Generates deterministic pseudo-random positions from a password:
+//   Password → DJB2 Hash → Seed → Mulberry32 PRNG → Fisher-Yates → Positions
+//
+// The same password always produces the same positions, allowing
+// the receiver to reconstruct the identical mapping during extraction.
 //
 // Components:
 //   1. SHA-256 Hash       — For auto-generated passwords from cover text
 //   2. DJB2 Hash          — Fast password-to-seed conversion
 //   3. Mulberry32 PRNG    — Deterministic pseudo-random number generator
 //   4. Fisher-Yates Shuffle — Generates unique random positions in cover
-//   5. XOR Key Generation — Compares cover bits with payload bits
+//
+// Dependencies: shared/text_codec (SHARED_TEXT_ENCODER)
 //
 // ══════════════════════════════════════════════════════════════
 
@@ -104,56 +108,4 @@ function generatePositions(maxLength, count, stegoKey) {
   }
 
   return positions;
-}
-
-
-// ── XOR KEY GENERATION ────────────────────────────────────────
-
-/**
- * Generate the XOR key by comparing cover bits at selected positions
- * with the desired message bits.
- *
- * For each bit position:
- *   - If coverBit === messageBit → key bit is '0' (no change needed)
- *   - If coverBit !== messageBit → key bit is '1' (flip needed)
- *
- * The resulting key is a binary string of 0s and 1s. Because cover text
- * has natural randomness, roughly 50% of bits will match, making the
- * key highly compressible.
- *
- * @param {string}   coverBits     - Binary representation of the cover text.
- * @param {number[]} basePositions - Selected bit positions in the cover.
- * @param {string}   messageBits   - Binary representation of the payload.
- * @returns {string} The XOR key as a binary string.
- */
-function generateXORKey(coverBits, basePositions, messageBits) {
-  const keyBits = [];
-  for (let i = 0; i < messageBits.length; i++) {
-    keyBits.push(coverBits[basePositions[i]] === messageBits[i] ? '0' : '1');
-  }
-  return keyBits.join('');
-}
-
-
-/**
- * Recover the original payload bits by XOR-reversing cover bits with the key.
- *
- * This is the inverse of generateXORKey — used during extraction.
- * For each bit:
- *   - If coverBit === keyBit → recovered payload bit is '0'
- *   - If coverBit !== keyBit → recovered payload bit is '1'
- *
- * This works because XOR is its own inverse: (a XOR b) XOR b = a.
- *
- * @param {string}   coverBits     - Binary representation of the cover text.
- * @param {number[]} basePositions - Selected bit positions in the cover.
- * @param {string}   xorKeyBinary  - The XOR key as a binary string.
- * @returns {string} The recovered payload as a binary string.
- */
-function recoverPayloadBits(coverBits, basePositions, xorKeyBinary) {
-  const payloadBits = [];
-  for (let i = 0; i < xorKeyBinary.length; i++) {
-    payloadBits.push(coverBits[basePositions[i]] === xorKeyBinary[i] ? '0' : '1');
-  }
-  return payloadBits.join('');
 }

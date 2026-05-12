@@ -2,20 +2,21 @@
 // Stage 3 — Hide | Embedding Orchestrator
 // ══════════════════════════════════════════════════════════════
 //
-// Orchestrates the full embedding pipeline by executing Steps 1–4
+// Orchestrates the full embedding pipeline by executing Steps 1–5
 // in sequence, then updating the UI with results and feature widgets:
 //
 //   1. Read user inputs (cover-text, secret message, hint, stego-key)
-//   2. Build Stego-Payload (Step 2: message + optional hint → bytes)
-//   3. Convert Cover-text → Binary (Step 1)
+//   2. Build Stego-Payload (Step 1: message + optional hint → bytes)
+//   3. Convert Cover-text → Binary (shared/text_codec)
 //   4. Validate embedding capacity (payload bits ≤ cover bits)
-//   5. Generate Stego-Key (Step 3: positions + XOR)
-//   6. Encode via Stego-Channel (Step 4: XOR key → VS characters)
-//   7. Build Stego-Object (VS key + cover-text)
-//   8. Update feature widgets (visualization, meters, hint log)
+//   5. Generate PRNG positions (Step 2: stego-key → positions)
+//   6. Generate XOR key (Step 3: cover bits ⊕ payload bits)
+//   7. Encode via VS Codec (Step 4: XOR key → VS characters)
+//   8. Build Stego-Object (Step 5: VS key + cover-text)
+//   9. Update feature widgets (visualization, meters, hint log)
 //
-// Dependencies: step1, step2, step3, step4, utils,
-//               F_stego_capacity, F_stego_analysis, F_stego_hint
+// Dependencies: step1, step2, step3, step4, step5, shared/text_codec,
+//               utils, F_stego_capacity, F_stego_analysis, F_stego_hint
 // ══════════════════════════════════════════════════════════════
 
 
@@ -61,7 +62,7 @@ function displayEmbeddingResults({ basePositions, xorKey, stegoObject }) {
  * Main embedding pipeline — orchestrates the full embedding process.
  *
  * This is the entry point called by the UI button. It validates inputs,
- * runs the 4-step steganographic embedding pipeline, updates all output
+ * runs the 5-step steganographic embedding pipeline, updates all output
  * fields, and triggers feature widget refreshes.
  *
  * Wrapped in try/catch to prevent unexpected errors from crashing the
@@ -90,11 +91,11 @@ async function performEmbedding() {
       showToast('🔑 لم تُدخل مفتاح إخفاء — تم توليده تلقائياً من هاش الغلاف (SHA-256).');
     }
 
-    // ── Step 2: Build Stego-Payload (secret message + optional hint → binary)
+    // ── Step 1: Build Stego-Payload (secret message + optional hint → binary)
     const payloadBytes = buildPayload(secretMessage, hint);
     const messageBits  = bytesToBinary(payloadBytes);
 
-    // ── Step 1: Cover-text → Binary
+    // ── shared/text_codec: Cover-text → Binary
     const coverBits = stringToBinary(coverText);
 
     // ── Embedding capacity validation (payload must fit within cover-text)
@@ -103,14 +104,16 @@ async function performEmbedding() {
       return;
     }
 
-    // ── Step 3: Generate Stego-Key (PRNG positions + XOR comparison)
+    // ── Step 2: Generate PRNG positions (stego-key → seed → positions)
     const basePositions = generatePositions(coverBits.length, messageBits.length, resolvedStegoKey);
+
+    // ── Step 3: Generate XOR key (cover bits ⊕ payload bits at positions)
     const xorKey = generateXORKey(coverBits, basePositions, messageBits);
 
-    // ── Step 4: Encode via Stego-Channel (XOR key → invisible VS characters)
+    // ── Step 4: Encode via VS Codec (XOR key → invisible VS characters)
     const { vsStr, bytesArr } = xorKeyToVSString(xorKey);
 
-    // ── Build Stego-Object (VS key prepended to cover-text)
+    // ── Step 5: Build Stego-Object (VS key prepended to cover-text)
     const stegoObject = buildStegoObject(coverText, vsStr);
 
     // ── Update DOM outputs

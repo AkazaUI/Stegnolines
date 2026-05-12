@@ -1,16 +1,16 @@
 // ══════════════════════════════════════════════════════════════
-// Stage 3 — Hide | Step 4: Stego-Channel (Variation Selectors)
+// Stage 3 — Hide | Step 4: VS Codec (Variation Selector Encoding)
 // ══════════════════════════════════════════════════════════════
 //
-// The covert channel: encodes/decodes the XOR key using invisible
-// Unicode Variation Selector characters appended to the cover text.
-//
-// VS characters are invisible and do not alter the rendered text,
-// making them ideal for steganographic embedding.
+// Encodes and decodes data using invisible Unicode Variation Selector
+// characters. VS characters are invisible and do not alter rendered
+// text, making them ideal for steganographic embedding.
 //
 // Mapping:
 //   Byte 0–15   → VS1–VS16    (U+FE00 – U+FE0F)   — BMP range
 //   Byte 16–255 → VS17–VS256  (U+E0100 – U+E01EF) — Supplementary range
+//
+// Dependencies: shared/text_codec (bytesToBinary — for binary key input)
 //
 // ══════════════════════════════════════════════════════════════
 
@@ -86,7 +86,7 @@ function fromVariationSelector(codePoint) {
 }
 
 
-// ── Binary Key ↔ VS String ───────────────────────────────────
+// ── Binary Key → VS String ───────────────────────────────────
 
 /**
  * Pad a binary string to a multiple of 8 bits (byte-aligned).
@@ -126,49 +126,4 @@ function xorKeyToVSString(binaryKey) {
   }
 
   return { vsStr: vsChars.join(''), bytesArr };
-}
-
-
-/**
- * Extract all Variation Selector bytes from a text string.
- *
- * Iterates over every character, separating VS characters (converted to
- * byte values) from visible text. This is the first step of extraction.
- *
- * @param {string} text - The stego-object (cover text + hidden VS characters).
- * @returns {{ vsBytes: Uint8Array, cleanText: string }}
- *   vsBytes   — The extracted VS byte values.
- *   cleanText — The visible text with all VS characters removed.
- */
-function extractVSFromText(text) {
-  const vsBytes = [];
-  const visibleChars = [];
-
-  for (const char of text) {
-    const codePoint = char.codePointAt(0);
-    const byteValue = fromVariationSelector(codePoint);
-
-    if (byteValue !== null) {
-      vsBytes.push(byteValue);
-    } else {
-      visibleChars.push(char);
-    }
-  }
-
-  return { vsBytes: new Uint8Array(vsBytes), cleanText: visibleChars.join('') };
-}
-
-
-/**
- * Build the stego-object by prepending the VS key to the cover-text.
- *
- * The VS characters are invisible, so the stego-object looks identical
- * to the original cover-text to the human eye.
- *
- * @param {string} coverText - The original cover-text.
- * @param {string} vsKeyStr  - The invisible VS-encoded XOR key.
- * @returns {string} The stego-object ready for transmission.
- */
-function buildStegoObject(coverText, vsKeyStr) {
-  return vsKeyStr + coverText;
 }

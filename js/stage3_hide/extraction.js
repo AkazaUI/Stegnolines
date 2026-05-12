@@ -3,18 +3,19 @@
 // ══════════════════════════════════════════════════════════════
 //
 // Orchestrates the full extraction (reverse) pipeline by running
-// the steps in reverse order (4 → 3 → 1 → 2):
+// the steps in reverse order (5 → 4 → 2 → 3 → 1):
 //
-//   1. Decode Stego-Channel (Step 4: extract VS bytes → XOR key binary)
-//   2. Separate clean cover-text from hidden VS characters
+//   1. Disassemble Stego-Object (Step 5: extract VS bytes + clean text)
+//   2. Decode VS bytes → XOR key binary (Step 4: VS → bytes → binary)
 //   3. Resolve stego-key (auto-generate from cover-text hash if not provided)
-//   4. Convert clean cover-text → binary (Step 1)
-//   5. Regenerate same PRNG positions (Step 3: stego-key → positions)
+//   4. Convert clean cover-text → binary (shared/text_codec)
+//   5. Regenerate same PRNG positions (Step 2: stego-key → positions)
 //   6. Recover payload bits via XOR reversal (Step 3: recoverPayloadBits)
-//   7. Parse Stego-Payload (Step 2: bytes → secret message + hint)
+//   7. Parse Stego-Payload (Step 1: bytes → secret message + hint)
 //   8. Display results in the UI
 //
-// Dependencies: step1, step2, step3, step4, utils, F_stego_hint
+// Dependencies: step1, step2, step3, step4, step5, shared/text_codec,
+//               utils, F_stego_hint
 // ══════════════════════════════════════════════════════════════
 
 
@@ -66,14 +67,14 @@ async function performExtraction() {
   if (!stegoObject.trim()) return showToast('⚠ الرجاء إدخال الرسالة النهائية.');
 
   try {
-    // ── Step 4 (Reverse): Decode Stego-Channel — separate VS bytes from visible text
+    // ── Step 5 (Reverse): Disassemble Stego-Object — separate VS bytes from visible text
     const { vsBytes, cleanText: coverText } = extractVSFromText(stegoObject);
 
     if (vsBytes.length === 0) {
       throw new Error('لا توجد أحرف مخفية (VS) في الرسالة. تأكد من لصق الرسالة النهائية كاملة.');
     }
 
-    // Reconstruct binary XOR key from extracted VS bytes
+    // ── Step 4 (Reverse): Decode VS bytes → XOR key binary
     const xorKeyBinary = bytesToBinary(vsBytes);
 
     // ── Resolve stego-key (DRY — shared with embedding)
@@ -82,21 +83,20 @@ async function performExtraction() {
       showToast('🔑 لم تُدخل مفتاح إخفاء — تم توليده تلقائياً من هاش الغلاف (SHA-256).');
     }
 
-    // ── Step 1: Cover-text → Binary
+    // ── shared/text_codec: Cover-text → Binary
     const coverBits = stringToBinary(coverText);
 
     if (xorKeyBinary.length > coverBits.length) {
       throw new Error(`المفتاح يحتوي ${xorKeyBinary.length} بت لكن الغلاف يحتوي ${coverBits.length} بت فقط.`);
     }
 
-    // ── Step 3: Regenerate the same PRNG positions using the same stego-key
+    // ── Step 2 (Reverse): Regenerate the same PRNG positions using the same stego-key
     const basePositions = generatePositions(coverBits.length, xorKeyBinary.length, resolvedStegoKey);
 
-    // ── Step 3 (cont.): Recover payload bits via XOR reversal
-    //    Uses the shared recoverPayloadBits() instead of duplicating the XOR loop
+    // ── Step 3 (Reverse): Recover payload bits via XOR reversal
     const recoveredBinary = recoverPayloadBits(coverBits, basePositions, xorKeyBinary);
 
-    // ── Step 2: Parse Stego-Payload → secret message + hint
+    // ── Step 1 (Reverse): Parse Stego-Payload → secret message + hint
     const payloadBytes = binaryToBytes(recoveredBinary);
     const { secretMessage, hint } = parsePayload(payloadBytes);
 

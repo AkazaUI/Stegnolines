@@ -176,12 +176,14 @@ function toggleDetails() {
 // ── STEGO-KEY RESOLUTION (Shared by Embedding & Extraction) ──
 
 /**
- * Resolve the stego-key to use for PRNG seeding.
+ * Resolve the stego-key to use for Step 2 (PRNG seeding).
  *
  * If the user provided a stego-key, it is used as-is. If no stego-key
  * was provided (empty/whitespace), the SHA-256 hash of the cover-text
  * is used as a deterministic fallback. This ensures the same positions
  * are generated during both embedding and extraction.
+ *
+ * Dependencies: step2_prng (sha256)
  *
  * @param {string} stegoKey  - The user-supplied stego-key (may be empty).
  * @param {string} coverText - The cover-text to hash if no stego-key given.

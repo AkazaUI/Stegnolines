@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════════════
-// Stage 3 — Hide | Step 2: Stego-Payload
+// Stage 3 — Hide | Step 1: Stego-Payload
 // ══════════════════════════════════════════════════════════════
 //
 // Builds and parses the steganographic payload.
@@ -13,7 +13,7 @@
 // Legacy Format (v1 — no marker):
 //   Entire payload is the raw secret message (first byte ≠ 0xFF)
 //
-// Dependencies: step1_cover_binary (SHARED_TEXT_ENCODER, SHARED_TEXT_DECODER)
+// Dependencies: shared/text_codec (SHARED_TEXT_ENCODER, SHARED_TEXT_DECODER)
 //
 // ══════════════════════════════════════════════════════════════
 

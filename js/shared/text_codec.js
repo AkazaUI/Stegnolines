@@ -1,9 +1,10 @@
 // ══════════════════════════════════════════════════════════════
-// Stage 3 — Hide | Step 1: Cover Binary
+// Shared Utility — Text Codec (Binary ↔ Text Conversion)
 // ══════════════════════════════════════════════════════════════
 //
-// Converts text (Cover / Secret) to binary representation and back.
-// This step is the foundation upon which all subsequent steps build.
+// Low-level binary conversion utilities used across all stages.
+// This is NOT a pipeline step — it's a shared codec called by
+// multiple steps at different points in the pipeline.
 //
 // Encoding: UTF-8 (variable-length, 1–4 bytes per character)
 // Binary unit: 8 bits per byte
@@ -12,13 +13,13 @@
 
 
 // ── Shared Encoder/Decoder (DRY) ──────────────────────────────
-// Single instances reused across all modules (step1, step2, step3)
-// to avoid repeated instantiation on every function call.
+// Single instances reused across all modules to avoid repeated
+// instantiation on every function call.
 
-/** @type {TextEncoder} Shared UTF-8 encoder — used by step1, step2, step3. */
+/** @type {TextEncoder} Shared UTF-8 encoder — used by payload, keygen, etc. */
 const SHARED_TEXT_ENCODER = new TextEncoder();
 
-/** @type {TextDecoder} Shared UTF-8 decoder — used by step1, step2. */
+/** @type {TextDecoder} Shared UTF-8 decoder — used by payload, extraction, etc. */
 const SHARED_TEXT_DECODER = new TextDecoder();
 
 
