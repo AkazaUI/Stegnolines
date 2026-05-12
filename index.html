@@ -146,7 +146,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 Capacity Meter
               </span>
-              <span id="meterPercent" class="text-xs font-mono font-bold text-brand-400/50">0%</span>
+              <span id="meterPercent" class="text-xs font-mono font-bold text-brand-400/50" aria-live="polite">0%</span>
             </div>
             <div class="meter-bar-bg mb-3">
               <div id="meterFill" class="meter-bar-fill" style="width:0%"></div>
@@ -166,6 +166,7 @@
               Secret Message
             </label>
             <input id="embedSecretMessage" type="text" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter the secret message to embed…" oninput="updateCapacityMeter()" />
+          </div>
 
           <!-- Stego-Key -->
           <div>
@@ -173,7 +174,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
               Stego-Key (Seed)
             </label>
-            <input id="embedStegoKey" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter a stego-key to seed the PRNG…" />
+            <input id="embedStegoKey" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="Enter a stego-key to seed the PRNG…" autocomplete="off" />
           </div>
 
           <!-- Hint (Optional) -->
@@ -313,7 +314,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
           أدخل مفتاح الإخفاء المستخدم أثناء التضمين
         </label>
-        <input id="extractStegoKey" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="مفتاح الإخفاء (Stego-Key)…" />
+        <input id="extractStegoKey" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm" placeholder="مفتاح الإخفاء (Stego-Key)…" autocomplete="off" />
 
         <button class="btn-primary mt-4 w-full" onclick="performExtraction()">
           🔓 فك التشفير واستخراج الرسالة
@@ -326,7 +327,7 @@
           <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">3</span>
           الرسالة السرية
         </h2>
-        <div id="extractedResult" class="result-box text-lg text-center py-6 animate-pulse_glow"></div>
+        <div id="extractedResult" class="result-box text-lg text-center py-6 animate-pulse_glow" aria-live="polite"></div>
 
         <!-- Hint Display -->
         <div id="extractHintCard" class="hint-result-card" style="display:none;">
@@ -391,24 +392,28 @@
   <!-- ═══════════════════════════ JS LOGIC ═══════════════════════════ -->
 
   <!-- ═══ Stage 3: Hide — Steps 1→4 ═══ -->
-  <script src="js/stage3_hide/step1_cover_binary.js"></script>
-  <script src="js/stage3_hide/step2_stego_payload.js"></script>
-  <script src="js/stage3_hide/step3_stego_key.js"></script>
-  <script src="js/stage3_hide/step4_stego_channel.js"></script>
+  <script src="js/stage3_hide/step1_cover_binary.js" defer></script>
+  <script src="js/stage3_hide/step2_stego_payload.js" defer></script>
+  <script src="js/stage3_hide/step3_stego_key.js" defer></script>
+  <script src="js/stage3_hide/step4_stego_channel.js" defer></script>
 
   <!-- ═══ Shared Utilities ═══ -->
-  <script src="js/utils.js"></script>
+  <script src="js/utils.js" defer></script>
 
   <!-- ═══ Features ═══ -->
-  <script src="js/features/F_stego_capacity.js"></script>
-  <script src="js/features/F_stego_hint.js"></script>
-  <script src="js/features/F_stego_analysis.js"></script>
+  <script src="js/features/F_stego_capacity.js" defer></script>
+  <script src="js/features/F_stego_hint.js" defer></script>
+  <script src="js/features/F_stego_analysis.js" defer></script>
 
   <!-- ═══ Stage 3: Orchestrators (depend on all above) ═══ -->
-  <script src="js/stage3_hide/embedding.js"></script>
-  <script src="js/stage3_hide/extraction.js"></script>
+  <script src="js/stage3_hide/embedding.js" defer></script>
+  <script src="js/stage3_hide/extraction.js" defer></script>
 
-  <!-- ═══ Initialize ═══ -->
-  <script>updateCapacityMeter();</script>
+  <!-- ═══ Initialize — runs after all deferred scripts are loaded ═══ -->
+  <script defer>
+    document.addEventListener('DOMContentLoaded', function () {
+      updateCapacityMeter();
+    });
+  </script>
 </body>
 </html>

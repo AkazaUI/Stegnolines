@@ -13,12 +13,10 @@
 // Legacy Format (v1 — no marker):
 //   Entire payload is the raw secret message (first byte ≠ 0xFF)
 //
+// Dependencies: step1_cover_binary (SHARED_TEXT_ENCODER, SHARED_TEXT_DECODER)
+//
 // ══════════════════════════════════════════════════════════════
 
-
-// Shared encoder/decoder instances to avoid repeated instantiation (DRY).
-const PAYLOAD_TEXT_ENCODER = new TextEncoder();
-const PAYLOAD_TEXT_DECODER = new TextDecoder();
 
 /**
  * Marker byte that distinguishes the v2 payload format from legacy.
@@ -28,6 +26,9 @@ const PAYLOAD_TEXT_DECODER = new TextDecoder();
  * versus raw text.
  */
 const PAYLOAD_MARKER = 0xFF;
+
+/** Maximum hint size in bytes — constrained by the single-byte length field. */
+const MAX_HINT_BYTES = 255;
 
 
 /**
@@ -39,13 +40,26 @@ const PAYLOAD_MARKER = 0xFF;
  * @param {string} secretMessage - The secret message to embed.
  * @param {string} hint          - An optional hint string (e.g., emoji or text).
  * @returns {Uint8Array} The assembled payload byte array.
+ * @throws {Error} If the hint exceeds 255 bytes when UTF-8 encoded.
  */
 function buildPayload(secretMessage, hint) {
-  const secretMessageBytes = PAYLOAD_TEXT_ENCODER.encode(secretMessage);
+  // Guard: ensure at least a secret message exists
+  if (!secretMessage && (!hint || !hint.trim())) {
+    return new Uint8Array(0);
+  }
+
+  const secretMessageBytes = SHARED_TEXT_ENCODER.encode(secretMessage || '');
   const trimmedHint = hint && hint.trim();
   const hintBytes   = trimmedHint
-    ? PAYLOAD_TEXT_ENCODER.encode(trimmedHint)
+    ? SHARED_TEXT_ENCODER.encode(trimmedHint)
     : new Uint8Array(0);
+
+  // Validate hint size — the length field is a single byte (0–255)
+  if (hintBytes.length > MAX_HINT_BYTES) {
+    throw new Error(
+      `التلميح كبير جداً (${hintBytes.length} bytes) — الحد الأقصى ${MAX_HINT_BYTES} bytes.`
+    );
+  }
 
   // Allocate: 1 byte marker + 1 byte hint length + hint + secretMessage
   const payload = new Uint8Array(2 + hintBytes.length + secretMessageBytes.length);
@@ -77,12 +91,12 @@ function parsePayload(bytes) {
   if (isNewFormat) {
     const hintLength = bytes[1];
     const hint = hintLength > 0
-      ? PAYLOAD_TEXT_DECODER.decode(bytes.subarray(2, 2 + hintLength))
+      ? SHARED_TEXT_DECODER.decode(bytes.subarray(2, 2 + hintLength))
       : '';
-    const secretMessage = PAYLOAD_TEXT_DECODER.decode(bytes.subarray(2 + hintLength));
+    const secretMessage = SHARED_TEXT_DECODER.decode(bytes.subarray(2 + hintLength));
     return { secretMessage, hint };
   }
 
   // Legacy format — entire payload is the raw secret message
-  return { secretMessage: PAYLOAD_TEXT_DECODER.decode(bytes), hint: '' };
+  return { secretMessage: SHARED_TEXT_DECODER.decode(bytes), hint: '' };
 }

@@ -60,7 +60,7 @@ function displayExtractionResults(secretMessage, hint) {
  * reverses the embedding pipeline to recover the original secret message.
  */
 async function performExtraction() {
-  const stegoObject = document.getElementById('extractCover').value;
+  const stegoObject = document.getElementById('extractCover').value.trim();
   const rawStegoKey = document.getElementById('extractStegoKey').value;
 
   if (!stegoObject.trim()) return showToast('⚠ الرجاء إدخال الرسالة النهائية.');

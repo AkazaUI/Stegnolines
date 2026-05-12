@@ -27,7 +27,7 @@
  * @returns {Promise<string>} The hex-encoded SHA-256 digest.
  */
 async function sha256(message) {
-  const data = new TextEncoder().encode(message);
+  const data = SHARED_TEXT_ENCODER.encode(message);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashBytes = Array.from(new Uint8Array(hashBuffer));
   return hashBytes.map(byte => byte.toString(16).padStart(2, '0')).join('');

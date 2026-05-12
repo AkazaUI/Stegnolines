@@ -10,6 +10,17 @@
 // ══════════════════════════════════════════════════════════════
 
 
+// ── Key Size Meter Color Thresholds ───────────────────────────
+// Semantic color constants for the key-to-cover ratio meter.
+
+/** Green — key is small relative to cover (healthy, ≤ 50%). */
+const METER_COLOR_HEALTHY = '#00cc34';
+/** Yellow — key is getting large (warning, 50–80%). */
+const METER_COLOR_WARNING = '#eab308';
+/** Red — key approaches cover size (danger, > 80%). */
+const METER_COLOR_DANGER  = '#ef4444';
+
+
 /**
  * Format a single key byte into a visualization line.
  *
@@ -88,10 +99,10 @@ function updateKeySizeMeter(keyByteCount, coverCharCount) {
 
   // Color coding based on severity thresholds
   if (ratioPercent > 80) {
-    meterElement.style.background = '#ef4444';      // Red — danger
+    meterElement.style.background = METER_COLOR_DANGER;
   } else if (ratioPercent > 50) {
-    meterElement.style.background = '#eab308';       // Yellow — warning
+    meterElement.style.background = METER_COLOR_WARNING;
   } else {
-    meterElement.style.background = '#00cc34';       // Green — healthy
+    meterElement.style.background = METER_COLOR_HEALTHY;
   }
 }

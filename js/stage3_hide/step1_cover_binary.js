@@ -11,6 +11,17 @@
 // ══════════════════════════════════════════════════════════════
 
 
+// ── Shared Encoder/Decoder (DRY) ──────────────────────────────
+// Single instances reused across all modules (step1, step2, step3)
+// to avoid repeated instantiation on every function call.
+
+/** @type {TextEncoder} Shared UTF-8 encoder — used by step1, step2, step3. */
+const SHARED_TEXT_ENCODER = new TextEncoder();
+
+/** @type {TextDecoder} Shared UTF-8 decoder — used by step1, step2. */
+const SHARED_TEXT_DECODER = new TextDecoder();
+
+
 /**
  * Convert a UTF-8 string to its binary representation.
  *
@@ -24,7 +35,7 @@
  */
 function stringToBinary(str) {
   if (!str) return '';
-  const encodedBytes = new TextEncoder().encode(str);
+  const encodedBytes = SHARED_TEXT_ENCODER.encode(str);
   return bytesToBinary(encodedBytes);
 }
 
@@ -41,7 +52,7 @@ function stringToBinary(str) {
 function binaryToString(binaryString) {
   if (!binaryString) return '';
   const decodedBytes = binaryToBytes(binaryString);
-  return new TextDecoder().decode(decodedBytes);
+  return SHARED_TEXT_DECODER.decode(decodedBytes);
 }
 
 
