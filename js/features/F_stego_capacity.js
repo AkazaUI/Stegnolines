@@ -64,10 +64,11 @@ function calculateEmbeddingCapacity(coverText, secretMessage, hint) {
     msgBits = bytesToBinary(payload).length;
   }
 
-  // Calculate max embeddable characters (subtract payload overhead)
-  const hintOverheadBytes = 2 + ((hint && hint.trim())
-    ? new TextEncoder().encode(hint.trim()).length
-    : 0);
+  // Calculate max embeddable characters (subtract hint overhead if present)
+  const hasHint = hint && hint.trim();
+  const hintOverheadBytes = hasHint
+    ? 1 + new TextEncoder().encode(hint.trim()).length   // 1 byte delimiter + hint
+    : 0;                                                  // zero overhead without hint
   const availableBits = Math.max(0, coverBitsCount - (hintOverheadBytes * 8));
   const maxChars = availableBits > 0 ? Math.floor(availableBits / 8) : 0;
 

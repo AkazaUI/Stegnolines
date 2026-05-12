@@ -4,14 +4,17 @@
 //
 // Builds and parses the steganographic payload.
 //
-// Payload Format (v2 — with marker):
-//   Byte 0:        0xFF marker (signals new format)
-//   Byte 1:        Hint length in bytes (0–255)
-//   Bytes 2..N:    Hint string (UTF-8 encoded)
-//   Bytes N+1..M:  Secret message (UTF-8 encoded)
+// Format Selection (automatic — zero-overhead when no hint):
 //
-// Legacy Format (v1 — no marker):
-//   Entire payload is the raw secret message (first byte ≠ 0xFF)
+//   Without hint (raw format — 0 bytes overhead):
+//     [secretMessageBytes...]
+//
+//   With hint (delimiter format — 1 byte overhead):
+//     [secretMessageBytes...][0xFF][hintBytes...]
+//
+// 0xFF is safe as a delimiter because it NEVER appears in valid
+// UTF-8 encoded text (it's an illegal byte in the UTF-8 spec).
+// So the first occurrence of 0xFF unambiguously marks the boundary.
 //
 // Dependencies: shared/text_codec (SHARED_TEXT_ENCODER, SHARED_TEXT_DECODER)
 //
@@ -19,28 +22,24 @@
 
 
 /**
- * Marker byte that distinguishes the v2 payload format from legacy.
+ * Delimiter byte that separates the secret message from the hint.
  *
- * 0xFF is chosen because it is never the leading byte of a valid
- * UTF-8 sequence, so it unambiguously flags a structured payload
- * versus raw text.
+ * 0xFF is chosen because it never appears in valid UTF-8 encoded
+ * text, so it can serve as an unambiguous single-byte separator.
  */
-const PAYLOAD_MARKER = 0xFF;
-
-/** Maximum hint size in bytes — constrained by the single-byte length field. */
-const MAX_HINT_BYTES = 255;
+const HINT_DELIMITER = 0xFF;
 
 
 /**
- * Build a structured payload from a secret message and an optional hint.
+ * Build a payload from a secret message and an optional hint.
  *
- * The payload is assembled in the v2 format:
- *   [0xFF] [hintLength] [hintBytes...] [secretMessageBytes...]
+ * Format is chosen automatically for minimal overhead:
+ *   - No hint → raw bytes:         [messageBytes...]          (0 bytes overhead)
+ *   - With hint → delimited:       [messageBytes...][0xFF][hintBytes...]  (1 byte overhead)
  *
  * @param {string} secretMessage - The secret message to embed.
  * @param {string} hint          - An optional hint string (e.g., emoji or text).
  * @returns {Uint8Array} The assembled payload byte array.
- * @throws {Error} If the hint exceeds 255 bytes when UTF-8 encoded.
  */
 function buildPayload(secretMessage, hint) {
   // Guard: ensure at least a secret message exists
@@ -50,26 +49,20 @@ function buildPayload(secretMessage, hint) {
 
   const secretMessageBytes = SHARED_TEXT_ENCODER.encode(secretMessage || '');
   const trimmedHint = hint && hint.trim();
-  const hintBytes   = trimmedHint
-    ? SHARED_TEXT_ENCODER.encode(trimmedHint)
-    : new Uint8Array(0);
 
-  // Validate hint size — the length field is a single byte (0–255)
-  if (hintBytes.length > MAX_HINT_BYTES) {
-    throw new Error(
-      `التلميح كبير جداً (${hintBytes.length} bytes) — الحد الأقصى ${MAX_HINT_BYTES} bytes.`
-    );
+  // ── No hint → raw format (zero overhead)
+  if (!trimmedHint) {
+    return secretMessageBytes;
   }
 
-  // Allocate: 1 byte marker + 1 byte hint length + hint + secretMessage
-  const payload = new Uint8Array(2 + hintBytes.length + secretMessageBytes.length);
-  payload[0] = PAYLOAD_MARKER;
-  payload[1] = hintBytes.length;
+  // ── With hint → delimiter format (1 byte overhead)
+  const hintBytes = SHARED_TEXT_ENCODER.encode(trimmedHint);
 
-  if (hintBytes.length > 0) {
-    payload.set(hintBytes, 2);
-  }
-  payload.set(secretMessageBytes, 2 + hintBytes.length);
+  // Allocate: message + 1 byte delimiter + hint
+  const payload = new Uint8Array(secretMessageBytes.length + 1 + hintBytes.length);
+  payload.set(secretMessageBytes, 0);
+  payload[secretMessageBytes.length] = HINT_DELIMITER;
+  payload.set(hintBytes, secretMessageBytes.length + 1);
 
   return payload;
 }
@@ -78,25 +71,23 @@ function buildPayload(secretMessage, hint) {
 /**
  * Parse a payload byte array into its secret message and hint components.
  *
- * Automatically detects the payload format:
- * - If the first byte is 0xFF → v2 format (extract hint + secret message).
- * - Otherwise → legacy format (entire payload is the secret message).
+ * Scans for the 0xFF delimiter byte:
+ *   - Found → everything before = secret message, everything after = hint
+ *   - Not found → entire payload is the secret message (no hint)
  *
  * @param {Uint8Array} bytes - The raw payload bytes.
  * @returns {{ secretMessage: string, hint: string }} The parsed components.
  */
 function parsePayload(bytes) {
-  const isNewFormat = bytes.length >= 2 && bytes[0] === PAYLOAD_MARKER;
+  // Scan for the delimiter byte
+  const delimiterIndex = bytes.indexOf(HINT_DELIMITER);
 
-  if (isNewFormat) {
-    const hintLength = bytes[1];
-    const hint = hintLength > 0
-      ? SHARED_TEXT_DECODER.decode(bytes.subarray(2, 2 + hintLength))
-      : '';
-    const secretMessage = SHARED_TEXT_DECODER.decode(bytes.subarray(2 + hintLength));
+  if (delimiterIndex !== -1) {
+    const secretMessage = SHARED_TEXT_DECODER.decode(bytes.subarray(0, delimiterIndex));
+    const hint = SHARED_TEXT_DECODER.decode(bytes.subarray(delimiterIndex + 1));
     return { secretMessage, hint };
   }
 
-  // Legacy format — entire payload is the raw secret message
+  // No delimiter — entire payload is the raw secret message
   return { secretMessage: SHARED_TEXT_DECODER.decode(bytes), hint: '' };
 }
