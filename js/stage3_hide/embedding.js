@@ -134,3 +134,60 @@ async function performEmbedding() {
     showToast('❌ خطأ أثناء التضمين: ' + error.message);
   }
 }
+
+
+// ── KEY TRANSFER — Post-Processing Tool ───────────────────────
+
+/** Cached VS string from the last embedding — reused by carrier output. */
+let _cachedVSStr = '';
+
+/**
+ * Toggle the key transfer panel visibility.
+ *
+ * On first open, extracts VS from the stego-object and populates
+ * the clean cover output. The panel is hidden by default.
+ */
+function toggleKeyTransfer() {
+  const panel = document.getElementById('keyTransferPanel');
+  const btn   = document.getElementById('btnTransferKey');
+  const isVisible = panel.style.display === 'block';
+
+  if (isVisible) {
+    panel.style.display = 'none';
+    btn.textContent = '🔀 نقل المفتاح لرسالة أخرى ▼';
+  } else {
+    // Extract VS from current stego-object
+    const stegoObject = document.getElementById('stegoObject').value;
+    if (!stegoObject) return showToast('⚠ قم بالتضمين أولاً.');
+
+    const { vsBytes, cleanText } = extractVSFromText(stegoObject);
+    if (vsBytes.length === 0) return showToast('⚠ لا يوجد مفتاح مخفي في الناتج.');
+
+    // Cache VS string for carrier output
+    const xorKeyBinary = bytesToBinary(vsBytes);
+    const { vsStr } = xorKeyToVSString(xorKeyBinary);
+    _cachedVSStr = vsStr;
+
+    // Show clean cover
+    document.getElementById('cleanCoverOutput').value = cleanText;
+
+    // Update carrier output with current carrier input
+    updateCarrierOutput();
+
+    panel.style.display = 'block';
+    btn.textContent = '🔀 نقل المفتاح لرسالة أخرى ▲';
+  }
+}
+
+
+/**
+ * Update the carrier output field by combining cached VS string
+ * with the user's carrier text input.
+ *
+ * Called on every keystroke in the carrier input field.
+ */
+function updateCarrierOutput() {
+  const carrierText = document.getElementById('carrierInput').value;
+  document.getElementById('carrierOutput').value = _cachedVSStr + carrierText;
+}
+

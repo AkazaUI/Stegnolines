@@ -117,6 +117,12 @@
           التلميحات (Hints)
         </span>
       </button>
+      <button id="tab-scanner" class="tab-btn px-5 py-2.5 rounded-t-lg text-sm font-semibold tracking-wide text-brand-400/60 hover:text-brand-400" role="tab" aria-selected="false" aria-controls="panel-scanner" onclick="switchTab('scanner')">
+        <span class="inline-flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          ماسح المحادثة (Scanner)
+        </span>
+      </button>
     </nav>
 
     <!-- ════════════════════ TAB 1 — EMBEDDING ════════════════════ -->
@@ -284,6 +290,47 @@
             <button class="btn-secondary flex-1" onclick="copyToClipboard('stegoObject')">📋 نسخ الناتج</button>
             <button class="btn-primary flex-1" onclick="copyToExtractTab()">🔓 نسخ إلى صفحة الفك</button>
           </div>
+
+          <!-- Key Transfer Toggle -->
+          <div class="text-center mt-3">
+            <button id="btnTransferKey" class="btn-secondary text-xs" onclick="toggleKeyTransfer()">
+              🔀 نقل المفتاح لرسالة أخرى ▼
+            </button>
+          </div>
+
+          <!-- Key Transfer Panel (hidden by default) -->
+          <div id="keyTransferPanel" style="display:none; background:rgba(0,255,65,0.02);" class="mt-4 p-4 rounded-lg border border-brand-400/15 space-y-4">
+
+            <!-- Clean Cover Output -->
+            <div>
+              <label for="cleanCoverOutput" class="field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                📄 الغلاف النظيف (الرسالة #1 — أرسلها بدون تغيير)
+              </label>
+              <textarea id="cleanCoverOutput" rows="4" class="w-full rounded-lg px-4 py-3 text-sm resize-y" readonly placeholder="الغلاف النظيف سيظهر هنا..."></textarea>
+              <button class="btn-secondary text-xs mt-2" onclick="copyToClipboard('cleanCoverOutput')">📋 نسخ الغلاف</button>
+            </div>
+
+            <!-- Carrier Text Input -->
+            <div>
+              <label for="carrierInput" class="field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                ✏️ نص الحامل (الرسالة #2 — اكتب رسالة عادية هنا)
+              </label>
+              <textarea id="carrierInput" rows="3" class="w-full rounded-lg px-4 py-3 text-sm resize-y" placeholder="اكتب نص الرسالة الثانية التي ستحمل المفتاح المخفي…" oninput="updateCarrierOutput()"></textarea>
+            </div>
+
+            <!-- Carrier + Key Output -->
+            <div>
+              <label for="carrierOutput" class="field-label">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                🔑 الحامل + المفتاح (الرسالة #2 — جاهزة للإرسال)
+              </label>
+              <textarea id="carrierOutput" rows="3" class="w-full rounded-lg px-4 py-3 text-sm resize-y" readonly placeholder="الحامل مع المفتاح المخفي سيظهر هنا..."></textarea>
+              <button class="btn-secondary text-xs mt-2" onclick="copyToClipboard('carrierOutput')">📋 نسخ الحامل</button>
+            </div>
+
+          </div>
         </div>
       </div>
     </section>
@@ -378,6 +425,113 @@
       </div>
     </section>
 
+    <!-- ════════════════════ TAB 4 — CHAT SCANNER ════════════════════ -->
+    <section id="panel-scanner" class="tab-panel space-y-6" role="tabpanel" aria-labelledby="tab-scanner">
+
+      <!-- ── INPUT: Paste Chat + Platform ── -->
+      <div class="step-card">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+          لصق المحادثة
+        </h2>
+
+        <div class="space-y-4">
+          <div>
+            <label for="scannerPlatform" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              المنصة
+            </label>
+            <select id="scannerPlatform" class="w-full rounded-lg px-4 py-2.5 text-sm bg-surface-700 border border-brand-400/10 text-gray-300">
+              <option value="auto">🔍 كشف تلقائي</option>
+              <option value="whatsapp_android">WhatsApp (Android)</option>
+              <option value="whatsapp_ios">WhatsApp (iOS)</option>
+              <option value="telegram">Telegram</option>
+              <option value="discord">Discord</option>
+              <option value="signal">Signal</option>
+              <option value="imessage">iMessage</option>
+              <option value="generic">📝 نص عادي (كل سطر = رسالة)</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="scannerChatInput" class="field-label">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              الصق جميع الرسائل هنا
+            </label>
+            <textarea id="scannerChatInput" rows="8" class="w-full rounded-lg px-4 py-3 text-sm leading-relaxed resize-y" placeholder="الصق المحادثة كاملة هنا — من أي منصة (WhatsApp, Telegram, Discord...)&#10;أو الصق كل رسالة في سطر منفصل…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ STEP 1: FILTER ══ -->
+      <div class="step-card">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">1</span>
+          فلترة — حذف الأسماء والتواريخ
+        </h2>
+        <button class="btn-primary w-full" onclick="scannerStep1_Filter()">
+          🧹 فلترة الرسائل
+        </button>
+      </div>
+
+      <!-- Step 1 Results -->
+      <div class="step-card" id="scannerStep1Card" style="display:none;">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">✓</span>
+          الرسائل بعد الفلترة
+        </h2>
+        <div id="scannerFilteredList"></div>
+      </div>
+
+      <!-- ══ STEP 2: EXTRACT ══ -->
+      <div class="step-card" id="scannerStep2Btn" style="display:none;">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">2</span>
+          استخراج — فصل الأحرف المخفية عن النصوص
+        </h2>
+        <button class="btn-primary w-full" onclick="scannerStep2_Extract()">
+          🔍 استخراج الأحرف المخفية
+        </button>
+      </div>
+
+      <!-- Step 2 Results -->
+      <div class="step-card" id="scannerStep2Card" style="display:none;">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">✓</span>
+          نتائج الاستخراج
+        </h2>
+        <div id="scannerExtractedList"></div>
+      </div>
+
+      <!-- ══ STEP 3: TRY ══ -->
+      <div class="step-card" id="scannerStep3Btn" style="display:none;">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">3</span>
+          تجربة — المفتاح + كلمة المرور على كل رسالة
+        </h2>
+
+        <label for="scannerPassword" class="field-label">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+          كلمة المرور المتفق عليها مسبقاً
+        </label>
+        <input id="scannerPassword" type="password" class="w-full rounded-lg px-4 py-2.5 text-sm mb-4" placeholder="كلمة المرور (Stego-Key)… اتركه فارغاً لو لم تستخدم كلمة مرور" autocomplete="off" />
+
+        <button class="btn-primary w-full" onclick="scannerStep3_Try()">
+          🔓 تجربة المفتاح على كل رسالة
+        </button>
+      </div>
+
+      <!-- Step 3 Results -->
+      <div class="step-card" id="scannerStep3Card" style="display:none;">
+        <h2 class="text-sm font-bold text-brand-400/70 uppercase tracking-widest mb-4 flex items-center gap-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-400/10 text-brand-400 text-xs font-bold border border-brand-400/25">✓</span>
+          نتائج التجربة
+        </h2>
+        <div id="scannerTryResults"></div>
+      </div>
+
+    </section>
+
   </main>
 
   <!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
@@ -406,6 +560,8 @@
   <script src="js/features/F_stego_capacity.js" defer></script>
   <script src="js/features/F_stego_hint.js" defer></script>
   <script src="js/features/F_stego_analysis.js" defer></script>
+  <script src="js/features/F_chat_parser.js" defer></script>
+  <script src="js/features/F_chat_scanner.js" defer></script>
 
   <!-- ═══ Stage 3: Orchestrators (depend on all above) ═══ -->
   <script src="js/stage3_hide/embedding.js" defer></script>
