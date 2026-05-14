@@ -311,7 +311,7 @@ function isPrintableText(text) {
   for (const char of text) {
     const code = char.codePointAt(0);
     if (
-      (code >= 0x20 && code <= 0x7E)   ||  // ASCII printable
+      (code >= 0x20 && code <= 0x7E) ||  // ASCII printable
       (code >= 0x0600 && code <= 0x06FF) ||  // Arabic
       (code >= 0x0750 && code <= 0x077F) ||  // Arabic Supplement
       (code >= 0xFB50 && code <= 0xFDFF) ||  // Arabic Presentation Forms-A

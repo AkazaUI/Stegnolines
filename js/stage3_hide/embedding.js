@@ -23,18 +23,15 @@
 /**
  * Read and sanitize all user inputs from the embedding panel DOM elements.
  *
- * Centralizes DOM access so the orchestrator works with plain data
- * rather than reaching into the DOM directly (SRP). All string inputs
- * are trimmed to prevent accidental whitespace issues.
- *
- * @returns {{ coverText: string, secretMessage: string, hint: string, stegoKey: string }}
+ * @returns {{ coverText: string, secretMessage: string, hint: string, stegoKey: string, carrierText: string }}
  */
 function readEmbeddingInputs() {
   return {
-    coverText:     document.getElementById('embedCover').value,
+    coverText: document.getElementById('embedCover').value,
     secretMessage: document.getElementById('embedSecretMessage').value.trim(),
-    hint:          document.getElementById('embedHint').value.trim(),
-    stegoKey:      document.getElementById('embedStegoKey').value,
+    hint: document.getElementById('embedHint').value.trim(),
+    stegoKey: document.getElementById('embedStegoKey').value,
+    carrierText: document.getElementById('embedCarrier').value,
   };
 }
 
@@ -42,40 +39,65 @@ function readEmbeddingInputs() {
 /**
  * Write embedding results to the DOM output elements.
  *
- * Separates DOM manipulation from business logic so the pipeline
- * can be understood and tested independently.
+ * Switches between two output modes:
+ *   - Normal mode: single stego-object (cover + VS)
+ *   - Split mode:  clean cover (message #1) + carrier with VS (message #2)
  *
  * @param {object} results - The embedding pipeline outputs.
  * @param {number[]} results.basePositions - The PRNG-generated bit positions.
  * @param {string}   results.xorKey        - The binary XOR key.
- * @param {string}   results.stegoObject   - The completed stego-object.
+ * @param {string}   [results.stegoObject] - Normal mode: the completed stego-object.
+ * @param {string}   [results.cleanCover]  - Split mode: the clean cover text.
+ * @param {string}   [results.carrierWithVS] - Split mode: carrier text with VS prepended.
+ * @param {boolean}  results.isSplitMode   - Whether split mode is active.
  */
-function displayEmbeddingResults({ basePositions, xorKey, stegoObject }) {
+function displayEmbeddingResults({ basePositions, xorKey, stegoObject, cleanCover, carrierWithVS, isSplitMode }) {
   document.getElementById('baseMapOutput').value =
     '[' + basePositions.join(', ') + ']';
   document.getElementById('shiftKeyOutput').value = xorKey;
-  document.getElementById('stegoObject').value = stegoObject;
+
+  const normalDiv = document.getElementById('outputModeNormal');
+  const splitDiv = document.getElementById('outputModeSplit');
+
+  if (isSplitMode) {
+    // Split mode: show two separate outputs
+    normalDiv.style.display = 'none';
+    splitDiv.style.display = 'block';
+    document.getElementById('splitCleanCover').value = cleanCover;
+    document.getElementById('splitCarrierOutput').value = carrierWithVS;
+    // Also populate stegoObject for copyToExtractTab compatibility
+    document.getElementById('stegoObject').value = stegoObject || '';
+  } else {
+    // Normal mode: single stego-object
+    normalDiv.style.display = 'block';
+    splitDiv.style.display = 'none';
+    document.getElementById('stegoObject').value = stegoObject;
+  }
 }
 
 
 /**
  * Main embedding pipeline — orchestrates the full embedding process.
  *
- * This is the entry point called by the UI button. It validates inputs,
- * runs the 5-step steganographic embedding pipeline, updates all output
- * fields, and triggers feature widget refreshes.
- *
- * Wrapped in try/catch to prevent unexpected errors from crashing the
- * application — all failures are reported via toast notifications.
+ * Supports two output modes based on whether a carrier text is provided:
+ *   - No carrier: VS characters are embedded in the cover text (normal)
+ *   - With carrier: VS characters are moved to the carrier text (split)
  */
 async function performEmbedding() {
   try {
     // ── Read and sanitize inputs
-    const { coverText, secretMessage, hint, stegoKey } = readEmbeddingInputs();
+    const { coverText, secretMessage, hint, stegoKey, carrierText } = readEmbeddingInputs();
 
     // ── Validate required fields
-    if (!coverText.trim())     return showToast('⚠ الرجاء إدخال النص الغلاف.');
-    if (!secretMessage)        return showToast('⚠ الرجاء إدخال الرسالة السرية.');
+    if (!coverText.trim()) return showToast('⚠ الرجاء إدخال النص الغلاف.');
+    if (!secretMessage) return showToast('⚠ الرجاء إدخال الرسالة السرية.');
+
+    // ── Validate carrier size (must be >= cover size for plausible deniability)
+    const hasCarrier = carrierText.trim().length > 0;
+    if (hasCarrier && carrierText.length < coverText.length) {
+      showToast(`❌ حجم الحامل (${carrierText.length} حرف) أقل من الغلاف (${coverText.length} حرف). يجب أن يكون ≥ حجم الغلاف لتشتيت الطرف الثالث.`);
+      return;
+    }
 
     // ── Resolve stego-key (auto-generate from cover-text hash if not provided)
     const { resolvedStegoKey, wasAutoGenerated } = await resolveStegoKey(stegoKey, coverText);
@@ -85,7 +107,7 @@ async function performEmbedding() {
 
     // ── Step 1: Build Stego-Payload (secret message + optional hint → binary)
     const payloadBytes = buildPayload(secretMessage, hint);
-    const messageBits  = bytesToBinary(payloadBytes);
+    const messageBits = bytesToBinary(payloadBytes);
 
     // ── shared/text_codec: Cover-text → Binary
     const coverBits = stringToBinary(coverText);
@@ -105,11 +127,33 @@ async function performEmbedding() {
     // ── Step 4: Encode via VS Codec (XOR key → invisible VS characters)
     const { vsStr, bytesArr } = xorKeyToVSString(xorKey);
 
-    // ── Step 5: Build Stego-Object (VS key prepended to cover-text)
-    const stegoObject = buildStegoObject(coverText, vsStr);
+    // ── Step 5: Build output based on mode
+    if (hasCarrier) {
+      // Split mode: VS goes to carrier, cover stays clean
+      const carrierWithVS = vsStr + carrierText;
+      const stegoObject = buildStegoObject(coverText, vsStr); // for extract tab compatibility
 
-    // ── Update DOM outputs
-    displayEmbeddingResults({ basePositions, xorKey, stegoObject });
+      displayEmbeddingResults({
+        basePositions, xorKey,
+        stegoObject,
+        cleanCover: coverText,
+        carrierWithVS,
+        isSplitMode: true,
+      });
+
+      showToast('✅ تم التوليد — الغلاف نظيف + أحرف VS في الحامل الآخر!');
+    } else {
+      // Normal mode: VS embedded in cover
+      const stegoObject = buildStegoObject(coverText, vsStr);
+
+      displayEmbeddingResults({
+        basePositions, xorKey,
+        stegoObject,
+        isSplitMode: false,
+      });
+
+      showToast('✅ تم توليد المفتاح وتضمينه في الغلاف!');
+    }
 
     // ── Feature: VS Visualization (hex breakdown of key bytes)
     updateVSVisualization(xorKey, bytesArr);
@@ -128,66 +172,9 @@ async function performEmbedding() {
 
     // ── Feature: Refresh Embedding Capacity Meter
     updateCapacityMeter();
-    showToast('✅ تم توليد المفتاح وتضمينه في الغلاف!');
 
   } catch (error) {
     showToast('❌ خطأ أثناء التضمين: ' + error.message);
   }
-}
-
-
-// ── KEY TRANSFER — Post-Processing Tool ───────────────────────
-
-/** Cached VS string from the last embedding — reused by carrier output. */
-let _cachedVSStr = '';
-
-/**
- * Toggle the key transfer panel visibility.
- *
- * On first open, extracts VS from the stego-object and populates
- * the clean cover output. The panel is hidden by default.
- */
-function toggleKeyTransfer() {
-  const panel = document.getElementById('keyTransferPanel');
-  const btn   = document.getElementById('btnTransferKey');
-  const isVisible = panel.style.display === 'block';
-
-  if (isVisible) {
-    panel.style.display = 'none';
-    btn.textContent = '🔀 نقل المفتاح لرسالة أخرى ▼';
-  } else {
-    // Extract VS from current stego-object
-    const stegoObject = document.getElementById('stegoObject').value;
-    if (!stegoObject) return showToast('⚠ قم بالتضمين أولاً.');
-
-    const { vsBytes, cleanText } = extractVSFromText(stegoObject);
-    if (vsBytes.length === 0) return showToast('⚠ لا يوجد مفتاح مخفي في الناتج.');
-
-    // Cache VS string for carrier output
-    const xorKeyBinary = bytesToBinary(vsBytes);
-    const { vsStr } = xorKeyToVSString(xorKeyBinary);
-    _cachedVSStr = vsStr;
-
-    // Show clean cover
-    document.getElementById('cleanCoverOutput').value = cleanText;
-
-    // Update carrier output with current carrier input
-    updateCarrierOutput();
-
-    panel.style.display = 'block';
-    btn.textContent = '🔀 نقل المفتاح لرسالة أخرى ▲';
-  }
-}
-
-
-/**
- * Update the carrier output field by combining cached VS string
- * with the user's carrier text input.
- *
- * Called on every keystroke in the carrier input field.
- */
-function updateCarrierOutput() {
-  const carrierText = document.getElementById('carrierInput').value;
-  document.getElementById('carrierOutput').value = _cachedVSStr + carrierText;
 }
 
