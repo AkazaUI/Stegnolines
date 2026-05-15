@@ -50,11 +50,12 @@ const CHAT_PLATFORMS = {
   },
 
   // ── Telegram ────────────────────────────────────────
-  // Format: "أحمد, [12.05.26 14:30]\nنص الرسالة"
-  // Format: "Ahmed, [May 12, 2026 at 2:30 PM]\nMessage text"
+  // Exported format: "أحمد, [12.05.26 14:30]\nنص الرسالة"
+  // Exported format: "Ahmed, [May 12, 2026 at 2:30 PM]\nMessage text"
+  // Copy-paste format: "Ahmed:\nMessage text\n\n"  (Name: on its own line)
   telegram: {
     name: 'Telegram',
-    regex: /^([^,\[]+),\s*\[([^\]]+)\]\s*$/,
+    regex: /^([^,\[:\n]+)(?:,\s*\[([^\]]+)\]|:)\s*$/,
     extract: (match) => ({ sender: match[1].trim(), message: '' }),
     multilineBody: true,
   },
