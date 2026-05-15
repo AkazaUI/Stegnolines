@@ -348,3 +348,104 @@
       font-family: 'JetBrains Mono', monospace;
       white-space: nowrap;
     }
+
+    /* ─── Scanner Action Buttons ──────────────────────────────── */
+    .scanner-action-btn {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .85rem 1.25rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .3s ease;
+      font-family: 'Inter', sans-serif;
+      border: none;
+      text-align: left;
+    }
+    .scanner-action-primary {
+      background: linear-gradient(135deg, #00ff41 0%, #00cc34 100%);
+      color: #0a0a0f;
+    }
+    .scanner-action-primary:hover {
+      box-shadow: 0 0 28px rgba(0,255,65,0.45), 0 4px 16px rgba(0,0,0,0.3);
+      transform: translateY(-2px);
+    }
+    .scanner-action-primary:active { transform: translateY(0); }
+
+    .scanner-action-secondary {
+      background: rgba(0,255,65,0.06);
+      color: #00ff41;
+      border: 1px solid rgba(0,255,65,0.2) !important;
+    }
+    .scanner-action-secondary:hover {
+      background: rgba(0,255,65,0.12);
+      box-shadow: 0 0 16px rgba(0,255,65,0.2), 0 4px 12px rgba(0,0,0,0.2);
+      transform: translateY(-2px);
+    }
+    .scanner-action-secondary:active { transform: translateY(0); }
+
+    .scanner-action-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .scanner-action-content {
+      display: flex;
+      flex-direction: column;
+      gap: .15rem;
+    }
+    .scanner-action-title {
+      font-size: .9rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+    .scanner-action-desc {
+      font-size: .7rem;
+      opacity: .65;
+      font-weight: 400;
+    }
+
+    /* ─── Scanner Progress / Spinner ──────────────────────────── */
+    .scanner-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(0,255,65,0.2);
+      border-top-color: #00ff41;
+      border-radius: 50%;
+      animation: scanner-spin .8s linear infinite;
+    }
+    @keyframes scanner-spin {
+      to { transform: rotate(360deg); }
+    }
+    .scanner-prog-step {
+      transition: color .3s, font-weight .3s;
+    }
+    .scanner-prog-step.active {
+      color: #00ff41;
+      font-weight: 600;
+    }
+    .scanner-prog-step.done {
+      color: rgba(0,255,65,0.7);
+    }
+
+    /* ─── Scanner Collapsible Results ─────────────────────────── */
+    .scanner-result-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      color: inherit;
+      font: inherit;
+    }
+    .scanner-result-toggle:hover .scanner-chevron {
+      color: #00ff41;
+    }
+    .scanner-chevron.rotated {
+      transform: rotate(180deg);
+    }
+    .scanner-result-body {
+      animation: fade-in-up .35s ease-out both;
+    }
