@@ -59,15 +59,54 @@ function switchTab(tabName) {
  * @param {string} message - The notification message to display.
  */
 function showToast(message) {
-  // Remove any existing toasts to prevent stacking
-  document.querySelectorAll('.toast-msg').forEach(el => el.remove());
+  const wrap = document.getElementById('sec-toast-wrap');
+  
+  // Fallback to legacy toast if wrap is somehow missing
+  if (!wrap) {
+    document.querySelectorAll('.toast-msg').forEach(el => el.remove());
+    const toast = document.createElement('div');
+    toast.className = 'toast-msg';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2800);
+    return;
+  }
 
+  // Determine if it's an error or success message
+  const isError = message.includes('❌') || message.includes('⚠') || message.includes('خطأ');
+  
+  // Clean emojis from the message for the monospace text
+  const cleanMsg = message.replace(/[❌⚠✅📋🗑🔑]/g, '').trim();
+  
+  // Set dynamic title based on keywords
+  let dynamicTitle = isError ? 'Error / Warning' : 'Success';
+  const lowerMsg = message.toLowerCase();
+  if (lowerMsg.includes('copied')) dynamicTitle = 'Copied';
+  if (lowerMsg.includes('extracted')) dynamicTitle = 'Extraction Successful';
+  if (lowerMsg.includes('hidden') || lowerMsg.includes('generated') || lowerMsg.includes('embedded')) dynamicTitle = 'Data hidden successfully!';
+  if (lowerMsg.includes('please input') || lowerMsg.includes('paste')) dynamicTitle = 'Missing Input';
+  if (lowerMsg.includes('key')) dynamicTitle = 'Missing key';
+
+  // Create toast element
   const toast = document.createElement('div');
-  toast.className = 'toast-msg';
-  toast.textContent = message;
-  document.body.appendChild(toast);
+  toast.className = `sec-toast ${isError ? 'sec-toast--error' : 'sec-toast--success'}`;
+  
+  toast.innerHTML = `
+    <span class="material-symbols-outlined sec-toast__icon">${isError ? 'gpp_bad' : 'check_circle'}</span>
+    <div>
+      <div class="sec-toast__title">${dynamicTitle}</div>
+      <div class="sec-toast__msg">${cleanMsg}</div>
+    </div>
+  `;
 
-  setTimeout(() => toast.remove(), 2800);
+  // Append to wrapper (handles multiple toasts stacking nicely)
+  wrap.appendChild(toast);
+
+  // Auto-hide and remove after 3.5 seconds
+  setTimeout(() => {
+    toast.classList.add('fading');
+    toast.addEventListener('animationend', () => toast.remove());
+  }, 3500);
 }
 
 
@@ -104,7 +143,7 @@ function copyToClipboard(elementId) {
  */
 function copyToExtractTab() {
   const stegoObject = document.getElementById('stegoObject').value;
-  if (!stegoObject) return showToast('⚠ لا يوجد ناتج نهائي للنسخ.');
+  if (!stegoObject) return showToast('⚠ No final output to copy.');
 
   const stegoKey = document.getElementById('embedStegoKey').value;
 
@@ -113,7 +152,7 @@ function copyToExtractTab() {
   document.getElementById('extractCover').value = stegoObject;
   document.getElementById('extractStegoKey').value = stegoKey;
 
-  showToast('📋 تم نسخ الناتج ومفتاح الإخفاء إلى صفحة الفك!');
+  showToast('📋 Output and stego-key copied to extraction page!');
 }
 
 

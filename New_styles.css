@@ -486,7 +486,7 @@ html.dark .top-nav__brand-logo--dark { display: block; }
 .alert--error .alert__title { color: var(--color-on-error-container); }
 .alert--error .alert__desc  { color: var(--color-on-error-container); opacity: 0.8; }
 
-/* ── 11. TOAST ───────────────────────────────────────────── */
+/* ── 11. TOAST & SEC-TOAST ─────────────────────────────────── */
 
 .toast {
   display: flex; align-items: center; gap: var(--space-md);
@@ -506,6 +506,43 @@ html.dark .top-nav__brand-logo--dark { display: block; }
 }
 .toast--error .material-symbols-outlined { color: var(--color-error); }
 .toast--error span:last-child { color: var(--color-on-error-container); }
+
+/* Fixed Security-Log Toast */
+#sec-toast-wrap {
+  position: fixed;
+  bottom: var(--space-lg);
+  left: var(--space-lg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  max-width: 380px;
+  pointer-events: none;
+}
+.sec-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: #111;
+  border: 1px solid #333;
+  border-left: 3px solid #7DA300;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateX(-24px);
+  animation: toastIn 0.35s ease forwards;
+}
+.sec-toast--error   { border-left-color: #B3261E; }
+.sec-toast--success { border-left-color: #7DA300; }
+.sec-toast .sec-toast__icon { color: #7DA300; flex-shrink: 0; font-size: 18px; margin-top: 2px; }
+.sec-toast--error .sec-toast__icon { color: #B3261E; }
+.sec-toast__title { color: #eee; font-weight: 600; font-size: 0.8125rem; }
+.sec-toast__msg   { color: #aaa; font-family: monospace; font-size: 0.75rem; margin-top: 2px; line-height: 1.4; }
+.sec-toast.fading { animation: toastOut 0.5s ease forwards; }
+@keyframes toastIn  { from { opacity:0; transform:translateX(-24px); } to { opacity:1; transform:translateX(0); } }
+@keyframes toastOut { from { opacity:1; } to   { opacity:0; transform:translateX(-24px); } }
 
 /* ── 12. BADGES / CHIPS ──────────────────────────────────── */
 

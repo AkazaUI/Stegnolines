@@ -105,7 +105,7 @@ function _delay(ms) {
  */
 async function scannerOneClick() {
   const rawText = document.getElementById('scannerChatInput').value;
-  if (!rawText.trim()) return showToast('⚠ الرجاء لصق المحادثة أولاً.');
+  if (!rawText.trim()) return showToast('⚠ Please paste the chat first.');
 
   _resetScannerResults();
 
@@ -127,7 +127,7 @@ async function scannerOneClick() {
   if (!_scannerState.vsKey) {
     _hideProgress();
     _showStep2Results(true);
-    return showToast('❌ لا يوجد مفتاح مخفي في المحادثة.');
+    return showToast('❌ No hidden key in the chat.');
   }
 
   _updateProgress(2, '② تم استخراج VS ✓', 66);
@@ -155,7 +155,7 @@ async function scannerOneClick() {
  */
 async function scannerVerifyFilter() {
   const rawText = document.getElementById('scannerChatInput').value;
-  if (!rawText.trim()) return showToast('⚠ الرجاء لصق المحادثة أولاً.');
+  if (!rawText.trim()) return showToast('⚠ Please paste the chat first.');
 
   _resetScannerResults();
 
@@ -168,9 +168,9 @@ async function scannerVerifyFilter() {
   _showStep2Results(true);
 
   if (_scannerState.vsKey) {
-    showToast(`✅ تم فلترة ${_scannerState.messages.length} رسالة + استخراج مفتاح VS (${_scannerState.vsKey.length} بايت).`);
+    showToast(`✅ Filtered ${_scannerState.messages.length} messages + extracted VS key (${_scannerState.vsKey.length} bytes).`);
   } else {
-    showToast(`✅ تم فلترة ${_scannerState.messages.length} رسالة — لا يوجد أحرف VS مخفية.`);
+    showToast(`✅ Filtered ${_scannerState.messages.length} messages — no hidden VS characters.`);
   }
 }
 
@@ -195,7 +195,7 @@ function _runFilterStep(rawText) {
   const messages = parseChat(rawText, platform);
 
   if (messages.length === 0) {
-    showToast('⚠ لم يتم العثور على أي رسائل.');
+    showToast('⚠ No messages found.');
     return false;
   }
 
@@ -331,9 +331,9 @@ async function _runTryStep() {
   document.getElementById('scannerStep3Card').style.display = 'block';
 
   if (foundMatch) {
-    showToast('✅ تم العثور على رسالة مخفية!');
+    showToast('✅ Hidden message found!');
   } else {
-    showToast('❌ لم يتم العثور على تطابق.');
+    showToast('❌ No match found.');
   }
 }
 

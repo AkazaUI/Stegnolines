@@ -95,7 +95,7 @@ function clearHintsLog() {
 
   localStorage.removeItem(HINTS_STORAGE_KEY);
   renderHintsLog();
-  showToast('🗑 تم مسح سجل التلميحات.');
+  showToast('🗑 Hint history cleared.');
 }
 
 
