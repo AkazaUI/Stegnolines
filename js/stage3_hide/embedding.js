@@ -2,21 +2,23 @@
 // Stage 3 — Hide | Embedding Orchestrator
 // ══════════════════════════════════════════════════════════════
 //
-// Orchestrates the full embedding pipeline by executing Steps 1–5
+// Orchestrates the full embedding pipeline by executing Steps 0–5
 // in sequence, then updating the UI with results and feature widgets:
 //
 //   1. Read user inputs (cover-text, secret message, hint, stego-key)
 //   2. Build Stego-Payload (Step 1: message + optional hint → bytes)
-//   3. Convert Cover-text → Binary (shared/text_codec)
-//   4. Validate embedding capacity (payload bits ≤ cover bits)
-//   5. Generate PRNG positions (Step 2: stego-key → positions)
-//   6. Generate XOR key (Step 3: cover bits ⊕ payload bits)
-//   7. Encode via VS Codec (Step 4: XOR key → VS characters)
-//   8. Build Stego-Object (Step 5: VS key + cover-text)
-//   9. Update feature widgets (visualization, meters, hint log)
+//   3. Compress payload via Brotli Stream (Step 0: raw bytes → compressed bytes)
+//   4. Convert Cover-text → Binary (shared/text_codec)
+//   5. Validate embedding capacity (payload bits ≤ cover bits)
+//   6. Generate PRNG positions (Step 2: stego-key → positions)
+//   7. Generate XOR key (Step 3: cover bits ⊕ payload bits)
+//   8. Encode via VS Codec (Step 4: XOR key → VS characters)
+//   9. Build Stego-Object (Step 5: VS key + cover-text)
+//  10. Update feature widgets (visualization, meters, hint log)
 //
 // Dependencies: step1, step2, step3, step4, step5, shared/text_codec,
-//               utils, F_stego_capacity, F_stego_analysis, F_stego_hint
+//               utils, F_stego_capacity, F_stego_analysis, F_stego_hint,
+//               stage1_Compress/Wasm_Load_&_Init, stage1_Compress/compression
 // ══════════════════════════════════════════════════════════════
 
 
@@ -105,9 +107,27 @@ async function performEmbedding() {
       showToast('🔑 No stego-key entered — auto-generated from cover hash (SHA-256).');
     }
 
-    // ── Step 1: Build Stego-Payload (secret message + optional hint → binary)
+    // ── Step 1: Build Stego-Payload (secret message + optional hint → bytes)
     const payloadBytes = buildPayload(secretMessage, hint);
-    const messageBits = bytesToBinary(payloadBytes);
+
+    // ── Step 0: Compress payload via Brotli Stream (with overhead guard)
+    //    If compression reduces size → prepend flag 0xFE + compressed bytes
+    //    If compression causes overhead → use raw bytes as-is (NO flag, zero overhead)
+    //    0xFE is safe: it never appears as a valid UTF-8 start byte
+    const compressedBytes = doStreamCompress(payloadBytes);
+
+    let finalPayload;
+    if (compressedBytes.length < payloadBytes.length) {
+      // Compression saved space → prepend 0xFE flag + compressed data
+      finalPayload = new Uint8Array(1 + compressedBytes.length);
+      finalPayload[0] = 0xFE;
+      finalPayload.set(compressedBytes, 1);
+    } else {
+      // Compression caused overhead → raw payload, no flag, zero overhead
+      finalPayload = payloadBytes;
+    }
+
+    const messageBits = bytesToBinary(finalPayload);
 
     // ── shared/text_codec: Cover-text → Binary
     const coverBits = stringToBinary(coverText);

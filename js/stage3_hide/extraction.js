@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════════════════════════
 //
 // Orchestrates the full extraction (reverse) pipeline by running
-// the steps in reverse order (5 → 4 → 2 → 3 → 1):
+// the steps in reverse order (5 → 4 → 2 → 3 → 0 → 1):
 //
 //   1. Disassemble Stego-Object (Step 5: extract VS bytes + clean text)
 //   2. Decode VS bytes → XOR key binary (Step 4: VS → bytes → binary)
@@ -11,11 +11,13 @@
 //   4. Convert clean cover-text → binary (shared/text_codec)
 //   5. Regenerate same PRNG positions (Step 2: stego-key → positions)
 //   6. Recover payload bits via XOR reversal (Step 3: recoverPayloadBits)
-//   7. Parse Stego-Payload (Step 1: bytes → secret message + hint)
-//   8. Display results in the UI
+//   7. Decompress payload via Brotli Stream (Step 0 reverse: compressed → raw)
+//   8. Parse Stego-Payload (Step 1: bytes → secret message + hint)
+//   9. Display results in the UI
 //
 // Dependencies: step1, step2, step3, step4, step5, shared/text_codec,
-//               utils, F_stego_hint
+//               utils, F_stego_hint,
+//               stage1_Compress/Wasm_Load_&_Init, stage1_Compress/compression
 // ══════════════════════════════════════════════════════════════
 
 
@@ -96,8 +98,21 @@ async function performExtraction() {
     // ── Step 3 (Reverse): Recover payload bits via XOR reversal
     const recoveredBinary = recoverPayloadBits(coverBits, basePositions, xorKeyBinary);
 
+    // ── Step 0 (Reverse): Check for compression flag and conditionally decompress
+    //    If first byte === 0xFE → payload was compressed, strip flag + decompress
+    //    If first byte !== 0xFE → payload is raw (was never compressed), use as-is
+    const recoveredPayload = binaryToBytes(recoveredBinary);
+
+    let payloadBytes;
+    if (recoveredPayload[0] === 0xFE) {
+      // Flag 0xFE found → strip it and decompress the rest
+      payloadBytes = doStreamDecompress(recoveredPayload.subarray(1));
+    } else {
+      // No flag → raw payload, no decompression needed
+      payloadBytes = recoveredPayload;
+    }
+
     // ── Step 1 (Reverse): Parse Stego-Payload → secret message + hint
-    const payloadBytes = binaryToBytes(recoveredBinary);
     const { secretMessage, hint } = parsePayload(payloadBytes);
 
     // ── Display results in the UI
