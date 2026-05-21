@@ -148,7 +148,7 @@ body {
   position: fixed; top: 0; left: 0; width: 100%; z-index: 50;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-outline-variant);
-  height: 100px;
+  height: 65px;
 }
 
 .top-nav__inner {
@@ -172,7 +172,7 @@ body {
 }
 .top-nav__brand-logo {
   display: block;
-  height: 90px;
+  height:45px;
   width: auto;
   max-width: min(420px, 85vw);
   object-fit: contain;
