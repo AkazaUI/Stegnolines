@@ -86,6 +86,22 @@ const CHAT_PLATFORMS = {
     extract: (match) => ({ sender: match[1].trim(), message: '' }),
     multilineBody: true,
   },
+
+  // ── Manual / Simple Chat ────────────────────────────
+  // Format: "أحمد: نص الرسالة" or "Ahmed: Message text"
+  // Format: "أحمد - نص الرسالة" or "Ahmed - Message"
+  // Format: "[أحمد] نص الرسالة" or "[Ahmed] Message"
+  manual: {
+    name: 'كتابة يدوية (اسم: رسالة)',
+    regex: /^([^:–\-\[\]\n]{1,30})\s*[:–\-]\s*(.+)$|^\[([^\]\n]{1,30})\]\s*(.+)$/,
+    extract: (match) => {
+      if (match[1]) {
+        return { sender: match[1].trim(), message: match[2].trim() };
+      } else {
+        return { sender: match[3].trim(), message: match[4].trim() };
+      }
+    }
+  },
 };
 
 

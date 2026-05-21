@@ -64,7 +64,7 @@ function displayExtractionResults(secretMessage, hint) {
  */
 async function performExtraction() {
   const stegoObject = document.getElementById('extractCover').value.trim();
-  const rawStegoKey = document.getElementById('extractStegoKey').value;
+  const rawStegoKey = document.getElementById('extractStegoKey').value.trim();
 
   if (!stegoObject.trim()) return showToast('⚠ Please input the final message.');
 

@@ -29,11 +29,11 @@
  */
 function readEmbeddingInputs() {
   return {
-    coverText: document.getElementById('embedCover').value,
+    coverText: document.getElementById('embedCover').value.trim(),
     secretMessage: document.getElementById('embedSecretMessage').value.trim(),
     hint: document.getElementById('embedHint').value.trim(),
-    stegoKey: document.getElementById('embedStegoKey').value,
-    carrierText: document.getElementById('embedCarrier').value,
+    stegoKey: document.getElementById('embedStegoKey').value.trim(),
+    carrierText: document.getElementById('embedCarrier').value.trim(),
   };
 }
 
@@ -140,6 +140,9 @@ async function performEmbedding() {
 
     // ── Step 2: Generate PRNG positions (stego-key → seed → positions)
     const basePositions = generatePositions(coverBits.length, messageBits.length, resolvedStegoKey);
+
+    // Diagnostic: log embedding parameters for scanner comparison
+    console.log(`[Embedding] cover=${coverText.length} chars (${coverBits.length} bits), payload=${messageBits.length} bits, stegoKey="${resolvedStegoKey.substring(0, 16)}…", preview="${coverText.substring(0, 40)}…"`);
 
     // ── Step 3: Generate XOR key (cover bits ⊕ payload bits at positions)
     const xorKey = generateXORKey(coverBits, basePositions, messageBits);

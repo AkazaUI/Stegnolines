@@ -137,7 +137,12 @@ async function scannerOneClick() {
   _updateProgress(3, '③ جاري تجربة المفتاح…', 80);
   await _delay(100);
 
-  await _runTryStep();
+  try {
+    await _runTryStep();
+  } catch (e) {
+    console.error('[Scanner] _runTryStep crashed:', e);
+    showToast('❌ Scanner Step 3 error: ' + (e.message || e));
+  }
 
   _updateProgress(3, '✅ اكتمل الفحص', 100);
   await _delay(500);
@@ -232,12 +237,16 @@ function _runExtractStep() {
 
 /**
  * Step 3 (internal): Try the password against all clean messages.
+ *
+ * For each non-carrier message, attempts to reverse the XOR using
+ * the VS key extracted from the carrier. If the result is valid
+ * UTF-8 printable text, it's a match.
  */
 async function _runTryStep() {
   const vsKey = _scannerState.vsKey;
   const cleanMessages = _scannerState.cleanMessages;
   const carrierIndex = _scannerState.carrierIndex;
-  const password = document.getElementById('scannerPassword').value;
+  const password = document.getElementById('scannerPassword').value.trim();
 
   if (!vsKey) return;
 
@@ -245,8 +254,9 @@ async function _runTryStep() {
   let foundMatch = false;
   let html = '<div class="space-y-2">';
 
+  console.log(`[Scanner] _runTryStep: ${cleanMessages.length} messages, carrierIndex=${carrierIndex}, vsKey=${vsKey.length} bytes (${xorKeyBinary.length} bits), password=${password ? 'provided' : 'empty (auto-key)'}`);
+
   for (let i = 0; i < cleanMessages.length; i++) {
-    // Skip carrier message itself
     if (i === carrierIndex) {
       html += `
         <div class="p-2 rounded border border-brand-400/10 text-sm" style="background:rgba(255,255,255,0.02);">
@@ -257,66 +267,49 @@ async function _runTryStep() {
     }
 
     const candidateCover = cleanMessages[i];
-    const coverBits = stringToBinary(candidateCover);
+    const result = await _tryOneCover(candidateCover, xorKeyBinary, password);
 
-    // Check if cover is long enough
-    if (xorKeyBinary.length > coverBits.length) {
-      html += `
-        <div class="p-2 rounded border border-brand-400/10 text-sm" style="background:rgba(255,255,255,0.02);">
-          <span class="text-brand-400/30 text-xs">#${i + 1}</span>
-          <span class="text-red-400/40 text-xs mr-2">[قصيرة جداً — ${coverBits.length} بت < ${xorKeyBinary.length} بت]</span>
-        </div>`;
-      continue;
-    }
-
-    try {
-      const { resolvedStegoKey } = await resolveStegoKey(password, candidateCover);
-      const positions = generatePositions(coverBits.length, xorKeyBinary.length, resolvedStegoKey);
-      const recoveredBinary = recoverPayloadBits(coverBits, positions, xorKeyBinary);
-      const payloadBytes = binaryToBytes(recoveredBinary);
-
-      const strictDecoder = new TextDecoder('utf-8', { fatal: true });
-      const decoded = strictDecoder.decode(payloadBytes);
-
-      if (decoded.length > 0 && isPrintableText(decoded)) {
-        const { secretMessage, hint } = parsePayload(payloadBytes);
-
-        foundMatch = true;
-        html += `
-          <div class="p-3 rounded-lg border-2 border-brand-400/40" style="background:rgba(0,255,65,0.06);">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-brand-400/30 text-xs">#${i + 1}</span>
-              <span class="text-brand-400 text-sm font-bold">✅ تطابق!</span>
-            </div>
-            <div class="text-xs text-brand-400/50 mb-1">الغلاف:</div>
-            <div class="text-sm text-brand-400/70 mb-2 font-mono">${escapeHtml(candidateCover)}</div>
-            <div class="p-3 rounded border border-brand-400/25 text-center" style="background:rgba(0,255,65,0.08);">
-              <div class="text-xs text-brand-400/50 mb-1">💬 الرسالة السرية:</div>
-              <div class="text-lg font-bold text-brand-400">${escapeHtml(secretMessage)}</div>
-            </div>
-            ${hint ? `
-            <div class="p-2 rounded border border-yellow-400/20 mt-2" style="background:rgba(234,179,8,0.05);">
-              <span class="text-xs text-yellow-400/60">💡 تلميح:</span>
-              <span class="text-sm text-yellow-300 mr-1">${escapeHtml(hint)}</span>
-            </div>` : ''}
-          </div>`;
-      } else {
-        html += `
-          <div class="p-2 rounded border border-brand-400/10 text-sm" style="background:rgba(255,255,255,0.02);">
-            <span class="text-brand-400/30 text-xs">#${i + 1}</span>
-            <span class="text-red-400/40 text-xs mr-2">[لا تطابق — نص غير مقروء]</span>
-          </div>`;
-      }
-    } catch {
-      html += `
-        <div class="p-2 rounded border border-brand-400/10 text-sm" style="background:rgba(255,255,255,0.02);">
-          <span class="text-brand-400/30 text-xs">#${i + 1}</span>
-          <span class="text-red-400/40 text-xs mr-2">[لا تطابق — UTF-8 غير صالح]</span>
-        </div>`;
+    if (result.match) {
+      foundMatch = true;
+      html += _buildMatchHTML(i + 1, candidateCover, result.secretMessage, result.hint);
+    } else {
+      html += _buildNoMatchHTML(i + 1, result.reason);
     }
   }
 
   html += '</div>';
+
+  // ── Carrier fallback: also try the carrier's own clean text ──
+  // In normal mode (VS embedded in cover), the carrier IS the cover.
+  // The scanner extracted VS from it and skipped it above.
+  // Try its clean text as a last-resort cover candidate.
+  if (!foundMatch && carrierIndex >= 0 && cleanMessages[carrierIndex]) {
+    const carrierCleanText = cleanMessages[carrierIndex];
+    console.log(`[Scanner] Fallback: trying carrier's clean text as cover (${carrierCleanText.length} chars)`);
+    const result = await _tryOneCover(carrierCleanText, xorKeyBinary, password);
+
+    if (result.match) {
+      foundMatch = true;
+      html += `
+        <div class="p-3 rounded-lg border-2 border-brand-400/40 mt-3" style="background:rgba(0,255,65,0.06);">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-brand-400/30 text-xs">#${carrierIndex + 1}</span>
+            <span class="text-brand-400 text-sm font-bold">✅ تطابق! (الغلاف = الحامل)</span>
+          </div>
+          <div class="text-xs text-brand-400/50 mb-1">الغلاف:</div>
+          <div class="text-sm text-brand-400/70 mb-2 font-mono">${escapeHtml(carrierCleanText)}</div>
+          <div class="p-3 rounded border border-brand-400/25 text-center" style="background:rgba(0,255,65,0.08);">
+            <div class="text-xs text-brand-400/50 mb-1">💬 الرسالة السرية:</div>
+            <div class="text-lg font-bold text-brand-400">${escapeHtml(result.secretMessage)}</div>
+          </div>
+          ${result.hint ? `
+          <div class="p-2 rounded border border-yellow-400/20 mt-2" style="background:rgba(234,179,8,0.05);">
+            <span class="text-xs text-yellow-400/60">💡 تلميح:</span>
+            <span class="text-sm text-yellow-300 mr-1">${escapeHtml(result.hint)}</span>
+          </div>` : ''}
+        </div>`;
+    }
+  }
 
   if (!foundMatch) {
     html += `
@@ -335,6 +328,103 @@ async function _runTryStep() {
   } else {
     showToast('❌ No match found.');
   }
+}
+
+
+/**
+ * Try a single cover text candidate against the VS key.
+ *
+ * @param {string} candidateCover - The cover text to test.
+ * @param {string} xorKeyBinary  - The XOR key as a binary string.
+ * @param {string} password      - The user-supplied password.
+ * @returns {Promise<{ match: boolean, secretMessage?: string, hint?: string, reason?: string }>}
+ */
+async function _tryOneCover(candidateCover, xorKeyBinary, password) {
+  const coverBits = stringToBinary(candidateCover);
+
+  // Diagnostic: log cover candidate details
+  console.log(`[Scanner] Trying cover: ${candidateCover.length} chars, ${coverBits.length} bits, preview="${candidateCover.substring(0, 40)}…"`);
+
+  if (xorKeyBinary.length > coverBits.length) {
+    return { match: false, reason: `قصيرة جداً — ${coverBits.length} بت < ${xorKeyBinary.length} بت` };
+  }
+
+  try {
+    const { resolvedStegoKey } = await resolveStegoKey(password, candidateCover);
+    console.log(`[Scanner]   stegoKey="${resolvedStegoKey.substring(0, 16)}…", positions(${coverBits.length}, ${xorKeyBinary.length})`);
+
+    const positions = generatePositions(coverBits.length, xorKeyBinary.length, resolvedStegoKey);
+    const recoveredBinary = recoverPayloadBits(coverBits, positions, xorKeyBinary);
+    const recoveredPayload = binaryToBytes(recoveredBinary);
+
+    // Decompression check (mirrors extraction.js logic)
+    let payloadBytes;
+    if (recoveredPayload[0] === 0xFE) {
+      payloadBytes = doStreamDecompress(recoveredPayload.subarray(1));
+    } else {
+      payloadBytes = recoveredPayload;
+    }
+
+    // Separate message and hint bytes before UTF-8 decoding to avoid decoding the 0xFF delimiter
+    const delimiterIndex = payloadBytes.indexOf(0xFF);
+    let msgBytes, hintBytes = null;
+    if (delimiterIndex !== -1) {
+      msgBytes = payloadBytes.subarray(0, delimiterIndex);
+      hintBytes = payloadBytes.subarray(delimiterIndex + 1);
+    } else {
+      msgBytes = payloadBytes;
+    }
+
+    const strictDecoder = new TextDecoder('utf-8', { fatal: true });
+    const decodedMsg = strictDecoder.decode(msgBytes);
+    const decodedHint = hintBytes ? strictDecoder.decode(hintBytes) : '';
+
+    if (decodedMsg.length > 0 && isPrintableText(decodedMsg)) {
+      return { match: true, secretMessage: decodedMsg, hint: decodedHint };
+    } else {
+      return { match: false, reason: 'نص غير مقروء' };
+    }
+  } catch (err) {
+    console.warn(`[Scanner]   FAILED:`, err.message || err);
+    return { match: false, reason: err.message || 'UTF-8 غير صالح' };
+  }
+}
+
+
+/**
+ * Build HTML for a matching cover result.
+ */
+function _buildMatchHTML(msgNum, coverText, secretMessage, hint) {
+  return `
+    <div class="p-3 rounded-lg border-2 border-brand-400/40" style="background:rgba(0,255,65,0.06);">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-brand-400/30 text-xs">#${msgNum}</span>
+        <span class="text-brand-400 text-sm font-bold">✅ تطابق!</span>
+      </div>
+      <div class="text-xs text-brand-400/50 mb-1">الغلاف:</div>
+      <div class="text-sm text-brand-400/70 mb-2 font-mono">${escapeHtml(coverText)}</div>
+      <div class="p-3 rounded border border-brand-400/25 text-center" style="background:rgba(0,255,65,0.08);">
+        <div class="text-xs text-brand-400/50 mb-1">💬 الرسالة السرية:</div>
+        <div class="text-lg font-bold text-brand-400">${escapeHtml(secretMessage)}</div>
+      </div>
+      ${hint ? `
+      <div class="p-2 rounded border border-yellow-400/20 mt-2" style="background:rgba(234,179,8,0.05);">
+        <span class="text-xs text-yellow-400/60">💡 تلميح:</span>
+        <span class="text-sm text-yellow-300 mr-1">${escapeHtml(hint)}</span>
+      </div>` : ''}
+    </div>`;
+}
+
+
+/**
+ * Build HTML for a non-matching cover result.
+ */
+function _buildNoMatchHTML(msgNum, reason) {
+  return `
+    <div class="p-2 rounded border border-brand-400/10 text-sm" style="background:rgba(255,255,255,0.02);">
+      <span class="text-brand-400/30 text-xs">#${msgNum}</span>
+      <span class="text-red-400/40 text-xs mr-2">[لا تطابق — ${escapeHtml(reason)}]</span>
+    </div>`;
 }
 
 
