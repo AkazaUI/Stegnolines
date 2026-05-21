@@ -141,9 +141,6 @@ async function performEmbedding() {
     // ── Step 2: Generate PRNG positions (stego-key → seed → positions)
     const basePositions = generatePositions(coverBits.length, messageBits.length, resolvedStegoKey);
 
-    // Diagnostic: log embedding parameters for scanner comparison
-    console.log(`[Embedding] cover=${coverText.length} chars (${coverBits.length} bits), payload=${messageBits.length} bits, stegoKey="${resolvedStegoKey.substring(0, 16)}…", preview="${coverText.substring(0, 40)}…"`);
-
     // ── Step 3: Generate XOR key (cover bits ⊕ payload bits at positions)
     const xorKey = generateXORKey(coverBits, basePositions, messageBits);
 

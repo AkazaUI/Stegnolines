@@ -451,7 +451,87 @@
       </div>
     </section>
 
- 
+    <!-- ── 10. Single-Column Tables ── -->
+    <section class="card card--mt" id="section-tables">
+      <h2 class="text-headline-md card__title">Single-Column Tables</h2>
+      <p class="text-body-sm" style="color:var(--color-on-surface-variant); margin-bottom:var(--space-md);">
+        Unified technical display tables designed as single-column layouts for chronological or list-based results with granular status-driven states.
+      </p>
+
+      <div class="stego-table">
+        <div class="stego-table__header">
+          <span>Extraction Trial Results</span>
+          <span class="badge badge--draft text-label-md" style="margin: 0;">Active</span>
+        </div>
+        <div class="stego-table__body">
+          
+          <!-- Success Row -->
+          <div class="stego-table__row stego-table__row--success">
+            <div class="stego-table__cell" dir="ltr">
+              <div class="stego-table__meta">
+                <div class="stego-table__title-row">
+                  <span class="stego-table__index">#1</span>
+                  <span class="stego-table__sender">Decrypted Successfully</span>
+                </div>
+                <span class="badge badge--encrypted text-label-md" style="margin: 0;">Success</span>
+              </div>
+              <div class="stego-table__content stego-table__content--highlight">
+                Decrypted payload: "This is a secret steganographic message."
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Row -->
+          <div class="stego-table__row stego-table__row--error">
+            <div class="stego-table__cell" dir="ltr">
+              <div class="stego-table__meta">
+                <div class="stego-table__title-row">
+                  <span class="stego-table__index">#2</span>
+                  <span class="stego-table__sender" style="color: var(--color-error);">Decrypted payload is unreadable</span>
+                </div>
+                <span class="badge badge--danger text-label-md" style="margin: 0;">Failed</span>
+              </div>
+              <div class="stego-table__content">
+                Scan trial failed: The extracted binary representation contains non-printable characters.
+              </div>
+            </div>
+          </div>
+
+          <!-- Warning Row -->
+          <div class="stego-table__row stego-table__row--warning">
+            <div class="stego-table__cell" dir="ltr">
+              <div class="stego-table__meta">
+                <div class="stego-table__title-row">
+                  <span class="stego-table__index">#3</span>
+                  <span class="stego-table__sender" style="color: #F59E0B;">Message too short to be the cover text</span>
+                </div>
+                <span class="badge badge--draft text-label-md" style="margin: 0;">Warning</span>
+              </div>
+              <div class="stego-table__content">
+                The current message size (bits) is smaller than the required VS key payload size.
+              </div>
+            </div>
+          </div>
+
+          <!-- Skipped Row -->
+          <div class="stego-table__row stego-table__row--skipped">
+            <div class="stego-table__cell" dir="ltr">
+              <div class="stego-table__meta">
+                <div class="stego-table__title-row">
+                  <span class="stego-table__index">#4</span>
+                  <span class="stego-table__sender">Extracted Carrier Message (Contains VS)</span>
+                </div>
+                <span class="badge badge--draft text-label-md" style="margin: 0;">Skipped</span>
+              </div>
+              <div class="stego-table__content">
+                This carrier message contains the extracted Variation Selector keys, so matching was skipped.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
 
   </main>
 

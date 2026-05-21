@@ -110,16 +110,16 @@ async function scannerOneClick() {
   _resetScannerResults();
 
   // ── Step 1: Filter ──
-  _updateProgress(1, '① جاري فلترة الرسائل…', 15);
+  _updateProgress(1, '① Filtering messages...', 15);
   await _delay(100);
 
   if (!_runFilterStep(rawText)) return _hideProgress();
 
-  _updateProgress(1, '① تمت الفلترة ✓', 33);
+  _updateProgress(1, '① Filter completed ✓', 33);
   await _delay(150);
 
   // ── Step 2: Extract VS ──
-  _updateProgress(2, '② جاري استخراج أحرف VS…', 50);
+  _updateProgress(2, '② Extracting VS characters...', 50);
   await _delay(100);
 
   _runExtractStep();
@@ -130,11 +130,11 @@ async function scannerOneClick() {
     return showToast('❌ No hidden key in the chat.');
   }
 
-  _updateProgress(2, '② تم استخراج VS ✓', 66);
+  _updateProgress(2, '② VS extracted successfully ✓', 66);
   await _delay(150);
 
   // ── Step 3: Try password ──
-  _updateProgress(3, '③ جاري تجربة المفتاح…', 80);
+  _updateProgress(3, '③ Testing candidate covers...', 80);
   await _delay(100);
 
   try {
@@ -144,7 +144,7 @@ async function scannerOneClick() {
     showToast('❌ Scanner Step 3 error: ' + (e.message || e));
   }
 
-  _updateProgress(3, '✅ اكتمل الفحص', 100);
+  _updateProgress(3, '✅ Scan completed', 100);
   await _delay(500);
   _hideProgress();
 
@@ -251,18 +251,13 @@ async function _runTryStep() {
   if (!vsKey) return;
 
   const xorKeyBinary = bytesToBinary(vsKey);
-  let foundMatch = false;
-  let html = '<div class="space-y-2">';
-
-  console.log(`[Scanner] _runTryStep: ${cleanMessages.length} messages, carrierIndex=${carrierIndex}, vsKey=${vsKey.length} bytes (${xorKeyBinary.length} bits), password=${password ? 'provided' : 'empty (auto-key)'}`);
+  const matches = [];
+  const nonMatches = [];
+  const skipped = [];
 
   for (let i = 0; i < cleanMessages.length; i++) {
     if (i === carrierIndex) {
-      html += `
-        <div class="p-2 rounded border border-brand-400/10 text-sm" style="background:rgba(255,255,255,0.02);">
-          <span class="text-brand-400/30 text-xs">#${i + 1}</span>
-          <span class="text-brand-400/30 text-xs mr-2">[تخطي — الحامل]</span>
-        </div>`;
+      skipped.push({ index: i + 1, type: 'carrier' });
       continue;
     }
 
@@ -270,60 +265,103 @@ async function _runTryStep() {
     const result = await _tryOneCover(candidateCover, xorKeyBinary, password);
 
     if (result.match) {
-      foundMatch = true;
-      html += _buildMatchHTML(i + 1, candidateCover, result.secretMessage, result.hint);
+      matches.push({
+        index: i + 1,
+        coverText: candidateCover,
+        secretMessage: result.secretMessage,
+        hint: result.hint,
+        type: 'normal'
+      });
     } else {
-      html += _buildNoMatchHTML(i + 1, result.reason);
+      nonMatches.push({
+        index: i + 1,
+        coverText: candidateCover,
+        reasonObj: result
+      });
     }
   }
-
-  html += '</div>';
 
   // ── Carrier fallback: also try the carrier's own clean text ──
   // In normal mode (VS embedded in cover), the carrier IS the cover.
   // The scanner extracted VS from it and skipped it above.
   // Try its clean text as a last-resort cover candidate.
-  if (!foundMatch && carrierIndex >= 0 && cleanMessages[carrierIndex]) {
+  if (matches.length === 0 && carrierIndex >= 0 && cleanMessages[carrierIndex]) {
     const carrierCleanText = cleanMessages[carrierIndex];
-    console.log(`[Scanner] Fallback: trying carrier's clean text as cover (${carrierCleanText.length} chars)`);
     const result = await _tryOneCover(carrierCleanText, xorKeyBinary, password);
 
     if (result.match) {
-      foundMatch = true;
-      html += `
-        <div class="p-3 rounded-lg border-2 border-brand-400/40 mt-3" style="background:rgba(0,255,65,0.06);">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-brand-400/30 text-xs">#${carrierIndex + 1}</span>
-            <span class="text-brand-400 text-sm font-bold">✅ تطابق! (الغلاف = الحامل)</span>
-          </div>
-          <div class="text-xs text-brand-400/50 mb-1">الغلاف:</div>
-          <div class="text-sm text-brand-400/70 mb-2 font-mono">${escapeHtml(carrierCleanText)}</div>
-          <div class="p-3 rounded border border-brand-400/25 text-center" style="background:rgba(0,255,65,0.08);">
-            <div class="text-xs text-brand-400/50 mb-1">💬 الرسالة السرية:</div>
-            <div class="text-lg font-bold text-brand-400">${escapeHtml(result.secretMessage)}</div>
-          </div>
-          ${result.hint ? `
-          <div class="p-2 rounded border border-yellow-400/20 mt-2" style="background:rgba(234,179,8,0.05);">
-            <span class="text-xs text-yellow-400/60">💡 تلميح:</span>
-            <span class="text-sm text-yellow-300 mr-1">${escapeHtml(result.hint)}</span>
-          </div>` : ''}
-        </div>`;
+      matches.push({
+        index: carrierIndex + 1,
+        coverText: carrierCleanText,
+        secretMessage: result.secretMessage,
+        hint: result.hint,
+        type: 'carrier_fallback'
+      });
+
+      // Remove carrier from skipped list since we found a match on it
+      const skippedIdx = skipped.findIndex(s => s.index === (carrierIndex + 1));
+      if (skippedIdx !== -1) {
+        skipped.splice(skippedIdx, 1);
+      }
     }
   }
 
-  if (!foundMatch) {
+  let html = `
+    <div class="stego-table" style="margin-top: 0;">
+      <div class="stego-table__body">`;
+
+  if (matches.length === 0) {
     html += `
-      <div class="p-3 rounded-lg border border-red-400/20 mt-4" style="background:rgba(239,68,68,0.05);">
-        <div class="text-sm text-red-400/80">❌ لم يتم العثور على تطابق.</div>
-        <div class="text-xs text-red-400/50 mt-1">تأكد من كلمة المرور ومن أن المحادثة تحتوي الغلاف الأصلي.</div>
+      <div class="stego-table__row stego-table__row--error">
+        <div class="stego-table__cell" style="padding: var(--space-lg);">
+          <div style="display: flex; align-items: flex-start; gap: 12px; text-align: left;" dir="ltr">
+            <span class="material-symbols-outlined" style="color: var(--color-error); font-size: 24px; margin-top: 2px;">error</span>
+            <div>
+              <h4 style="margin: 0; color: var(--color-error); font-weight: 700; font-size: 14px; margin-bottom: 6px; font-family: var(--font-primary);">No Matching Secret Message Found</h4>
+              <p style="margin: 0; color: var(--color-on-surface-variant); font-size: 12px; line-height: 1.5; font-family: var(--font-body);">
+                All messages were tested using the extracted VS key, but none matched the password. 
+                Please verify your <strong>password</strong> and ensure the pasted text contains the original cover message.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>`;
+  }
+
+  // 1. Render matches
+  for (const m of matches) {
+    html += _buildMatchHTML(m.index, m.coverText, m.secretMessage, m.hint, m.type);
+  }
+
+  // 2. Render skipped items
+  for (const s of skipped) {
+    html += _buildSkippedHTML(s.index);
+  }
+
+  // 3. Render non-matches
+  for (const n of nonMatches) {
+    html += _buildNoMatchHTML(n.index, n.coverText, n.reasonObj);
+  }
+
+  html += `
+      </div>
+    </div>`;
+
+  // Inject trial summary status into Step 3 trigger count element
+  const countSpan = document.getElementById('scannerStep3Count');
+  if (countSpan) {
+    if (matches.length > 0) {
+      countSpan.innerHTML = `<span class="badge badge--encrypted text-label-md" style="margin-left: 8px;">Decrypted! (${matches.length})</span>`;
+    } else {
+      countSpan.innerHTML = `<span class="badge badge--danger text-label-md" style="margin-left: 8px;">No Match</span>`;
+    }
   }
 
   const container = document.getElementById('scannerTryResults');
   container.innerHTML = html;
   document.getElementById('scannerStep3Card').style.display = 'block';
 
-  if (foundMatch) {
+  if (matches.length > 0) {
     showToast('✅ Hidden message found!');
   } else {
     showToast('❌ No match found.');
@@ -337,21 +375,21 @@ async function _runTryStep() {
  * @param {string} candidateCover - The cover text to test.
  * @param {string} xorKeyBinary  - The XOR key as a binary string.
  * @param {string} password      - The user-supplied password.
- * @returns {Promise<{ match: boolean, secretMessage?: string, hint?: string, reason?: string }>}
+ * @returns {Promise<{ match: boolean, secretMessage?: string, hint?: string, reason?: string, details?: any, errorMsg?: string }>}
  */
 async function _tryOneCover(candidateCover, xorKeyBinary, password) {
   const coverBits = stringToBinary(candidateCover);
 
-  // Diagnostic: log cover candidate details
-  console.log(`[Scanner] Trying cover: ${candidateCover.length} chars, ${coverBits.length} bits, preview="${candidateCover.substring(0, 40)}…"`);
-
   if (xorKeyBinary.length > coverBits.length) {
-    return { match: false, reason: `قصيرة جداً — ${coverBits.length} بت < ${xorKeyBinary.length} بت` };
+    return {
+      match: false,
+      reason: 'too_short',
+      details: { needed: xorKeyBinary.length, available: coverBits.length }
+    };
   }
 
   try {
     const { resolvedStegoKey } = await resolveStegoKey(password, candidateCover);
-    console.log(`[Scanner]   stegoKey="${resolvedStegoKey.substring(0, 16)}…", positions(${coverBits.length}, ${xorKeyBinary.length})`);
 
     const positions = generatePositions(coverBits.length, xorKeyBinary.length, resolvedStegoKey);
     const recoveredBinary = recoverPayloadBits(coverBits, positions, xorKeyBinary);
@@ -382,11 +420,10 @@ async function _tryOneCover(candidateCover, xorKeyBinary, password) {
     if (decodedMsg.length > 0 && isPrintableText(decodedMsg)) {
       return { match: true, secretMessage: decodedMsg, hint: decodedHint };
     } else {
-      return { match: false, reason: 'نص غير مقروء' };
+      return { match: false, reason: 'unreadable' };
     }
   } catch (err) {
-    console.warn(`[Scanner]   FAILED:`, err.message || err);
-    return { match: false, reason: err.message || 'UTF-8 غير صالح' };
+    return { match: false, reason: 'invalid_utf8', errorMsg: err.message || err };
   }
 }
 
@@ -394,24 +431,49 @@ async function _tryOneCover(candidateCover, xorKeyBinary, password) {
 /**
  * Build HTML for a matching cover result.
  */
-function _buildMatchHTML(msgNum, coverText, secretMessage, hint) {
+function _buildMatchHTML(msgNum, coverText, secretMessage, hint, type) {
+  let typeLabel = '';
+  if (type === 'carrier_fallback') {
+    typeLabel = '<span class="badge badge--draft text-label-md" style="margin-left: 8px;">(Cover = Carrier)</span>';
+  }
+
   return `
-    <div class="p-3 rounded-lg border-2 border-brand-400/40" style="background:rgba(0,255,65,0.06);">
-      <div class="flex items-center gap-2 mb-2">
-        <span class="text-brand-400/30 text-xs">#${msgNum}</span>
-        <span class="text-brand-400 text-sm font-bold">✅ تطابق!</span>
+    <div class="stego-table__row stego-table__row--success">
+      <div class="stego-table__cell" style="padding: var(--space-lg); text-align: left;" dir="ltr">
+        
+        <!-- 1. Secret Message Box -->
+        <div style="background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-xl); padding: var(--space-md); margin-bottom: var(--space-md);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-sm);">
+            <div style="display: inline-flex; align-items: center; gap: var(--space-sm);">
+              <span class="material-symbols-outlined" style="color: var(--color-secondary); font-size: 20px;">lock_open</span>
+              <span style="font-family: var(--font-primary); font-weight: 700; color: var(--color-secondary); font-size: var(--fs-body-md);">Secret Message:</span>
+            </div>
+            <button class="btn btn--secondary" data-secret="${escapeHtml(secretMessage)}" onclick="navigator.clipboard.writeText(this.getAttribute('data-secret')); showToast('📋 Secret message copied successfully!');" style="padding: var(--space-xs) var(--space-sm); font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+              <span class="material-symbols-outlined" style="font-size: 14px;">content_copy</span>
+              <span>Copy</span>
+            </button>
+          </div>
+          <div style="font-size: var(--fs-headline-md); font-weight: 700; color: var(--color-on-surface); word-break: break-all; font-family: var(--font-primary); line-height: 1.4;">${escapeHtml(secretMessage)}</div>
+        </div>
+
+        <!-- 2. Attached Stego Hint (if present) -->
+        ${hint ? `
+        <div style="margin-bottom: var(--space-md); background: var(--color-surface-container-low); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-xl); padding: var(--space-md); display: flex; align-items: flex-start; gap: 12px;">
+          <span class="material-symbols-outlined" style="color: var(--color-tertiary); font-size: 20px; margin-top: 2px;">lightbulb</span>
+          <div>
+            <div style="font-size: var(--fs-body-sm); font-weight: bold; color: var(--color-tertiary); font-family: var(--font-label); margin-bottom: 2px;">Hint:</div>
+            <div style="font-size: var(--fs-body-md); color: var(--color-on-surface); font-family: var(--font-body); line-height: 1.5;">${escapeHtml(hint)}</div>
+          </div>
+        </div>` : ''}
+
+        <!-- 3. Source Cover Message Descriptor -->
+        <div style="display: flex; align-items: center; gap: var(--space-sm); font-family: var(--font-body); font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">
+          <span class="stego-table__index">#${msgNum}</span>
+          <span>Extracted from cover message <strong>#${msgNum}</strong></span>
+          ${typeLabel}
+        </div>
+
       </div>
-      <div class="text-xs text-brand-400/50 mb-1">الغلاف:</div>
-      <div class="text-sm text-brand-400/70 mb-2 font-mono">${escapeHtml(coverText)}</div>
-      <div class="p-3 rounded border border-brand-400/25 text-center" style="background:rgba(0,255,65,0.08);">
-        <div class="text-xs text-brand-400/50 mb-1">💬 الرسالة السرية:</div>
-        <div class="text-lg font-bold text-brand-400">${escapeHtml(secretMessage)}</div>
-      </div>
-      ${hint ? `
-      <div class="p-2 rounded border border-yellow-400/20 mt-2" style="background:rgba(234,179,8,0.05);">
-        <span class="text-xs text-yellow-400/60">💡 تلميح:</span>
-        <span class="text-sm text-yellow-300 mr-1">${escapeHtml(hint)}</span>
-      </div>` : ''}
     </div>`;
 }
 
@@ -419,11 +481,92 @@ function _buildMatchHTML(msgNum, coverText, secretMessage, hint) {
 /**
  * Build HTML for a non-matching cover result.
  */
-function _buildNoMatchHTML(msgNum, reason) {
+function _buildNoMatchHTML(msgNum, candidateText, reasonObj) {
+  const reason = reasonObj.reason;
+  const details = reasonObj.details || {};
+  const errorMsg = reasonObj.errorMsg || '';
+
+  let explanationHtml = '';
+  let statusBadge = '';
+  let rowClass = 'stego-table__row--error';
+
+  const previewText = candidateText.length > 60 ? candidateText.substring(0, 60) + '...' : candidateText;
+
+  if (reason === 'too_short') {
+    rowClass = 'stego-table__row--warning';
+    statusBadge = `<span class="badge badge--draft text-label-md">⚠️ Too Short</span>`;
+    explanationHtml = `
+      <div style="font-size: 12px; color: var(--color-tertiary); margin-top: 6px; font-weight: 600; font-family: var(--font-primary);">Message is too short to be the cover text</div>
+      <div class="stego-table__content" style="font-size: 11px; margin-top: 2px; line-height: 1.4; font-family: var(--font-body);">
+        The current message size (<strong style="color: var(--color-on-surface); font-family: monospace;">${details.available} bits</strong>) is smaller than the required VS key size (<strong style="color: var(--color-on-surface); font-family: monospace;">${details.needed} bits</strong>). It is too short to carry the hidden steganographic payload.
+      </div>
+    `;
+  } else if (reason === 'unreadable') {
+    statusBadge = `<span class="badge badge--danger text-label-md">❌ Unreadable</span>`;
+    explanationHtml = `
+      <div style="font-size: 12px; color: var(--color-error); margin-top: 6px; font-weight: 600; font-family: var(--font-primary);">Decrypted payload is unreadable (garbage data)</div>
+      <div class="stego-table__content" style="font-size: 11px; margin-top: 2px; line-height: 1.4; font-family: var(--font-body);">
+        Decapsulation and reverse XOR completed, but the recovered binary representation yielded random, unprintable characters. This usually happens when testing a wrong candidate cover or using an incorrect password.
+      </div>
+    `;
+  } else if (reason === 'invalid_utf8') {
+    statusBadge = `<span class="badge badge--danger text-label-md">🛑 Malformed Encoding</span>`;
+    explanationHtml = `
+      <div style="font-size: 12px; color: var(--color-error); margin-top: 6px; font-weight: 600; font-family: var(--font-primary);">Invalid UTF-8 binary encoding</div>
+      <div class="stego-table__content" style="font-size: 11px; margin-top: 2px; line-height: 1.4; font-family: var(--font-body);">
+        The recovered binary payload does not represent a valid UTF-8 text string, indicating data corruption or cover text mismatch.
+      </div>
+      <div style="font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--color-on-surface-variant); background: var(--color-surface-container); padding: 4px 8px; border-radius: 4px; margin-top: 6px; word-break: break-all; text-align: left;" dir="ltr">
+        Technical error: ${escapeHtml(errorMsg)}
+      </div>
+    `;
+  } else {
+    statusBadge = `<span class="badge badge--draft text-label-md">⚠️ Scan Error</span>`;
+    explanationHtml = `
+      <div style="font-size: 12px; color: var(--color-on-surface-variant); margin-top: 6px; font-weight: 600; font-family: var(--font-primary);">Verification trial failed</div>
+      <div class="stego-table__content" style="font-size: 11px; margin-top: 2px; line-height: 1.4; font-family: var(--font-body);">
+        The scan trial failed due to an unknown reason: ${escapeHtml(reason || 'unspecified')}
+      </div>
+    `;
+  }
+
   return `
-    <div class="p-2 rounded border border-brand-400/10 text-sm" style="background:rgba(255,255,255,0.02);">
-      <span class="text-brand-400/30 text-xs">#${msgNum}</span>
-      <span class="text-red-400/40 text-xs mr-2">[لا تطابق — ${escapeHtml(reason)}]</span>
+    <div class="stego-table__row ${rowClass}">
+      <div class="stego-table__cell">
+        <div class="stego-table__meta">
+          <div class="stego-table__title-row">
+            <span class="stego-table__index">#${msgNum}</span>
+            <span class="stego-table__sender" style="color: var(--color-on-surface-variant); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;" title="${escapeHtml(candidateText)}">
+              "${escapeHtml(previewText)}"
+            </span>
+          </div>
+          ${statusBadge}
+        </div>
+        ${explanationHtml}
+      </div>
+    </div>`;
+}
+
+
+/**
+ * Build HTML for a skipped carrier message.
+ */
+function _buildSkippedHTML(msgNum) {
+  return `
+    <div class="stego-table__row stego-table__row--skipped">
+      <div class="stego-table__cell">
+        <div class="stego-table__meta">
+          <div class="stego-table__title-row">
+            <span class="stego-table__index">#${msgNum}</span>
+            <span class="stego-table__sender" style="color: var(--color-on-surface-variant); font-weight: 500;">
+              Extracted Carrier Message (Contains VS)
+            </span>
+          </div>
+          <span class="badge badge--draft text-label-md">
+            Skipped (Carrier)
+          </span>
+        </div>
+      </div>
     </div>`;
 }
 
@@ -439,29 +582,38 @@ function _buildNoMatchHTML(msgNum, reason) {
 function _showStep1Results(expanded) {
   const messages = _scannerState.messages;
   const platform = _scannerState.platform;
-  const platformLabel = CHAT_PLATFORMS[platform]?.name || 'نص عادي';
+  const platformLabel = CHAT_PLATFORMS[platform]?.name || 'Plain Text';
 
   // Build HTML
   const container = document.getElementById('scannerFilteredList');
-  let html = `<div class="text-xs text-brand-400/40 mb-3">📱 ${platformLabel} — ${messages.length} رسالة</div>`;
-  html += '<div class="space-y-2">';
+  let html = `
+    <div class="stego-table" style="margin-top: 0;">
+      <div class="stego-table__body">`;
 
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
-    const senderLabel = msg.sender ? `<span class="text-brand-400/50 text-xs">${escapeHtml(msg.sender)}:</span> ` : '';
+    const senderLabel = msg.sender ? `<span class="stego-table__sender" style="margin-right: var(--space-xs);">${escapeHtml(msg.sender)}:</span>` : '';
     html += `
-      <div class="p-2 rounded border border-brand-400/10 text-sm" style="background:rgba(0,255,65,0.02);">
-        <span class="text-brand-400/30 text-xs">#${i + 1}</span>
-        ${senderLabel}
-        <span class="text-brand-400/70">${escapeHtml(msg.message)}</span>
+      <div class="stego-table__row">
+        <div class="stego-table__cell" dir="ltr">
+          <div class="stego-table__meta">
+            <div class="stego-table__title-row">
+              <span class="stego-table__index">#${i + 1}</span>
+              ${senderLabel}
+            </div>
+          </div>
+          <div class="stego-table__content" dir="auto">${escapeHtml(msg.message)}</div>
+        </div>
       </div>`;
   }
 
-  html += '</div>';
+  html += `
+      </div>
+    </div>`;
   container.innerHTML = html;
 
   // Update count badge
-  document.getElementById('scannerStep1Count').textContent = `(${messages.length} رسالة)`;
+  document.getElementById('scannerStep1Count').textContent = `(📱 ${platformLabel} — ${messages.length} messages)`;
 
   // Show card
   const card = document.getElementById('scannerStep1Card');
@@ -486,55 +638,46 @@ function _showStep1Results(expanded) {
  * @param {boolean} expanded - Whether to show the body expanded.
  */
 function _showStep2Results(expanded) {
-  const cleanMessages = _scannerState.cleanMessages;
   const vsKey = _scannerState.vsKey;
   const carrierIndex = _scannerState.carrierIndex;
 
   const container = document.getElementById('scannerExtractedList');
-  let html = '';
+  let html = `
+    <div class="stego-table" style="margin-top: 0;">
+      <div class="stego-table__body">`;
 
-  // ── VS Key extraction result
+  // ── 1. VS Key Row (if exists)
   if (vsKey) {
     const hexDisplay = Array.from(vsKey).map(b => '0x' + b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
     html += `
-      <div class="p-3 rounded-lg border border-yellow-400/20 mb-4" style="background:rgba(234,179,8,0.05);">
-        <div class="text-xs text-yellow-400/70 mb-1">🔑 مفتاح VS مستخرج من الرسالة #${carrierIndex + 1} (${vsKey.length} بايت)</div>
-        <div class="text-xs text-yellow-300/60 font-mono break-all">${hexDisplay}</div>
+      <div class="stego-table__row stego-table__row--warning">
+        <div class="stego-table__cell" dir="ltr" style="padding: var(--space-md);">
+          <div style="font-family: var(--font-body); font-size: var(--fs-body-md); color: var(--color-on-surface-variant); margin-bottom: var(--space-sm);">
+            Found in: <strong>Message #${carrierIndex + 1}</strong>
+          </div>
+          <div class="stego-table__hex-container" dir="ltr" style="margin-top: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--color-on-surface); border: 1px solid var(--color-outline-variant);">${hexDisplay}</div>
+        </div>
       </div>`;
   } else {
     html += `
-      <div class="p-3 rounded-lg border border-red-400/20 mb-4" style="background:rgba(239,68,68,0.05);">
-        <div class="text-sm text-red-400/80">❌ لا يوجد أحرف مخفية (VS) في أي رسالة.</div>
-        <div class="text-xs text-red-400/50 mt-1">تأكد من لصق المحادثة كاملة بما فيها الرسالة التي تحمل المفتاح المخفي.</div>
+      <div class="stego-table__row stego-table__row--error">
+        <div class="stego-table__cell" dir="ltr" style="padding: var(--space-md);">
+          <div style="font-family: var(--font-body); font-size: var(--fs-body-sm); color: var(--color-on-surface-variant); line-height: 1.5;">
+            No hidden Variation Selector characters were detected. Ensure you paste the entire chat history, including the carrier message containing the hidden VS keys.
+          </div>
+        </div>
       </div>`;
   }
 
-  // ── Clean messages (each separated, showing VS presence)
-  html += '<div class="text-xs text-brand-400/40 mb-2">📄 الرسائل المفصولة (بدون أحرف مخفية):</div>';
-  html += '<div class="space-y-2">';
-
-  for (let i = 0; i < cleanMessages.length; i++) {
-    const isCarrier = (i === carrierIndex);
-    const borderColor = isCarrier ? 'border-yellow-400/30' : 'border-brand-400/10';
-    const bgColor = isCarrier ? 'rgba(234,179,8,0.03)' : 'rgba(0,255,65,0.02)';
-    const tag = isCarrier
-      ? '<span class="text-yellow-400/60 text-xs ml-2">[الحامل — VS مستخرج]</span>'
-      : '';
-
-    html += `
-      <div class="p-2 rounded border ${borderColor} text-sm" style="background:${bgColor};">
-        <span class="text-brand-400/30 text-xs">#${i + 1}</span>${tag}
-        <span class="text-brand-400/70 block mt-1">${escapeHtml(cleanMessages[i])}</span>
-      </div>`;
-  }
-
-  html += '</div>';
+  html += `
+      </div>
+    </div>`;
   container.innerHTML = html;
 
   // Update count badge
   const countText = vsKey
-    ? `(${vsKey.length} VS بايت)`
-    : '(لا يوجد VS)';
+    ? `(🔑 Extracted ${vsKey.length} bytes)`
+    : '(❌ No VS detected)';
   document.getElementById('scannerStep2Count').textContent = countText;
 
   // Show card
