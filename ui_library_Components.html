@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="light" lang="en">
+<html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -8,6 +8,19 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="New_styles.css"/>
+  <script>
+    (function() {
+      // Retrieve theme preference from localStorage immediately to prevent FOUC (Flash of Unstyled Content)
+      const savedTheme = localStorage.getItem('stegoTheme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -562,11 +575,47 @@
 
   <!-- ═══ Interactive Scripts ═══ -->
   <script>
-    // Dark mode toggle
-    const toggle = document.getElementById('toggle-dark-mode');
-    toggle.addEventListener('change', () => {
-      document.documentElement.classList.toggle('dark', toggle.checked);
-      document.documentElement.classList.toggle('light', !toggle.checked);
+    // Initialize dark mode based on local storage persistence or system preferences
+    const themeToggles = document.querySelectorAll('#toggle-dark-mode');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('stegoTheme');
+
+    // Determine the active theme based on explicit user setting, falling back to system preference
+    let isDarkThemeActive;
+    if (savedTheme === 'dark') {
+      isDarkThemeActive = true;
+    } else if (savedTheme === 'light') {
+      isDarkThemeActive = false;
+    } else {
+      isDarkThemeActive = systemPrefersDark;
+    }
+
+    // Apply the active theme classes to the html element and update all toggles
+    if (isDarkThemeActive) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      themeToggles.forEach(toggleInput => { toggleInput.checked = true; });
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+      themeToggles.forEach(toggleInput => { toggleInput.checked = false; });
+    }
+
+    // Setup dark mode toggle listeners to persist changes and keep all toggles on this page in sync
+    themeToggles.forEach(toggleInput => {
+      toggleInput.addEventListener('change', function () {
+        const isCurrentlyChecked = this.checked;
+        document.documentElement.classList.toggle('dark', isCurrentlyChecked);
+        document.documentElement.classList.toggle('light', !isCurrentlyChecked);
+        localStorage.setItem('stegoTheme', isCurrentlyChecked ? 'dark' : 'light');
+
+        // Sync all other theme toggles on this page
+        themeToggles.forEach(otherToggle => {
+          if (otherToggle !== this) {
+            otherToggle.checked = isCurrentlyChecked;
+          }
+        });
+      });
     });
 
     // Accordion toggle

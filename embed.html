@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="light" lang="en">
+<html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -8,6 +8,19 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="New_styles.css"/>
+  <script>
+    (function() {
+      // Retrieve theme preference from localStorage immediately to prevent FOUC (Flash of Unstyled Content)
+      const savedTheme = localStorage.getItem('stegoTheme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+  </script>
   <!-- zxcvbn password strength estimator (Dropbox) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <style>
@@ -685,11 +698,41 @@
     }
     sendToExtractBtn.addEventListener('click', copyToExtractTab);
 
-    // Dark mode toggle
-    document.getElementById('toggle-dark-mode').addEventListener('change', function () {
-      document.documentElement.classList.toggle('dark',  this.checked);
-      document.documentElement.classList.toggle('light', !this.checked);
-    });
+    // Initialize dark mode based on local storage persistence or system preferences
+    const toggleDarkModeCheck = document.getElementById('toggle-dark-mode');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('stegoTheme');
+
+    // Determine the active theme based on explicit user setting, falling back to system preference
+    let isDarkThemeActive;
+    if (savedTheme === 'dark') {
+      isDarkThemeActive = true;
+    } else if (savedTheme === 'light') {
+      isDarkThemeActive = false;
+    } else {
+      isDarkThemeActive = systemPrefersDark;
+    }
+
+    // Apply the active theme classes to the html element and update the toggle state
+    if (isDarkThemeActive) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      if (toggleDarkModeCheck) toggleDarkModeCheck.checked = true;
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+      if (toggleDarkModeCheck) toggleDarkModeCheck.checked = false;
+    }
+
+    // Setup dark mode toggle listener to persist changes
+    if (toggleDarkModeCheck) {
+      toggleDarkModeCheck.addEventListener('change', function () {
+        const isCurrentlyChecked = this.checked;
+        document.documentElement.classList.toggle('dark', isCurrentlyChecked);
+        document.documentElement.classList.toggle('light', !isCurrentlyChecked);
+        localStorage.setItem('stegoTheme', isCurrentlyChecked ? 'dark' : 'light');
+      });
+    }
 
     // Hamburger
     document.getElementById('hamburger-btn').addEventListener('click', () => {

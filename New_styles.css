@@ -93,7 +93,28 @@
   --transition-all:    all 0.2s ease;
 }
 
-/* —— Dark-mode override via class on <html> —— */
+/* —— Dark-mode override via system preference and class on <html> —— */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --color-background:              var(--dark-background);
+    --color-on-surface:              var(--dark-on-surface);
+    --color-surface:                 var(--dark-surface);
+    --color-surface-container:       var(--dark-surface-container);
+    --color-surface-container-low:   var(--dark-surface-container-low);
+    --color-surface-container-lowest:var(--dark-surface-container-lowest);
+    --color-surface-container-high:  var(--dark-surface-container-high);
+    --color-surface-variant:         var(--dark-surface-variant);
+    --color-outline:                 var(--dark-outline);
+    --color-outline-variant:         var(--dark-outline-variant);
+    --color-on-surface-variant:      var(--dark-on-surface-variant);
+    --color-primary-container:       var(--dark-primary-container);
+    --color-on-primary-container:    var(--dark-on-primary-container);
+    --color-error-container:         var(--dark-error-container);
+    --color-on-error-container:      var(--dark-on-error-container);
+    --color-secondary-container:     var(--dark-secondary-container);
+  }
+}
+
 html.dark {
   --color-background:              var(--dark-background);
   --color-on-surface:              var(--dark-on-surface);
