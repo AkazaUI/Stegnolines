@@ -30,9 +30,9 @@ const MAX_HINTS_COUNT = 100;
  */
 function getHintTypeConfig(type) {
   if (type === 'sent') {
-    return { label: '↗ مُرسل', icon: '↗', cssClass: 'hint-type-sent', emptyMessage: 'لا توجد تلميحات مُرسلة بعد' };
+    return { label: '↗ Sent', icon: '↗', cssClass: 'hint-type-sent', emptyMessage: 'No sent hints yet' };
   }
-  return { label: '↙ مُستقبل', icon: '↙', cssClass: 'hint-type-received', emptyMessage: 'لا توجد تلميحات مُستقبلة بعد' };
+  return { label: '↙ Received', icon: '↙', cssClass: 'hint-type-received', emptyMessage: 'No received hints yet' };
 }
 
 
@@ -91,7 +91,7 @@ function saveHint(entry) {
  * Refreshes the hints log display after clearing.
  */
 function clearHintsLog() {
-  if (!confirm('هل تريد مسح جميع التلميحات المحفوظة؟')) return;
+  if (!confirm('Do you want to clear all saved hints?')) return;
 
   localStorage.removeItem(HINTS_STORAGE_KEY);
   renderHintsLog();

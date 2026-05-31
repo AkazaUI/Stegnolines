@@ -20,7 +20,7 @@
 const SHARED_TEXT_ENCODER = new TextEncoder();
 
 /** @type {TextDecoder} Shared UTF-8 decoder — used by payload, extraction, etc. */
-const SHARED_TEXT_DECODER = new TextDecoder();
+const SHARED_TEXT_DECODER = new TextDecoder('utf-8', { fatal: true });
 
 
 /**

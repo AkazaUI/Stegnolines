@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>STEGNOLINES — Documentation Index</title>
+  <meta name="description" content="STEGNOLINES project documentation — guides, reference, and architecture."/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="documentation.css"/>
+  <script>window.DOCS_BASE = '';</script>
+</head>
+<body class="docs-body docs-index-page">
+
+  <nav class="top-nav" id="top-nav">
+    <div class="top-nav__inner">
+      <a class="top-nav__brand" href="index.html" id="brand-link">
+        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="Dark-Logo-T.png" alt="STEGNOLINES"/>
+        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="White-Logo-T.png" alt="STEGNOLINES"/>
+      </a>
+      <nav class="top-nav__links" id="desktop-nav">
+        <a class="top-nav__link" href="embed.html" id="nav-embed">
+          <span class="material-symbols-outlined">lock</span>
+          <span class="text-label-md">Embed</span>
+        </a>
+        <a class="top-nav__link" href="extract.html" id="nav-extract">
+          <span class="material-symbols-outlined">lock_open</span>
+          <span class="text-label-md">Extract</span>
+        </a>
+        <a class="top-nav__link" href="#" id="nav-preferences">
+          <span class="material-symbols-outlined">tune</span>
+          <span class="text-label-md">Preferences</span>
+        </a>
+        <a class="top-nav__link top-nav__link--active" href="documentation.html" id="nav-docs">
+          <span class="material-symbols-outlined">menu_book</span>
+          <span class="text-label-md">Documentation</span>
+        </a>
+      </nav>
+      <div class="top-nav__actions">
+        <label class="toggle" title="Toggle dark mode" style="margin-right: var(--space-xs);">
+          <input type="checkbox" class="toggle__input" id="toggle-dark-mode"/>
+          <div class="toggle__track"></div>
+        </label>
+        <button class="icon-btn" id="top-nav-settings" aria-label="Settings" title="Settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+        <button class="icon-btn" id="top-nav-notifications" aria-label="Notifications" title="Notifications">
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <div class="top-nav__user">
+          <div class="top-nav__avatar">
+            <span class="material-symbols-outlined">person</span>
+          </div>
+        </div>
+        <button class="top-nav__hamburger" id="hamburger-btn" aria-label="Open menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="top-nav__mobile-menu" id="mobile-menu">
+    <a class="top-nav__link" href="embed.html"><span class="material-symbols-outlined">lock</span><span class="text-label-md">Embed</span></a>
+    <a class="top-nav__link" href="extract.html"><span class="material-symbols-outlined">lock_open</span><span class="text-label-md">Extract</span></a>
+    <a class="top-nav__link" href="#"><span class="material-symbols-outlined">tune</span><span class="text-label-md">Preferences</span></a>
+    <a class="top-nav__link top-nav__link--active" href="documentation.html"><span class="material-symbols-outlined">menu_book</span><span class="text-label-md">Documentation</span></a>
+  </div>
+
+  <main class="main-content docs-index-main">
+    <header class="main-header">
+      <h1 class="text-display-lg">Documentation Index</h1>
+      <p class="text-body-lg">Guides, references, and technical docs for the STEGNOLINES steganography platform.</p>
+    </header>
+
+    <section class="card docs-index-search-card" aria-label="Search documentation">
+      <form class="docs-index-search" role="search" action="documentation.html">
+        <span class="material-symbols-outlined docs-index-search__icon" aria-hidden="true">search</span>
+        <input
+          type="search"
+          class="form-input docs-index-search__input"
+          id="docs-search-input"
+          placeholder="What can we help you find?"
+          aria-label="Search documentation"
+        />
+        <button type="submit" class="btn btn--primary docs-index-search__submit">Search</button>
+      </form>
+    </section>
+
+    <div class="grid-3col-lg docs-index-grid" id="docs-index-grid"></div>
+  </main>
+
+  <footer class="main-footer">
+    <div class="main-footer__inner">
+      <div class="main-footer__brand">
+        <div class="main-footer__title">STEGNOLINES</div>
+        <p class="text-body-sm" style="max-width: 300px;">Advanced Zero-Overhead Contextual Steganography and Cryptography for secure transmission.</p>
+      </div>
+      <div class="main-footer__links-group">
+        <ul class="main-footer__links">
+          <li><a href="embed.html" class="main-footer__link">Embed</a></li>
+          <li><a href="extract.html" class="main-footer__link">Extract</a></li>
+          <li><a href="documentation.html" class="main-footer__link">Documentation</a></li>
+          <li><a href="about%20us.html" class="main-footer__link">About Us</a></li>
+          <li><a href="contact%20team.html" class="main-footer__link">Contact Team</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="main-footer__bottom">
+      <span>&copy; 2026 STEGNOLINES. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <script src="js/docs/nav-data.js"></script>
+  <script src="js/docs/docs.js"></script>
+</body>
+</html>

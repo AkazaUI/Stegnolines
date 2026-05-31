@@ -33,7 +33,7 @@
 const CHAT_PLATFORMS = {
 
   // ── WhatsApp Android ────────────────────────────────
-  // Format: "12/5/26, 2:30 PM – أحمد: نص الرسالة"
+  // Format: "12/5/26, 2:30 PM – Ahmed: Message text"
   // Format: "5/12/2026, 14:30 - Ahmed: Message text"
   whatsapp_android: {
     name: 'WhatsApp (Android)',
@@ -42,7 +42,7 @@ const CHAT_PLATFORMS = {
   },
 
   // ── WhatsApp iOS ────────────────────────────────────
-  // Format: "[12/5/26, 2:30:00 PM] أحمد: نص الرسالة"
+  // Format: "[12/5/26, 2:30:00 PM] Ahmed: Message text"
   whatsapp_ios: {
     name: 'WhatsApp (iOS)',
     regex: /^\[(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?)\s*([APap][Mm])?\]\s*([^:]+):\s*(.+)/,
@@ -50,7 +50,7 @@ const CHAT_PLATFORMS = {
   },
 
   // ── Telegram ────────────────────────────────────────
-  // Exported format: "أحمد, [12.05.26 14:30]\nنص الرسالة"
+  // Exported format: "Ahmed, [12.05.26 14:30]\nMessage text"
   // Exported format: "Ahmed, [May 12, 2026 at 2:30 PM]\nMessage text"
   // Copy-paste format: "Ahmed:\nMessage text\n\n"  (Name: on its own line)
   telegram: {
@@ -61,7 +61,7 @@ const CHAT_PLATFORMS = {
   },
 
   // ── Discord ─────────────────────────────────────────
-  // Format: "أحمد — Today at 2:30 PM\nنص الرسالة"
+  // Format: "Ahmed — Today at 2:30 PM\nMessage text"
   // Format: "Ahmed — 05/12/2026 2:30 PM\nMessage text"
   discord: {
     name: 'Discord',
@@ -71,7 +71,7 @@ const CHAT_PLATFORMS = {
   },
 
   // ── Signal ──────────────────────────────────────────
-  // Format: "أحمد, 2:30 PM: نص الرسالة"
+  // Format: "Ahmed, 2:30 PM: Message text"
   signal: {
     name: 'Signal',
     regex: /^([^,]+),\s+\d{1,2}:\d{2}\s*(?:[APap][Mm])?:\s*(.+)/,
@@ -79,7 +79,7 @@ const CHAT_PLATFORMS = {
   },
 
   // ── iMessage ────────────────────────────────────────
-  // Format: "أحمد  2:30 PM\nنص الرسالة"
+  // Format: "Ahmed  2:30 PM\nMessage text"
   imessage: {
     name: 'iMessage',
     regex: /^(.+?)\s{2,}\d{1,2}:\d{2}\s*(?:[APap][Mm])?\s*$/,
@@ -88,11 +88,11 @@ const CHAT_PLATFORMS = {
   },
 
   // ── Manual / Simple Chat ────────────────────────────
-  // Format: "أحمد: نص الرسالة" or "Ahmed: Message text"
-  // Format: "أحمد - نص الرسالة" or "Ahmed - Message"
-  // Format: "[أحمد] نص الرسالة" or "[Ahmed] Message"
+  // Format: "Ahmed: Message text" or "Ahmed: Message text"
+  // Format: "Ahmed - Message" or "Ahmed - Message"
+  // Format: "[Ahmed] Message" or "[Ahmed] Message"
   manual: {
-    name: 'كتابة يدوية (اسم: رسالة)',
+    name: 'Manual Input (Name: Message)',
     regex: /^([^:–\-\[\]\n]{1,30})\s*[:–\-]\s*(.+)$|^\[([^\]\n]{1,30})\]\s*(.+)$/,
     extract: (match) => {
       if (match[1]) {
@@ -195,10 +195,10 @@ function parseChat(rawText, platform) {
  * @returns {{ key: string, name: string }[]} Array of platform entries.
  */
 function getSupportedPlatforms() {
-  const platforms = [{ key: 'auto', name: '🔍 كشف تلقائي' }];
+  const platforms = [{ key: 'auto', name: '🔍 Auto Detect' }];
   for (const [key, platform] of Object.entries(CHAT_PLATFORMS)) {
     platforms.push({ key, name: platform.name });
   }
-  platforms.push({ key: 'generic', name: '📝 نص عادي (كل سطر = رسالة)' });
+  platforms.push({ key: 'generic', name: '📝 Plain Text (One message per line)' });
   return platforms;
 }

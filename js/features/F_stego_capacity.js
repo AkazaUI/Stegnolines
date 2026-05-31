@@ -115,3 +115,4 @@ function updateCapacityMeter() {
     meterFillElement.classList.add('warn');
   }
 }
+

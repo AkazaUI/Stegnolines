@@ -65,42 +65,169 @@ const pages = [
 function shell(meta) {
   const sectionSlug = meta.file.split('/')[0];
   return `<!DOCTYPE html>
-<html class="light" lang="en">
+<html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>STEGNOLINES — ${meta.title}</title>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="../../styles.css"/>
+  <link rel="stylesheet" href="../../New_styles.css"/>
   <link rel="stylesheet" href="../../documentation.css"/>
-  <script>window.DOCS_BASE = '../../';</script>
+  <script>
+    (function() {
+      // Retrieve theme preference immediately to prevent FOUC
+      const savedTheme = localStorage.getItem('stegoTheme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+
+      // Retrieve language preference immediately
+      const savedLang = localStorage.getItem('stegoLang') || 'en';
+      document.documentElement.setAttribute('lang', savedLang);
+      document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
+
+      // Retrieve Arabic font preference immediately
+      const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
+      document.documentElement.setAttribute('data-arabic-font', savedFont);
+
+      window.DOCS_BASE = '../../';
+    })();
+  </script>
 </head>
 <body class="docs-body">
+  <script src="../../js/features/page-loader.js"></script>
   <nav class="top-nav" id="top-nav">
     <div class="top-nav__inner">
       <a class="top-nav__brand" href="../../index.html">
-        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="../../Dark-Logo-T.png" alt="STEGNOLINES"/>
-        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="../../White-Logo-T.png" alt="STEGNOLINES"/>
+        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="../../IMG/Dark-Logo-T.png" alt="STEGNOLINES"/>
+        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="../../IMG/White-Logo-T.png" alt="STEGNOLINES"/>
       </a>
       <nav class="top-nav__links" id="desktop-nav">
-        <a class="top-nav__link" href="../../embed.html"><span class="material-symbols-outlined">lock</span><span class="text-label-md">Embed</span></a>
-        <a class="top-nav__link" href="../../extract.html"><span class="material-symbols-outlined">lock_open</span><span class="text-label-md">Extract</span></a>
-        <a class="top-nav__link" href="#"><span class="material-symbols-outlined">tune</span><span class="text-label-md">Preferences</span></a>
+        <div class="top-nav__dropdown" id="nav-embed-dropdown">
+          <button class="top-nav__dropdown-trigger" id="nav-embed" aria-expanded="false" aria-haspopup="true">
+            <span class="material-symbols-outlined">lock</span>
+            <span class="text-label-md">Embed</span>
+            <span class="material-symbols-outlined top-nav__dropdown-chevron">expand_more</span>
+          </button>
+          <div class="top-nav__dropdown-panel" id="embed-dropdown-panel">
+            <a class="top-nav__dropdown-item" href="../../embed.html#text" data-tab="text">
+              <div class="top-nav__dropdown-item-icon">
+                <span class="material-symbols-outlined">description</span>
+              </div>
+              <div class="top-nav__dropdown-item-text">
+                <span class="top-nav__dropdown-item-title">Text Embed</span>
+                <span class="top-nav__dropdown-item-desc">Conceal secret text inside cover text</span>
+              </div>
+            </a>
+            <a class="top-nav__dropdown-item" href="../../embed.html#image" data-tab="image">
+              <div class="top-nav__dropdown-item-icon">
+                <span class="material-symbols-outlined">image</span>
+              </div>
+              <div class="top-nav__dropdown-item-text">
+                <span class="top-nav__dropdown-item-title">Image Embed</span>
+                <span class="top-nav__dropdown-item-desc">Hide a mini image inside cover text</span>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="top-nav__dropdown" id="nav-extract-dropdown">
+          <button class="top-nav__dropdown-trigger" id="nav-extract" aria-expanded="false" aria-haspopup="true">
+            <span class="material-symbols-outlined">lock_open</span>
+            <span class="text-label-md">Extract</span>
+            <span class="material-symbols-outlined top-nav__dropdown-chevron">expand_more</span>
+          </button>
+          <div class="top-nav__dropdown-panel" id="extract-dropdown-panel">
+            <a class="top-nav__dropdown-item" href="../../extract.html#standard" data-tab="standard">
+              <div class="top-nav__dropdown-item-icon">
+                <span class="material-symbols-outlined">lock_open</span>
+              </div>
+              <div class="top-nav__dropdown-item-text">
+                <span class="top-nav__dropdown-item-title">Standard Extract</span>
+                <span class="top-nav__dropdown-item-desc">Decrypt with key & params</span>
+              </div>
+            </a>
+            <a class="top-nav__dropdown-item" href="../../extract.html#scanner" data-tab="scanner">
+              <div class="top-nav__dropdown-item-icon">
+                <span class="material-symbols-outlined">document_scanner</span>
+              </div>
+              <div class="top-nav__dropdown-item-text">
+                <span class="top-nav__dropdown-item-title">Scanner</span>
+                <span class="top-nav__dropdown-item-desc">Scan chat history for secrets</span>
+              </div>
+            </a>
+            <a class="top-nav__dropdown-item" href="../../extract.html#hints" data-tab="hints">
+              <div class="top-nav__dropdown-item-icon">
+                <span class="material-symbols-outlined">lightbulb</span>
+              </div>
+              <div class="top-nav__dropdown-item-text">
+                <span class="top-nav__dropdown-item-title">Hints</span>
+                <span class="top-nav__dropdown-item-desc">View stego hints log</span>
+              </div>
+            </a>
+            <a class="top-nav__dropdown-item" href="../../extract.html#image" data-tab="image">
+              <div class="top-nav__dropdown-item-icon">
+                <span class="material-symbols-outlined">image</span>
+              </div>
+              <div class="top-nav__dropdown-item-text">
+                <span class="top-nav__dropdown-item-title">Image Extract</span>
+                <span class="top-nav__dropdown-item-desc">Recover a hidden image from stego text</span>
+              </div>
+            </a>
+          </div>
+        </div>
         <a class="top-nav__link top-nav__link--active" href="../../documentation.html" id="nav-docs"><span class="material-symbols-outlined">menu_book</span><span class="text-label-md">Documentation</span></a>
       </nav>
       <div class="top-nav__actions">
-        <label class="toggle" title="Toggle dark mode" style="margin-right: var(--space-xs);">
-          <input type="checkbox" class="toggle__input" id="toggle-dark-mode"/>
-          <div class="toggle__track"></div>
-        </label>
+        <!-- Dark Mode Toggle (Hidden from visual layout, preserved for JS sync) -->
+        <input type="checkbox" id="toggle-dark-mode" style="display: none !important;" />
         <button class="top-nav__hamburger" id="hamburger-btn" aria-label="Open menu"><span class="material-symbols-outlined">menu</span></button>
       </div>
     </div>
   </nav>
   <div class="top-nav__mobile-menu" id="mobile-menu">
-    <a class="top-nav__link" href="../../embed.html">Embed</a>
-    <a class="top-nav__link" href="../../extract.html">Extract</a>
+    <button class="top-nav__link" id="mobile-embed-toggle" type="button" style="border:none; background:none; width:100%; text-align:left; cursor:pointer; display:flex; align-items:center;">
+      <span class="material-symbols-outlined" style="margin-right:8px;">lock</span>
+      <span class="text-label-md">Embed</span>
+      <span class="material-symbols-outlined top-nav__dropdown-chevron" style="margin-left:auto;">expand_more</span>
+    </button>
+    <div class="top-nav__mobile-dropdown-items" id="mobile-embed-items">
+      <a class="top-nav__dropdown-item" href="../../embed.html#text" data-tab="text">
+        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">description</span></div>
+        <span class="top-nav__dropdown-item-title">Text Embed</span>
+      </a>
+      <a class="top-nav__dropdown-item" href="../../embed.html#image" data-tab="image">
+        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">image</span></div>
+        <span class="top-nav__dropdown-item-title">Image Embed</span>
+      </a>
+    </div>
+    <button class="top-nav__link" id="mobile-extract-toggle" type="button" style="border:none; background:none; width:100%; text-align:left; cursor:pointer; display:flex; align-items:center;">
+      <span class="material-symbols-outlined" style="margin-right:8px;">lock_open</span>
+      <span class="text-label-md">Extract</span>
+      <span class="material-symbols-outlined top-nav__dropdown-chevron" style="margin-left:auto;">expand_more</span>
+    </button>
+    <div class="top-nav__mobile-dropdown-items" id="mobile-extract-items">
+      <a class="top-nav__dropdown-item" href="../../extract.html#standard" data-tab="standard">
+        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">lock_open</span></div>
+        <span class="top-nav__dropdown-item-title">Standard Extract</span>
+      </a>
+      <a class="top-nav__dropdown-item" href="../../extract.html#scanner" data-tab="scanner">
+        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">document_scanner</span></div>
+        <span class="top-nav__dropdown-item-title">Scanner</span>
+      </a>
+      <a class="top-nav__dropdown-item" href="../../extract.html#hints" data-tab="hints">
+        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">lightbulb</span></div>
+        <span class="top-nav__dropdown-item-title">Hints</span>
+      </a>
+      <a class="top-nav__dropdown-item" href="../../extract.html#image" data-tab="image">
+        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">image</span></div>
+        <span class="top-nav__dropdown-item-title">Image Extract</span>
+      </a>
+    </div>
     <a class="top-nav__link top-nav__link--active" href="../../documentation.html">Documentation</a>
   </div>
   <div class="docs-wrap">
@@ -153,8 +280,23 @@ function shell(meta) {
     </div>
     <div class="main-footer__bottom"><span>&copy; 2026 STEGNOLINES.</span></div>
   </footer>
+  <script src="../../js/utils.js"></script>
   <script src="../../js/docs/nav-data.js"></script>
   <script src="../../js/docs/docs.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedLang = localStorage.getItem('stegoLang') || 'en';
+      const guideBtn = document.querySelector('.floating-guide-btn');
+      if (guideBtn) {
+        guideBtn.setAttribute('data-tooltip', savedLang === 'ar' ? 'إرشادات الموقع' : 'Site Guide');
+      }
+    });
+  </script>
+
+  <!-- Floating Help/Guide Button -->
+  <button type="button" class="floating-guide-btn" data-tooltip="Site Guide">
+    <span class="material-symbols-outlined">help</span>
+  </button>
 </body>
 </html>`;
 }

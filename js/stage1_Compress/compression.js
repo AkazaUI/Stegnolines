@@ -1,12 +1,12 @@
 // ============================================================
-// compression.js — دوال الضغط وفك الضغط
+// compression.js — Compression and Decompression Functions
 // ============================================================
-// يحتوي على: الضغط العادي (Block) + الضغط بالتدفق (Stream)
-// يعتمد على: wasm-engine.js (دوال compress, decompress,
-//   CompressStream, DecompressStream, BrotliStreamResultCode)
+// Contains: Normal block compression (Block) + stream compression (Stream)
+// Depends on: wasm-engine.js (compress, decompress,
+//   CompressStream, DecompressStream, BrotliStreamResultCode functions)
 // ============================================================
 
-// ===== الضغط العادي (Block) =====
+// ===== Block Compression =====
 
 
 
@@ -102,7 +102,7 @@ class DecompressStream {
     }
 }
 
-// ===== الضغط بالتدفق (Stream) =====
+// ===== Stream Compression =====
 function doStreamCompress(inputBytes) {
     const stream = new CompressStream(11);
     const CHUNK_SIZE = 4096;
@@ -161,7 +161,7 @@ function doStreamDecompress(inputBytes) {
     return output;
 }
 
-// --- دوال الضغط المباشر (Block) ---
+// --- Direct Block Compression Functions ---
 function compress(buf, raw_options) {
     const ptr0 = passArray8ToWasm0(buf, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;

@@ -247,6 +247,7 @@ async function _runTryStep() {
   const cleanMessages = _scannerState.cleanMessages;
   const carrierIndex = _scannerState.carrierIndex;
   const password = document.getElementById('scannerPassword').value.trim();
+  const encryptionKey = document.getElementById('scannerEncryptionKey').value.trim();
 
   if (!vsKey) return;
 
@@ -262,7 +263,7 @@ async function _runTryStep() {
     }
 
     const candidateCover = cleanMessages[i];
-    const result = await _tryOneCover(candidateCover, xorKeyBinary, password);
+    const result = await _tryOneCover(candidateCover, xorKeyBinary, password, encryptionKey);
 
     if (result.match) {
       matches.push({
@@ -287,7 +288,7 @@ async function _runTryStep() {
   // Try its clean text as a last-resort cover candidate.
   if (matches.length === 0 && carrierIndex >= 0 && cleanMessages[carrierIndex]) {
     const carrierCleanText = cleanMessages[carrierIndex];
-    const result = await _tryOneCover(carrierCleanText, xorKeyBinary, password);
+    const result = await _tryOneCover(carrierCleanText, xorKeyBinary, password, encryptionKey);
 
     if (result.match) {
       matches.push({
@@ -377,7 +378,7 @@ async function _runTryStep() {
  * @param {string} password      - The user-supplied password.
  * @returns {Promise<{ match: boolean, secretMessage?: string, hint?: string, reason?: string, details?: any, errorMsg?: string }>}
  */
-async function _tryOneCover(candidateCover, xorKeyBinary, password) {
+async function _tryOneCover(candidateCover, xorKeyBinary, password, encryptionKey) {
   const coverBits = stringToBinary(candidateCover);
 
   if (xorKeyBinary.length > coverBits.length) {
@@ -395,33 +396,87 @@ async function _tryOneCover(candidateCover, xorKeyBinary, password) {
     const recoveredBinary = recoverPayloadBits(coverBits, positions, xorKeyBinary);
     const recoveredPayload = binaryToBytes(recoveredBinary);
 
-    // Decompression check (mirrors extraction.js logic)
-    let payloadBytes;
-    if (recoveredPayload[0] === 0xFE) {
-      payloadBytes = doStreamDecompress(recoveredPayload.subarray(1));
-    } else {
-      payloadBytes = recoveredPayload;
+    // ── Try decryption first (use provided key or fallback to resolvedStegoKey) ──
+    let decryptedPayload = recoveredPayload;
+    let decryptionSucceeded = false;
+    const decryptionKey = encryptionKey || resolvedStegoKey;
+    try {
+      decryptedPayload = await decryptPayloadCtr(recoveredPayload, decryptionKey, candidateCover);
+      decryptionSucceeded = true;
+    } catch (err) {
+      // Ignore decryption error, fallback will handle it
     }
 
-    // Separate message and hint bytes before UTF-8 decoding to avoid decoding the 0xFF delimiter
-    const delimiterIndex = payloadBytes.indexOf(0xFF);
-    let msgBytes, hintBytes = null;
-    if (delimiterIndex !== -1) {
-      msgBytes = payloadBytes.subarray(0, delimiterIndex);
-      hintBytes = payloadBytes.subarray(delimiterIndex + 1);
-    } else {
-      msgBytes = payloadBytes;
+    // Try processing the decrypted payload
+    let payloadBytes;
+    let decompressedSucceeded = false;
+    try {
+      if (decryptedPayload[0] === 0xFE) {
+        payloadBytes = doStreamDecompress(decryptedPayload.subarray(1));
+        decompressedSucceeded = true;
+      } else {
+        payloadBytes = decryptedPayload;
+      }
+    } catch (e) {
+      // Decompress failed for decrypted payload, set to raw recovered payload to trigger fallback
+      payloadBytes = null;
     }
 
     const strictDecoder = new TextDecoder('utf-8', { fatal: true });
-    const decodedMsg = strictDecoder.decode(msgBytes);
-    const decodedHint = hintBytes ? strictDecoder.decode(hintBytes) : '';
 
-    if (decodedMsg.length > 0 && isPrintableText(decodedMsg)) {
-      return { match: true, secretMessage: decodedMsg, hint: decodedHint };
-    } else {
-      return { match: false, reason: 'unreadable' };
+    if (payloadBytes) {
+      // Separate message and hint bytes
+      const delimiterIndex = payloadBytes.indexOf(0xFF);
+      let msgBytes, hintBytes = null;
+      if (delimiterIndex !== -1) {
+        msgBytes = payloadBytes.subarray(0, delimiterIndex);
+        hintBytes = payloadBytes.subarray(delimiterIndex + 1);
+      } else {
+        msgBytes = payloadBytes;
+      }
+
+      try {
+        const decodedMsg = strictDecoder.decode(msgBytes);
+        const decodedHint = hintBytes ? strictDecoder.decode(hintBytes) : '';
+
+        if (decodedMsg.length > 0 && isPrintableText(decodedMsg)) {
+          return { match: true, secretMessage: decodedMsg, hint: decodedHint };
+        }
+      } catch (e) {
+        // Decode failed for decrypted payload, fallback will handle it
+      }
     }
+
+    // ── Fallback: if we decrypted but failed, try unencrypted raw payload ──
+    if (decryptionSucceeded) {
+      let rawPayloadBytes;
+      try {
+        if (recoveredPayload[0] === 0xFE) {
+          rawPayloadBytes = doStreamDecompress(recoveredPayload.subarray(1));
+        } else {
+          rawPayloadBytes = recoveredPayload;
+        }
+
+        const rawDelimiterIndex = rawPayloadBytes.indexOf(0xFF);
+        let rawMsgBytes, rawHintBytes = null;
+        if (rawDelimiterIndex !== -1) {
+          rawMsgBytes = rawPayloadBytes.subarray(0, rawDelimiterIndex);
+          rawHintBytes = rawPayloadBytes.subarray(rawDelimiterIndex + 1);
+        } else {
+          rawMsgBytes = rawPayloadBytes;
+        }
+
+        const rawDecodedMsg = strictDecoder.decode(rawMsgBytes);
+        const rawDecodedHint = rawHintBytes ? strictDecoder.decode(rawHintBytes) : '';
+        if (rawDecodedMsg.length > 0 && isPrintableText(rawDecodedMsg)) {
+          return { match: true, secretMessage: rawDecodedMsg, hint: rawDecodedHint };
+        }
+      } catch (e) {
+        // Fallback failed too
+      }
+    }
+
+    return { match: false, reason: 'unreadable' };
   } catch (err) {
     return { match: false, reason: 'invalid_utf8', errorMsg: err.message || err };
   }

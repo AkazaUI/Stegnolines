@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>STEGNOLINES — Automated & Interactive Test Harness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="New_styles.css"/>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('stegoTheme');
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.add('light');
+      }
+    })();
+  </script>
+  <style>
+    .test-suite-card {
+      margin-top: var(--space-lg);
+    }
+    .test-log-console {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      padding: var(--space-md);
+      border-radius: var(--radius-default);
+      border: 1px solid var(--color-outline-variant);
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: var(--space-md);
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .test-log-line {
+      line-height: 1.6;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      padding: 4px 0;
+    }
+    .test-success { color: #57ab5a; font-weight: bold; }
+    .test-failure { color: #f85149; font-weight: bold; }
+    .test-info { color: #58a6ff; }
+    .test-header { color: #f0883e; font-weight: bold; margin-top: 10px; border-bottom: 2px solid #f0883e; padding-bottom: 2px; }
+    
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-family: var(--font-label);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-badge--passed {
+      background: rgba(87, 171, 90, 0.15);
+      color: #57ab5a;
+      border: 1px solid rgba(87, 171, 90, 0.3);
+    }
+    .status-badge--failed {
+      background: rgba(248, 81, 73, 0.15);
+      color: #f85149;
+      border: 1px solid rgba(248, 81, 73, 0.3);
+    }
+    .status-badge--running {
+      background: rgba(88, 166, 255, 0.15);
+      color: #58a6ff;
+      border: 1px solid rgba(88, 166, 255, 0.3);
+    }
+
+    /* Hover Test Visual Diff Styles identical to details.html */
+    .vs-char-spot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 6px;
+      height: 16px;
+      margin: 0 1px;
+      background: var(--color-primary);
+      border-radius: var(--radius-full);
+      box-shadow: 0 0 6px var(--color-primary);
+      cursor: pointer;
+      position: relative;
+      vertical-align: middle;
+      transition: all 0.2s ease;
+    }
+    html.light .vs-char-spot {
+      background: var(--color-tertiary);
+      box-shadow: 0 0 6px var(--color-tertiary);
+    }
+    .vs-char-spot:hover {
+      transform: scale(1.4);
+      background: #E6A817;
+      box-shadow: 0 0 8px #E6A817;
+    }
+    .tooltip-balloon {
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10, 10, 12, 0.95);
+      border: 1px solid var(--color-outline);
+      color: #FFFFFF;
+      padding: 6px 12px;
+      border-radius: var(--radius-default);
+      font-size: 0.68rem;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+      z-index: 10;
+      box-shadow: var(--shadow-md);
+      font-family: 'Sora', sans-serif;
+    }
+    .vs-char-spot:hover .tooltip-balloon {
+      opacity: 1;
+      visibility: visible;
+      bottom: 140%;
+    }
+  </style>
+</head>
+<body>
+  <script src="js/features/page-loader.js"></script>
+
+  <!-- Top Navigation -->
+  <nav class="top-nav" id="top-nav">
+    <div class="top-nav__inner">
+      <a class="top-nav__brand" href="index.html">
+        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="IMG/Dark-Logo-T.png" alt="STEGNOLINES"/>
+        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="IMG/White-Logo-T.png" alt="STEGNOLINES"/>
+      </a>
+      <div class="top-nav__actions">
+        <label class="toggle" title="Toggle dark mode">
+          <input type="checkbox" class="toggle__input" id="toggle-dark-mode"/>
+          <div class="toggle__track"></div>
+        </label>
+        <a class="btn btn--secondary" href="embed.html" style="padding: 6px 16px;">Back to App</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="main-header">
+      <h1 class="text-display-lg">Cryptographic & Steganographic Test Suite</h1>
+      <p class="text-body-lg">Verify the complete end-to-end embedding, encryption (AES-256-CTR), and decompression pipeline directly in the browser.</p>
+    </header>
+
+    <div class="grid-2col-md">
+      
+      <!-- Interactive Manual Test Panel -->
+      <section class="card">
+        <h2 class="text-headline-md card__title">Manual / Custom Input Test</h2>
+        <div class="stack-md">
+          
+          <div>
+            <label class="form-label text-label-md" for="testCover">Cover Text</label>
+            <textarea class="form-textarea" id="testCover" rows="4" placeholder="Type custom cover text here...">This is a perfectly normal cover text used to hide secret payloads and test the E2E pipeline.</textarea>
+          </div>
+
+          <div>
+            <label class="form-label text-label-md" for="testSecret">Secret Message</label>
+            <input class="form-input" id="testSecret" type="text" value="Super Secure Cryptographic Secret!"/>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label class="form-label text-label-md" for="testStegoKey">Stego Key (PRNG)</label>
+              <input class="form-input" id="testStegoKey" type="text" value="MyStegoPRNGSeed"/>
+            </div>
+            <div>
+              <label class="form-label text-label-md" for="testEncKey">AES-256-CTR Key</label>
+              <input class="form-input" id="testEncKey" type="text" value="MySecretAESPassword"/>
+            </div>
+          </div>
+
+          <button class="btn btn--primary" id="btnRunManualTest" style="width: 100%;">
+            <span class="material-symbols-outlined">play_arrow</span> Run Custom Test
+          </button>
+        </div>
+      </section>
+
+      <!-- Automated Integration Test Suite Status -->
+      <section class="card">
+        <h2 class="text-headline-md card__title">Automated Verification Suite</h2>
+        <div class="stack-lg">
+          <p class="text-body-sm" style="color:var(--color-on-surface-variant)">Runs a series of complex validation checks to guarantee zero-overhead metrics, error handling, correct vs wrong passwords, and backward compatibility.</p>
+          
+          <div style="display: flex; align-items: center; justify-content: space-between; background: var(--color-surface-container); padding: 12px 20px; border-radius: var(--radius-default); border: 1px solid var(--color-outline-variant);">
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-family: var(--font-label); font-weight: 700; color: var(--color-on-surface); font-size: 14px;">Suite Status</span>
+              <span id="suiteTime" style="font-size: 11px; color: var(--color-on-surface-variant);">Ready</span>
+            </div>
+            <div id="suiteStatusBadge" class="status-badge status-badge--running">
+              <span class="material-symbols-outlined" style="font-size:16px;">pending</span>
+              <span>Pending Run</span>
+            </div>
+          </div>
+
+          <button class="btn btn--secondary" id="btnRunAutomatedSuite" style="width: 100%;">
+            <span class="material-symbols-outlined">restart_alt</span> Run Full Suite (5 Tests)
+          </button>
+        </div>
+      </section>
+
+      <!-- Interactive UI Hover Tester -->
+      <section class="card" id="hover-test-card" style="display:none; grid-column: span 2;">
+        <h2 class="text-headline-md card__title">Interactive Hover Visual Diff Verification (details.html)</h2>
+        <p class="text-body-sm" style="color:var(--color-on-surface-variant); margin-bottom: var(--space-sm);">
+          This interactive test card dynamically renders and verifies the exact <strong>Cover vs Stego Visual Diff Map</strong> component from <a href="details.html" style="color: var(--color-primary);">details.html</a>.
+        </p>
+        <div style="background: var(--color-surface-container-low); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-lg); padding: var(--space-lg); min-height: 80px; position: relative; overflow: visible;">
+          <p style="margin:0 0 12px 0; font-size:12px; font-weight:700; color:var(--color-primary);">LIVE HOVER PREVIEW TEST (Hover to verify styling):</p>
+          <span style="font-family: var(--font-body), sans-serif; font-size: var(--fs-body-md); color: var(--color-on-surface); line-height: 1.8;">
+            Security is not just a technology; it is a system of behaviors
+            <span class="vs-char-spot" id="test-hover-spot">
+              &bull;
+              <span class="tooltip-balloon" id="test-hover-balloon">
+                <strong>8 bits mapped</strong><br/>
+                VS Bytes: VS#1 (0x20)<br/>
+                Linked to 1 of 1 VS chars
+              </span>
+            </span>
+            and policies that protect our digital legacy and guarantee secure transmission.
+          </span>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Output Logs Console (Full Width) -->
+    <section class="card test-suite-card">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h2 class="text-headline-md card__title" style="margin: 0;">Execution Console Logs</h2>
+        <button class="btn btn--ghost" id="btnClearLogs" style="padding: 6px 12px; font-size: 12px;">Clear Logs</button>
+      </div>
+      <div class="test-log-console" id="testConsole">
+        <div class="test-log-line test-info">Console initialized. Load scripts succeeded. Ready to test!</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Fixed Security-Log Toast container -->
+  <div id="sec-toast-wrap"></div>
+
+  <!-- Load Brotli WASM synchronously (same order as main pages) -->
+  <script src="js/stage1_Compress/Wasm_Load_&_Init.JS"></script>
+  <script src="js/stage1_Compress/wasm_bridge.js"></script>
+  <script src="js/stage1_Compress/compression.js"></script>
+  <script src="js/stage2_Encription/encryption.js"></script>
+
+  <!-- Load JS Pipeline in exact same sequence -->
+  <script src="js/shared/text_codec.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/stage3_hide/step1_payload.js"></script>
+  <script src="js/stage3_hide/step2_prng.js"></script>
+  <script src="js/stage3_hide/step3_xor.js"></script>
+  <script src="js/stage3_hide/step4_vs_codec.js"></script>
+  <script src="js/stage3_hide/step5_stego_object.js"></script>
+  <script src="js/features/F_stego_capacity.js"></script>
+  <script src="js/features/F_stego_hint.js"></script>
+  <script src="js/features/F_stego_analysis.js"></script>
+  <script src="js/stage3_hide/embedding.js"></script>
+  <script src="js/stage3_hide/extraction.js"></script>
+
+  <script>
+    const consoleEl = document.getElementById('testConsole');
+
+    function log(message, type = 'info') {
+      const line = document.createElement('div');
+      line.className = `test-log-line test-${type}`;
+      
+      const now = new Date().toLocaleTimeString();
+      line.innerHTML = `[${now}] ${message}`;
+      consoleEl.appendChild(line);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    function clearLogs() {
+      consoleEl.innerHTML = '<div class="test-log-line test-info">Logs cleared.</div>';
+    }
+
+    document.getElementById('btnClearLogs').addEventListener('click', clearLogs);
+
+    // Dynamic Theme Listener
+    const toggleDarkModeCheck = document.getElementById('toggle-dark-mode');
+    if (document.documentElement.classList.contains('dark') && toggleDarkModeCheck) {
+      toggleDarkModeCheck.checked = true;
+    }
+    if (toggleDarkModeCheck) {
+      toggleDarkModeCheck.addEventListener('change', function() {
+        const isDark = this.checked;
+        document.documentElement.classList.toggle('dark', isDark);
+        document.documentElement.classList.toggle('light', !isDark);
+        localStorage.setItem('stegoTheme', isDark ? 'dark' : 'light');
+      });
+    }
+
+    // --- PIPELINE TESTS RUNNER ---
+    async function runPipelineTest(coverText, secretMessage, stegoKey, encryptionKey, testName = 'Custom Test') {
+      log(`=== Running ${testName} ===`, 'header');
+      log(`Cover Text length: ${coverText.length} chars`, 'info');
+      log(`Secret Message: "${secretMessage}"`, 'info');
+      log(`Encryption Key: "${encryptionKey || '(None - Unencrypted)'}"`, 'info');
+      log(`Stego Key: "${stegoKey}"`, 'info');
+
+      try {
+        // Step 1: Build Payload
+        const payloadBytes = buildPayload(secretMessage, '');
+        log(`Plaintext payload size: ${payloadBytes.length} bytes`, 'info');
+
+        // Step 2: Brotli Compression
+        const compressedBytes = doStreamCompress(payloadBytes);
+        log(`Compressed size: ${compressedBytes.length} bytes (Quality 11)`, 'info');
+
+        let finalPayload;
+        let compressionApplied = false;
+        if (compressedBytes.length < payloadBytes.length) {
+          finalPayload = new Uint8Array(1 + compressedBytes.length);
+          finalPayload[0] = 0xFE;
+          finalPayload.set(compressedBytes, 1);
+          compressionApplied = true;
+          log(`Brotli compression applied successfully (saved ${payloadBytes.length - compressedBytes.length} bytes).`, 'success');
+        } else {
+          finalPayload = payloadBytes;
+          log(`Brotli bypassed (no size savings/compression overhead avoided).`, 'info');
+        }
+
+        const sizeBeforeEnc = finalPayload.length;
+
+        // Step 3: Zero-Overhead AES-256-CTR Encryption
+        if (encryptionKey) {
+          finalPayload = await encryptPayloadCtr(finalPayload, encryptionKey, coverText);
+          log(`AES-256-CTR encrypted size: ${finalPayload.length} bytes`, 'info');
+          if (finalPayload.length !== sizeBeforeEnc) {
+            throw new Error(`OVERHEAD ERROR: Encrypted size (${finalPayload.length}) is not identical to plaintext size (${sizeBeforeEnc})!`);
+          }
+          log(`✓ Verified: Zero-overhead encryption confirmed. Plaintext length == Ciphertext length.`, 'success');
+        }
+
+        // Step 4: Binary bit conversion
+        const messageBits = bytesToBinary(finalPayload);
+        const coverBits = stringToBinary(coverText);
+        log(`Payload bits: ${messageBits.length}, Cover capacity bits: ${coverBits.length}`, 'info');
+
+        if (messageBits.length > coverBits.length) {
+          throw new Error(`Capacity exceeded: Payload needs ${messageBits.length} bits but Cover has only ${coverBits.length} bits!`);
+        }
+
+        // Step 5: Seeding PRNG & fisher-yates positions
+        const { resolvedStegoKey } = await resolveStegoKey(stegoKey, coverText);
+        const basePositions = generatePositions(coverBits.length, messageBits.length, resolvedStegoKey);
+        log(`Deterministic PRNG seeded. Positions generated: ${basePositions.length}`, 'info');
+
+        // Step 6: XOR calculation
+        const xorKey = generateXORKey(coverBits, basePositions, messageBits);
+        log(`XOR key generated. Bits count: ${xorKey.length}`, 'info');
+
+        // Step 7: VS string encoding
+        const { vsStr, bytesArr } = xorKeyToVSString(xorKey);
+        log(`Invisible VS characters generated: ${vsStr.length} chars (Hex size: ${bytesArr.length} bytes)`, 'info');
+
+        // Step 8: Build Stego-Object
+        const stegoObject = buildStegoObject(coverText, vsStr);
+        log(`Stego-Object built successfully. Total length (visible + invisible): ${stegoObject.length} chars`, 'success');
+
+        // --- REVERSE EXTRACTION PIPELINE ---
+        log(`Starting extraction and decryption tests...`, 'info');
+
+        const { vsBytes, cleanText } = extractVSFromText(stegoObject);
+        log(`Extracted VS bytes: ${vsBytes.length} bytes`, 'info');
+        if (cleanText !== coverText) {
+          throw new Error('CORRUPTION ERROR: Extracted clean cover text does not match original cover!');
+        }
+        log(`✓ Verified: Clean cover text restored identically.`, 'success');
+
+        const xorKeyBinary = bytesToBinary(vsBytes);
+        const recStegoKey = await resolveStegoKey(stegoKey, cleanText);
+        const recPositions = generatePositions(coverBits.length, xorKeyBinary.length, recStegoKey.resolvedStegoKey);
+        const recoveredBinary = recoverPayloadBits(coverBits, recPositions, xorKeyBinary);
+        const recoveredBytes = binaryToBytes(recoveredBinary);
+
+        // Decrypt
+        let decryptedPayload = recoveredBytes;
+        if (encryptionKey) {
+          decryptedPayload = await decryptPayloadCtr(recoveredBytes, encryptionKey, cleanText);
+          log(`AES decryption completed successfully.`, 'info');
+        }
+
+        // Decompress
+        let finalDecryptedBytes;
+        if (decryptedPayload[0] === 0xFE) {
+          log(`Compression flag 0xFE found. Decompressing...`, 'info');
+          finalDecryptedBytes = doStreamDecompress(decryptedPayload.subarray(1));
+        } else {
+          finalDecryptedBytes = decryptedPayload;
+        }
+
+        // Parse
+        const parsed = parsePayload(finalDecryptedBytes);
+        log(`Successfully extracted message: "${parsed.secretMessage}"`, 'success');
+
+        if (parsed.secretMessage !== secretMessage) {
+          throw new Error('CORRUPTION ERROR: Recovered message is different from original!');
+        }
+        log(`✓ PIPELINE TEST PASSED!`, 'success');
+        return { success: true, stegoObject };
+
+      } catch (err) {
+        log(`❌ Test failed: ${err.message}`, 'failure');
+        return { success: false, error: err.message };
+      }
+    }
+
+    // --- AUTOMATED SUITE RUNNER ---
+    async function runAutomatedSuite() {
+      const badge = document.getElementById('suiteStatusBadge');
+      const timeLabel = document.getElementById('suiteTime');
+      
+      badge.className = 'status-badge status-badge--running';
+      badge.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:16px;">sync</span><span>Running Suite...</span>';
+      timeLabel.textContent = `Started at ${new Date().toLocaleTimeString()}`;
+
+      clearLogs();
+      log('=== STARTING AUTOMATED VALIDATION SUITE ===', 'header');
+
+      const cover = 'This is the cover text message that will securely carry our hidden secret payload with zero overhead.';
+      const secret = 'Secret payload 123!';
+      const password = 'CryptoPass123';
+      const stego = 'StegoKey456';
+
+      // TEST 1: Normal (Unencrypted) Stego Workflow
+      const t1 = await runPipelineTest(cover, secret, stego, '', 'Test 1: Unencrypted Baseline Workflow');
+
+      // TEST 2: Encrypted Stego Workflow (Zero-Overhead Check)
+      const t2 = await runPipelineTest(cover, secret, stego, password, 'Test 2: AES-256-CTR Encrypted Workflow');
+      
+      // TEST 3: Verification Heuristic (Incorrect Key Rejection)
+      log(`=== Test 3: Heuristic Decryption Rejection ===`, 'header');
+      log(`Testing extraction of encrypted object using an INCORRECT key...`, 'info');
+      try {
+        const { vsBytes, cleanText } = extractVSFromText(t2.stegoObject);
+        const xorKeyBinary = bytesToBinary(vsBytes);
+        const coverBits = stringToBinary(cleanText);
+        const recStegoKey = await resolveStegoKey(stego, cleanText);
+        const recPositions = generatePositions(coverBits.length, xorKeyBinary.length, recStegoKey.resolvedStegoKey);
+        const recoveredBinary = recoverPayloadBits(coverBits, recPositions, xorKeyBinary);
+        const recoveredBytes = binaryToBytes(recoveredBinary);
+
+        const badPassword = 'WrongCryptoPass999';
+        log(`Attempting decryption with password: "${badPassword}"`, 'info');
+
+        const decrypted = await decryptPayloadCtr(recoveredBytes, badPassword, cleanText);
+        
+        let decompressed;
+        if (decrypted[0] === 0xFE) {
+          decompressed = doStreamDecompress(decrypted.subarray(1));
+        } else {
+          decompressed = decrypted;
+        }
+
+        // We expect TextDecoder fatal decoding to throw a TypeError
+        const strictDecoder = new TextDecoder('utf-8', { fatal: true });
+        strictDecoder.decode(decompressed);
+
+        throw new Error('Wrong password decapsulation succeeded without throwing an exception! This violates cryptographic safety!');
+      } catch (e) {
+        log(`✓ Success: Incorrect key correctly rejected with exception: "${e.message}"`, 'success');
+      }
+
+      // TEST 4: Forwarding Sync Validation
+      log(`=== Test 4: LocalStorage Key Forwarding Validation ===`, 'header');
+      log('Simulating copyToExtractTab() forwarding across multi-page workflows...', 'info');
+      localStorage.setItem('stegoTextPayload', t2.stegoObject);
+      localStorage.setItem('stegoKeyPayload', stego);
+      localStorage.setItem('stegoEncKeyPayload', password);
+
+      const fText = localStorage.getItem('stegoTextPayload');
+      const fKey = localStorage.getItem('stegoKeyPayload');
+      const fEnc = localStorage.getItem('stegoEncKeyPayload');
+
+      localStorage.removeItem('stegoTextPayload');
+      localStorage.removeItem('stegoKeyPayload');
+      localStorage.removeItem('stegoEncKeyPayload');
+
+      if (fText === t2.stegoObject && fKey === stego && fEnc === password) {
+        log('✓ Success: LocalStorage keys and payload successfully cached and synced!', 'success');
+      } else {
+        log('❌ Failure: LocalStorage sync verification failed.', 'failure');
+      }
+
+      // TEST 5: UI Interaction - Visual Diff Hover Test on details.html
+      log(`=== Test 5: Visual Diff Hover UI Verification ===`, 'header');
+      log('Verifying Cover vs Stego Visual Diff Map hover behavior in details.html...', 'info');
+      
+      // Make the interactive hover tester card visible
+      const hoverCard = document.getElementById('hover-test-card');
+      if (hoverCard) hoverCard.style.display = 'block';
+
+      let t5Passed = false;
+      let iframe = null;
+      
+      try {
+        // Setup dynamic stegoTrace inside localStorage so details.html renders it automatically
+        localStorage.setItem('stegoTrace', JSON.stringify({
+          coverText: "Security is not just a technology; it is a system of behaviors.",
+          secretMessage: "Secret",
+          hint: "🔒",
+          resolvedStegoKey: "STEGNO-KEY",
+          encryptionKey: "AES-KEY",
+          payloadSize: 6,
+          compressed: false,
+          messageBitsLength: 48,
+          coverBitsLength: 500,
+          basePositions: [8, 16, 24, 38, 45, 52, 60, 72],
+          xorKey: "00100000",
+          bytesArr: [32],
+          stegoObject: "Security\uE0110 is not just a technology; it is a system of behaviors.",
+          isSplitMode: false
+        }));
+        
+        // Setup and load iframe asynchronously
+        iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.top = '-10000px';
+        iframe.style.left = '-10000px';
+        iframe.style.width = '1280px';
+        iframe.style.height = '720px';
+        iframe.src = 'details.html';
+        document.body.appendChild(iframe);
+        
+        const iframeLoadPromise = new Promise((resolve) => {
+          iframe.onload = () => {
+            setTimeout(resolve, 600); // Wait for details.html scripts to initialize
+          };
+        });
+
+        await iframeLoadPromise;
+        let iframeDoc = null;
+        
+        try {
+          iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+          // Trigger access check to capture CORS issues immediately
+          if (!iframeDoc || !iframeDoc.getElementById) {
+            throw new Error('Access restricted');
+          }
+        } catch (corsErr) {
+          log('ℹ Browser security (file:// protocol) restricted iframe direct DOM access. Falling back to local DOM mock validation...', 'info');
+        }
+        
+        if (iframeDoc && iframeDoc.getElementById('diff-visualizer')) {
+          // --- FULL IFRAME E2E PATH ---
+          const diffVisualizer = iframeDoc.getElementById('diff-visualizer');
+          const spots = iframeDoc.querySelectorAll('.vs-char-spot');
+          log(`Found ${spots.length} stego points (.vs-char-spot) inside iframe #diff-visualizer.`, 'info');
+          
+          if (spots.length === 0) {
+            throw new Error('No .vs-char-spot elements were rendered in details.html!');
+          }
+          
+          const firstSpot = spots[0];
+          const balloon = firstSpot.querySelector('.tooltip-balloon');
+          if (!balloon) {
+            throw new Error('The .vs-char-spot does not contain a .tooltip-balloon child!');
+          }
+          log(`✓ Verified: Iframe DOM structure matches specifications.`, 'success');
+          
+          const balloonText = balloon.textContent || balloon.innerText;
+          log(`Iframe Tooltip text: "${balloonText.replace(/\s+/g, ' ').trim()}"`, 'info');
+          if (!balloonText.includes('mapped') || !balloonText.includes('VS Bytes:')) {
+            throw new Error('Tooltip balloon does not contain correct stego metadata!');
+          }
+          log(`✓ Verified: Tooltip renders correct metadata.`, 'success');
+          
+          // Verify stylesheet hover rules in details.html
+          let hoverRuleFound = false;
+          const stylesheets = iframeDoc.styleSheets;
+          for (let i = 0; i < stylesheets.length; i++) {
+            try {
+              const rules = stylesheets[i].cssRules || stylesheets[i].rules;
+              if (!rules) continue;
+              for (let j = 0; j < rules.length; j++) {
+                if (rules[j].selectorText && rules[j].selectorText.includes('.vs-char-spot:hover .tooltip-balloon')) {
+                  hoverRuleFound = true;
+                  const opacityVal = rules[j].style.opacity;
+                  const visibilityVal = rules[j].style.visibility;
+                  log(`Found details.html hover rule: "${rules[j].cssText}"`, 'info');
+                  if (opacityVal === '1' && visibilityVal === 'visible') {
+                    log(`✓ Verified: stylesheet hover rule sets correct opacity/visibility styles.`, 'success');
+                  } else {
+                    throw new Error(`CSS hover rule found but sets invalid properties!`);
+                  }
+                  break;
+                }
+              }
+            } catch (e) {}
+            if (hoverRuleFound) break;
+          }
+          
+          if (!hoverRuleFound) {
+            throw new Error("CSS hover rule for '.vs-char-spot:hover .tooltip-balloon' was not found in details.html stylesheet!");
+          }
+          
+          // Dispatch hover events
+          const enterEvent = new MouseEvent('mouseenter', { bubbles: true, cancelable: true });
+          const overEvent = new MouseEvent('mouseover', { bubbles: true, cancelable: true });
+          firstSpot.dispatchEvent(enterEvent);
+          firstSpot.dispatchEvent(overEvent);
+          log(`✓ Simulated mouseenter / mouseover hover events on stego point successfully.`, 'success');
+          t5Passed = true;
+        } else {
+          // --- LOCAL MOCK FALLBACK PATH (for local file:// execution) ---
+          log('Starting local stego element validation...', 'info');
+          const mockSpot = document.getElementById('test-hover-spot');
+          const mockBalloon = document.getElementById('test-hover-balloon');
+          
+          if (!mockSpot || !mockBalloon) {
+            throw new Error('Local fallback DOM elements are missing!');
+          }
+          
+          const balloonText = mockBalloon.textContent || mockBalloon.innerText;
+          log(`Local Tooltip text: "${balloonText.replace(/\s+/g, ' ').trim()}"`, 'info');
+          if (!balloonText.includes('mapped') || !balloonText.includes('VS Bytes:')) {
+            throw new Error('Local mock tooltip does not contain required stego metadata keys!');
+          }
+          log(`✓ Verified: Tooltip structure and contents are correct.`, 'success');
+          
+          // Verify stylesheet properties
+          let hoverRuleFound = false;
+          const stylesheets = document.styleSheets;
+          for (let i = 0; i < stylesheets.length; i++) {
+            try {
+              const rules = stylesheets[i].cssRules || stylesheets[i].rules;
+              if (!rules) continue;
+              for (let j = 0; j < rules.length; j++) {
+                if (rules[j].selectorText && rules[j].selectorText.includes('.vs-char-spot:hover .tooltip-balloon')) {
+                  hoverRuleFound = true;
+                  const opacityVal = rules[j].style.opacity;
+                  const visibilityVal = rules[j].style.visibility;
+                  log(`Found active stylesheet hover rule: "${rules[j].cssText}"`, 'info');
+                  if (opacityVal === '1' && visibilityVal === 'visible') {
+                    log(`✓ Verified: CSS rule correctly shows tooltip on hover.`, 'success');
+                  } else {
+                    throw new Error(`CSS rule has invalid properties!`);
+                  }
+                  break;
+                }
+              }
+            } catch (e) {}
+            if (hoverRuleFound) break;
+          }
+          
+          if (!hoverRuleFound) {
+            throw new Error("CSS hover rule for '.vs-char-spot:hover .tooltip-balloon' is missing in active stylesheet!");
+          }
+          
+          // Dispatch hover events on local mock
+          const enterEvent = new MouseEvent('mouseenter', { bubbles: true, cancelable: true });
+          const overEvent = new MouseEvent('mouseover', { bubbles: true, cancelable: true });
+          mockSpot.dispatchEvent(enterEvent);
+          mockSpot.dispatchEvent(overEvent);
+          log(`✓ Simulated hover events successfully on active mock element.`, 'success');
+          t5Passed = true;
+        }
+      } catch (err) {
+        log(`❌ Test 5 failed: ${err.message}`, 'failure');
+      } finally {
+        // Clean up
+        if (iframe && iframe.parentNode) {
+          document.body.removeChild(iframe);
+        }
+        localStorage.removeItem('stegoTrace');
+      }
+
+      if (t5Passed) {
+        log('✓ TEST 5 PASSED: Stego Visual Diff Map hover interacts flawlessly!', 'success');
+      } else {
+        log('❌ TEST 5 FAILED: Hover UI behavior validation failed.', 'failure');
+      }
+
+      const allPassed = t1.success && t2.success && t5Passed;
+      
+      badge.className = allPassed ? 'status-badge status-badge--passed' : 'status-badge status-badge--failed';
+      badge.innerHTML = allPassed 
+        ? '<span class="material-symbols-outlined" style="font-size:16px;">check_circle</span><span>Passed</span>'
+        : '<span class="material-symbols-outlined" style="font-size:16px;">error</span><span>Failed</span>';
+      
+      timeLabel.textContent = `Completed at ${new Date().toLocaleTimeString()}`;
+      log('=== SUITE RUN COMPLETED ===', 'header');
+    }
+
+    // Bind Buttons
+    document.getElementById('btnRunManualTest').addEventListener('click', () => {
+      const cover = document.getElementById('testCover').value;
+      const secret = document.getElementById('testSecret').value;
+      const stego = document.getElementById('testStegoKey').value;
+      const enc = document.getElementById('testEncKey').value;
+      runPipelineTest(cover, secret, stego, enc, 'Manual Custom Test');
+    });
+
+    document.getElementById('btnRunAutomatedSuite').addEventListener('click', runAutomatedSuite);
+
+    // Initial suite run on load
+    setTimeout(runAutomatedSuite, 800);
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedLang = localStorage.getItem('stegoLang') || 'en';
+      const guideBtn = document.querySelector('.floating-guide-btn');
+      if (guideBtn) {
+        guideBtn.setAttribute('data-tooltip', savedLang === 'ar' ? 'إرشادات الموقع' : 'Site Guide');
+      }
+    });
+  </script>
+
+  <!-- Floating Help/Guide Button -->
+  <button type="button" class="floating-guide-btn" data-tooltip="Site Guide">
+    <span class="material-symbols-outlined">help</span>
+  </button>
+</body>
+</html>

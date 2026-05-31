@@ -41,34 +41,63 @@ function formatKeyByteLine(byteValue, index) {
     : 'U+' + (VS_SUPPLEMENT_START + byteValue - 16).toString(16).toUpperCase();
 
   const paddedIndex = (index + 1).toString().padStart(3);
-  return `بايت ${paddedIndex}: ${binaryValue}  →  ${hexValue}  →  VS[${vsCodePoint}]`;
+  return `Byte ${paddedIndex}: ${binaryValue}  →  ${hexValue}  →  VS[${vsCodePoint}]`;
+}
+
+/**
+ * Format a single key byte into an interactive HTML line.
+ */
+function formatKeyByteLineHtml(byteValue, index) {
+  const hexValue = '0x' + byteValue.toString(16).toUpperCase().padStart(2, '0');
+  const binaryValue = byteValue.toString(2).padStart(8, '0');
+
+  const vsCodePoint = byteValue < 16
+    ? 'U+' + (VS_BASE_START + byteValue).toString(16).toUpperCase()
+    : 'U+' + (VS_SUPPLEMENT_START + byteValue - 16).toString(16).toUpperCase();
+
+  const paddedIndex = (index + 1).toString().padStart(3, '0');
+  return `<div class="byte-line"><span class="idx">#${paddedIndex}</span><span class="bin">${binaryValue}</span><span class="arrow">&rarr;</span><span class="hex">${hexValue}</span><span class="arrow">&rarr;</span><span class="vs">VS[${vsCodePoint}]</span></div>`;
 }
 
 
 /**
- * Update the VS Visualization textarea with a hex breakdown of the key.
- *
- * Displays the total key length in bits, each byte's binary → hex → VS
- * conversion, and a summary of the total invisible characters embedded.
+ * Update the VS Visualization displays with a hex breakdown of the key.
+ * 
+ * Supports both hidden legacy textarea fallback and modern premium HTML readout.
  *
  * @param {string}   binaryKey - The XOR key as a binary string.
  * @param {number[]} bytesArr  - The key's byte values (for per-byte display).
  */
 function updateVSVisualization(binaryKey, bytesArr) {
+  // 1. Maintain fallback legacy textarea if present
   const visualizationElement = document.getElementById('vsVisualization');
-  if (!visualizationElement) return;
-
-  const outputLines = [];
-  outputLines.push(`── المفتاح الثنائي (${binaryKey.length} بت) ──`);
-
-  for (let i = 0; i < bytesArr.length; i++) {
-    outputLines.push(formatKeyByteLine(bytesArr[i], i));
+  if (visualizationElement) {
+    const outputLines = [];
+    outputLines.push(`── Binary Key (${binaryKey.length} bits) ──`);
+    for (let i = 0; i < bytesArr.length; i++) {
+      outputLines.push(formatKeyByteLine(bytesArr[i], i));
+    }
+    outputLines.push('');
+    outputLines.push(`── Total: ${bytesArr.length} bytes = ${bytesArr.length} hidden VS characters ──`);
+    visualizationElement.value = outputLines.join('\n');
   }
 
-  outputLines.push('');
-  outputLines.push(`── المجموع: ${bytesArr.length} بايت = ${bytesArr.length} حرف VS مخفي ──`);
-
-  visualizationElement.value = outputLines.join('\n');
+  // 2. Render modern HTML breakdown if present
+  const htmlContainer = document.getElementById('vsVisualizationHtml');
+  if (htmlContainer) {
+    if (bytesArr && bytesArr.length > 0) {
+      let htmlContent = `<div style="margin-bottom: var(--space-sm); font-weight: 600; color: var(--color-on-surface-variant); opacity: 0.7; font-size: 0.72rem; letter-spacing: 0.5px; font-family: 'Sora', sans-serif;">BINARY KEY &mdash; ${binaryKey.length} BITS</div>`;
+      htmlContent += `<div class="vs-bytes-grid">`;
+      for (let i = 0; i < bytesArr.length; i++) {
+        htmlContent += formatKeyByteLineHtml(bytesArr[i], i);
+      }
+      htmlContent += `</div>`;
+      htmlContent += `<div style="margin-top: var(--space-sm); padding-top: var(--space-xs); border-top: 1px solid var(--color-outline-variant); font-weight: 600; color: var(--color-on-surface-variant); opacity: 0.7; font-size: 0.72rem; font-family: 'Sora', sans-serif;">${bytesArr.length} bytes \u2192 ${bytesArr.length} VS characters</div>`;
+      htmlContainer.innerHTML = htmlContent;
+    } else {
+      htmlContainer.innerHTML = `<span style="opacity: 0.5; font-style: italic;">No VS characters analyzed.</span>`;
+    }
+  }
 }
 
 
