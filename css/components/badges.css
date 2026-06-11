@@ -20,6 +20,12 @@
   border: 1px solid rgba(125, 163, 0, 0.2);
 }
 
+.badge--success {
+  background: rgba(187, 209, 0, 0.1);
+  color: var(--color-secondary);
+  border: 1px solid rgba(187, 209, 0, 0.2);
+}
+
 .badge--draft {
   background: var(--color-surface-variant);
   color: var(--color-on-surface-variant);
