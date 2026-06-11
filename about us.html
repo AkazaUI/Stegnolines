@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <link rel="icon" type="image/png" href="assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — About Us</title>
+  <meta name="description" content="Meet the team behind Stegnolines."/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="New_styles.css"/>
+  <style>
+    /* Custom grid for 5 cards: 3 on top, 2 centered on bottom (using flex wrap on container) */
+    .team-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--space-lg);
+    }
+    .team-grid .profile-card {
+      flex: 1 1 calc(33.333% - var(--space-lg));
+      min-width: 280px;
+      max-width: 400px;
+    }
+    .profile-card__list {
+      text-align: left;
+      color: var(--color-on-surface-variant);
+      margin-bottom: var(--space-md);
+      padding-left: 20px;
+      font-size: var(--fs-body-sm);
+      width: 100%;
+    }
+    html[dir="rtl"] .profile-card__list {
+      text-align: right;
+      padding-left: 0;
+      padding-right: 20px;
+    }
+    .profile-card__list li {
+      margin-bottom: 6px;
+    }
+    .page-header-wrapper {
+      text-align: center;
+      margin-bottom: var(--space-xxl);
+      padding: var(--space-xl) 0;
+    }
+  </style>
+  <script>
+    (function() {
+      // Retrieve preferences immediately to prevent FOUC
+      const savedTheme = localStorage.getItem('stegoTheme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+      const savedLang = localStorage.getItem('stegoLang') || 'en';
+      document.documentElement.setAttribute('lang', savedLang);
+      document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
+      const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
+      document.documentElement.setAttribute('data-arabic-font', savedFont);
+    })();
+  </script>
+</head>
+<body>
+  <script src="js/features/page-loader.js"></script>
+
+  <!-- ═══ Top Navigation Placeholder ═══ -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- ═══ Main Content ═══ -->
+  <main class="main-content">
+    
+    <div class="page-header-wrapper">
+      <h1 class="text-display-lg" style="color: var(--color-primary); margin-bottom: var(--space-sm);" data-i18n="pageTitle">About Our Team</h1>
+      <p class="text-body-lg" style="color: var(--color-on-surface-variant); max-width: 600px; margin: 0 auto;" data-i18n="pageDesc">
+        We are a passionate team of five developers and cybersecurity enthusiasts dedicated to pushing the boundaries of secure digital communication.
+      </p>
+    </div>
+
+    <div class="team-grid">
+      <!-- Developer 1 -->
+      <div class="profile-card">
+        <div class="profile-card__avatar">
+          <span class="material-symbols-outlined">code</span>
+        </div>
+        <h3 class="profile-card__name text-headline-sm" data-i18n="dev1Name">[Developer Name 1]</h3>
+        <p class="profile-card__role text-label-md" data-i18n="dev1Role">Lead Cybersecurity Engineer</p>
+        <ul class="profile-card__list">
+          <li data-i18n="dev1Task1">Architected the zero-overhead steganography algorithm.</li>
+          <li data-i18n="dev1Task2">Developed the core extraction and embedding logic.</li>
+          <li data-i18n="dev1Task3">Ensured strict AES cryptographic standards.</li>
+        </ul>
+        <div class="profile-card__links">
+          <a href="#" title="GitHub"><span class="material-symbols-outlined">terminal</span></a>
+          <a href="#" title="LinkedIn"><span class="material-symbols-outlined">work</span></a>
+        </div>
+      </div>
+      
+      <!-- Developer 2 -->
+      <div class="profile-card">
+        <div class="profile-card__avatar">
+          <span class="material-symbols-outlined">design_services</span>
+        </div>
+        <h3 class="profile-card__name text-headline-sm" data-i18n="dev2Name">[Developer Name 2]</h3>
+        <p class="profile-card__role text-label-md" data-i18n="dev2Role">Frontend Architect & UI/UX</p>
+        <ul class="profile-card__list">
+          <li data-i18n="dev2Task1">Designed the Stegnolines UI Library and dashboard.</li>
+          <li data-i18n="dev2Task2">Implemented fully responsive, accessible web interfaces.</li>
+          <li data-i18n="dev2Task3">Engineered dynamic cyber-tech aesthetics.</li>
+        </ul>
+        <div class="profile-card__links">
+          <a href="#" title="GitHub"><span class="material-symbols-outlined">terminal</span></a>
+          <a href="#" title="LinkedIn"><span class="material-symbols-outlined">work</span></a>
+        </div>
+      </div>
+
+      <!-- Developer 3 -->
+      <div class="profile-card">
+        <div class="profile-card__avatar">
+          <span class="material-symbols-outlined">dns</span>
+        </div>
+        <h3 class="profile-card__name text-headline-sm" data-i18n="dev3Name">[Developer Name 3]</h3>
+        <p class="profile-card__role text-label-md" data-i18n="dev3Role">Backend & Systems Engineer</p>
+        <ul class="profile-card__list">
+          <li data-i18n="dev3Task1">Developed robust server-side processing workflows.</li>
+          <li data-i18n="dev3Task2">Managed secure data handling and application state.</li>
+          <li data-i18n="dev3Task3">Optimized performance for complex encryptions.</li>
+        </ul>
+        <div class="profile-card__links">
+          <a href="#" title="GitHub"><span class="material-symbols-outlined">terminal</span></a>
+          <a href="#" title="LinkedIn"><span class="material-symbols-outlined">work</span></a>
+        </div>
+      </div>
+
+      <!-- Developer 4 -->
+      <div class="profile-card">
+        <div class="profile-card__avatar">
+          <span class="material-symbols-outlined">bug_report</span>
+        </div>
+        <h3 class="profile-card__name text-headline-sm" data-i18n="dev4Name">[Developer Name 4]</h3>
+        <p class="profile-card__role text-label-md" data-i18n="dev4Role">QA & Cryptanalysis</p>
+        <ul class="profile-card__list">
+          <li data-i18n="dev4Task1">Led rigorous quality assurance and security testing.</li>
+          <li data-i18n="dev4Task2">Analyzed algorithm edge cases and platform limitations.</li>
+          <li data-i18n="dev4Task3">Ensured seamless parsing for WhatsApp & Telegram.</li>
+        </ul>
+        <div class="profile-card__links">
+          <a href="#" title="GitHub"><span class="material-symbols-outlined">terminal</span></a>
+          <a href="#" title="LinkedIn"><span class="material-symbols-outlined">work</span></a>
+        </div>
+      </div>
+
+      <!-- Developer 5 -->
+      <div class="profile-card">
+        <div class="profile-card__avatar">
+          <span class="material-symbols-outlined">query_stats</span>
+        </div>
+        <h3 class="profile-card__name text-headline-sm" data-i18n="dev5Name">[Developer Name 5]</h3>
+        <p class="profile-card__role text-label-md" data-i18n="dev5Role">Data Scientist & Analytics</p>
+        <ul class="profile-card__list">
+          <li data-i18n="dev5Task1">Built the stego-analysis visualizers and dashboards.</li>
+          <li data-i18n="dev5Task2">Researched and modelled carrier text capacities.</li>
+          <li data-i18n="dev5Task3">Designed statistical payload threshold models.</li>
+        </ul>
+        <div class="profile-card__links">
+          <a href="#" title="GitHub"><span class="material-symbols-outlined">terminal</span></a>
+          <a href="#" title="LinkedIn"><span class="material-symbols-outlined">work</span></a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══ Footer Placeholder ═══ -->
+  <div id="footer-placeholder"></div>
+
+  <!-- ═══ Scripts ═══ -->
+  <script src="js/i18n/common.js"></script>
+  <script src="js/i18n/about.js"></script>
+  <script src="js/i18n/index.js"></script>
+  <script>
+    window.translations = mergeI18n(I18N_COMMON, I18N_ABOUT);
+  </script>
+
+  <script src="js/shared/theme-manager.js"></script>
+  <script src="js/shared/template-loader.js"></script>
+  <script src="js/utils.js"></script>
+
+  <!-- Floating Help/Guide Button -->
+  <button type="button" class="floating-guide-btn" data-i18n-tooltip="floatingGuideTooltip" data-tooltip="Site Guide">
+    <span class="material-symbols-outlined">help</span>
+  </button>
+</body>
+</html>

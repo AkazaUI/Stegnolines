@@ -1,709 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/png" href="assets/brand/favicon.png" />
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>STEGNOLINES — Extraction Interface</title>
+  <title>StegoLines — Extraction Interface</title>
   <meta name="description" content="Text-based steganography extraction interface. Reveal the hidden secret message from stego-text securely."/>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="New_styles.css"/>
+  <link rel="stylesheet" href="css/main.css"/>
+  <script src="js/i18n/common.js"></script>
+  <script src="js/i18n/extract.js"></script>
+  <script src="js/i18n/hints.js"></script>
+  <script src="js/i18n/toasts.js"></script>
+  <script src="js/i18n/index.js"></script>
   <script>
-    (function() {
-      // Retrieve theme preference from localStorage immediately to prevent FOUC (Flash of Unstyled Content)
-      const savedTheme = localStorage.getItem('stegoTheme');
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-      } else if (savedTheme === 'light') {
-        document.documentElement.classList.add('light');
-        document.documentElement.classList.remove('dark');
-      }
-
-      // Retrieve language preference immediately to prevent FOUC (Flash of Unstyled Content)
-      const savedLang = localStorage.getItem('stegoLang') || 'en';
-      document.documentElement.setAttribute('lang', savedLang);
-      document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
-
-      // Retrieve Arabic font preference immediately to prevent FOUC
-      const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
-      document.documentElement.setAttribute('data-arabic-font', savedFont);
-    })();
+    window.translations = mergeI18n(I18N_COMMON, I18N_EXTRACT, I18N_HINTS, I18N_TOASTS);
   </script>
+  <script src="js/shared/theme-manager.js"></script>
   <!-- zxcvbn password strength estimator (Dropbox) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <style>
-    /* ── Textarea 50/50 row (stego + extracted output) ── */
-    .textarea-row {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: var(--space-gutter);
-    }
-    @media (min-width: 768px) {
-      .textarea-row { grid-template-columns: 1fr 1fr; }
-    }
-
-    /* ── Output and Hint uneven grid ── */
-    .output-hint-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: var(--space-gutter);
-    }
-    @media (min-width: 768px) {
-      .output-hint-grid { grid-template-columns: 3fr 1fr; }
-    }
-
-    /* ── Label row helper ── */
-    .label-row {
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-      margin-bottom: var(--space-xs);
-    }
-
-    /* ── 4-segment cumulative strength bars ── */
-    .strength-bars-4 { display: flex; gap: var(--space-xs); height: 8px; }
-    .strength-bar-4  { flex: 1; border-radius: var(--radius-full); background: var(--color-surface-variant); transition: background 0.3s ease; }
-    #ex-sb-1.active { background: #c5e06a; }
-    #ex-sb-2.active { background: #8db81e; }
-    #ex-sb-3.active { background: #5f8a00; }
-    #ex-sb-4.active { background: #3a5c00; }
-
-    /* ── Eye-icon password toggle wrapper ── */
-    .input-eye-wrap { position: relative; display: flex; align-items: center; }
-    .input-eye-wrap .form-input { padding-right: 2.5rem; width: 100%; }
-    .eye-toggle-btn {
-      position: absolute; right: var(--space-sm);
-      background: none; border: none; cursor: pointer; padding: 0;
-      color: var(--color-on-surface-variant);
-      display: flex; align-items: center;
-      transition: var(--transition-colors);
-    }
-    .eye-toggle-btn:hover { color: var(--color-primary); }
-    .eye-toggle-btn .material-symbols-outlined { font-size: 20px; }
-
-
-
-    /* ── Full-width stacked config inputs ── */
-    .config-stack { display: flex; flex-direction: column; gap: var(--space-lg); }
-
-    /* ── Extracted output readonly tint ── */
-    #extracted-output {
-      background: var(--color-surface-container-low);
-      color: var(--color-on-surface);
-      cursor: default;
-    }
-
-    /* ── Settings Modal Panel ── */
-    /* Settings Modal Styles - Premium Split Pane Layout */
-    .settings-menu-wrap {
-      position: relative;
-      display: inline-flex;
-    }
-    .settings-modal-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 9998;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-    .settings-modal-backdrop.active {
-      opacity: 1;
-      visibility: visible;
-    }
-    .settings-modal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.92);
-      z-index: 9999;
-      width: min(680px, 95vw);
-      height: 450px;
-      max-height: 85vh;
-      background-color: var(--color-surface-container);
-      border: 1px solid var(--color-outline-variant);
-      border-radius: var(--radius-xl);
-      box-shadow: 0 24px 48px rgba(0,0,0,0.22), 0 0 0 1px var(--color-outline-variant);
-      display: none;
-      flex-direction: row;
-      opacity: 0;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-      overflow: hidden;
-    }
-    .settings-modal.active {
-      display: flex;
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-    
-    /* Sidebar on Left */
-    .settings-modal__sidebar {
-      width: 200px;
-      background-color: var(--color-surface-container-low);
-      border-right: 1px solid var(--color-outline-variant);
-      padding: var(--space-lg) var(--space-md);
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      box-sizing: border-box;
-    }
-    
-    html[dir="rtl"] .settings-modal__sidebar {
-      border-right: none;
-      border-left: 1px solid var(--color-outline-variant);
-    }
-    
-    .settings-modal__brand {
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-      font-family: var(--font-primary);
-      font-size: var(--fs-body-lg);
-      font-weight: 700;
-      color: var(--color-primary);
-      margin-bottom: var(--space-lg);
-      padding-left: var(--space-xs);
-    }
-    html[dir="rtl"] .settings-modal__brand {
-      padding-left: 0;
-      padding-right: var(--space-xs);
-    }
-    
-    .settings-modal__nav {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    
-    .settings-nav-item {
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-      background: none;
-      border: none;
-      padding: 10px var(--space-sm);
-      border-radius: var(--radius-lg);
-      color: var(--color-on-surface-variant);
-      cursor: pointer;
-      font-family: var(--font-body);
-      font-size: var(--fs-body-md);
-      font-weight: 600;
-      text-align: left;
-      transition: var(--transition-all);
-      width: 100%;
-    }
-    
-    html[dir="rtl"] .settings-nav-item {
-      text-align: right;
-    }
-    
-    .settings-nav-item:hover {
-      background-color: var(--color-surface-variant);
-      color: var(--color-on-surface);
-    }
-    
-    .settings-nav-item.active {
-      background-color: var(--color-primary-container);
-      color: var(--color-on-primary-container);
-    }
-    
-    /* Main Area on Right */
-    .settings-modal__main {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      min-width: 0;
-      background-color: var(--color-surface-container);
-    }
-    
-    .settings-modal__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: var(--space-lg) var(--space-lg) var(--space-md);
-      border-bottom: 1px solid var(--color-outline-variant);
-    }
-    .settings-modal__header-left {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .settings-modal__title {
-      font-family: var(--font-primary);
-      font-size: var(--fs-headline-md);
-      font-weight: 700;
-      color: var(--color-on-surface);
-    }
-    .settings-modal__subtitle {
-      font-family: var(--font-body);
-      font-size: var(--fs-body-sm);
-      color: var(--color-on-surface-variant);
-      margin-top: 2px;
-    }
-    .settings-modal__close {
-      background: none;
-      border: none;
-      color: var(--color-on-surface-variant);
-      cursor: pointer;
-      padding: var(--space-xs);
-      border-radius: var(--radius-default);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: var(--transition-colors);
-    }
-    .settings-modal__close:hover {
-      background-color: var(--color-surface-variant);
-      color: var(--color-on-surface);
-    }
-    
-    .settings-modal__body {
-      padding: var(--space-lg);
-      overflow-y: auto;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .settings-section-content {
-      display: none;
-      flex-direction: column;
-      gap: var(--space-md);
-      animation: fadeInSettings 0.25s ease-out forwards;
-    }
-    .settings-section-content.active {
-      display: flex;
-    }
-    
-    @keyframes fadeInSettings {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .settings-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-md);
-      padding: var(--space-sm) 0;
-    }
-    .settings-row__info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      flex: 1;
-      min-width: 0;
-    }
-    .settings-row__label {
-      font-family: var(--font-body);
-      font-size: var(--fs-body-md);
-      font-weight: 600;
-      color: var(--color-on-surface);
-    }
-    .settings-row__desc {
-      font-family: var(--font-body);
-      font-size: var(--fs-body-sm);
-      color: var(--color-on-surface-variant);
-      line-height: 1.4;
-    }
-    .settings-row__control {
-      flex-shrink: 0;
-    }
-    .lang-pills {
-      display: flex;
-      background-color: var(--color-background);
-      border-radius: var(--radius-default);
-      padding: 2px;
-      border: 1px solid var(--color-outline-variant);
-    }
-    .lang-pill {
-      flex: 1;
-      background: none;
-      border: none;
-      color: var(--color-on-surface-variant);
-      font-family: var(--font-body);
-      font-size: var(--fs-body-sm);
-      font-weight: 600;
-      padding: 6px 16px;
-      border-radius: calc(var(--radius-default) - 2px);
-      cursor: pointer;
-      transition: var(--transition-colors);
-      text-align: center;
-      white-space: nowrap;
-    }
-    .lang-pill:hover {
-      color: var(--color-on-surface);
-    }
-    .lang-pill.active {
-      background-color: var(--color-surface-container-lowest);
-      color: var(--color-primary);
-      box-shadow: var(--shadow-sm);
-    }
-    body.settings-modal-open {
-      overflow: hidden;
-    }
-    
-    /* Responsive Split Pane Settings Modal */
-    @media (max-width: 600px) {
-      .settings-modal {
-        flex-direction: column;
-        height: auto;
-        max-height: 90vh;
-        width: min(450px, 92vw);
-      }
-      .settings-modal__sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid var(--color-outline-variant);
-        padding: var(--space-md);
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-      }
-      html[dir="rtl"] .settings-modal__sidebar {
-        border-left: none;
-        border-bottom: 1px solid var(--color-outline-variant);
-      }
-      .settings-modal__brand {
-        margin-bottom: 0;
-      }
-      .settings-modal__nav {
-        flex-direction: row;
-        gap: var(--space-xs);
-      }
-      .settings-nav-item {
-        padding: 6px var(--space-sm);
-        font-size: var(--fs-body-sm);
-      }
-      .settings-modal__main {
-        flex: 1;
-        min-height: 250px;
-      }
-    }
-
-    /* ── RTL Style Overrides ── */
-    html[dir="rtl"] .eye-toggle-btn {
-      right: auto !important;
-      left: var(--space-sm) !important;
-    }
-    html[dir="rtl"] .input-eye-wrap .form-input {
-      padding-right: var(--space-sm) !important;
-      padding-left: 2.5rem !important;
-    }
-    html[dir="rtl"] .advanced-settings-summary .expand-icon {
-      margin-left: 0 !important;
-      margin-right: auto !important;
-    }
-    html[dir="rtl"] .top-nav__brand {
-      margin-right: 0 !important;
-      margin-left: var(--space-lg) !important;
-    }
-
-    /* ── Success Header (Results Panel) ── */
-    .success-header {
-      display: flex;
-      align-items: center;
-      gap: var(--space-md);
-      padding-bottom: var(--space-md);
-      border-bottom: 1px solid var(--color-outline-variant);
-      margin-bottom: var(--space-lg);
-    }
-    .success-header__icon-wrap {
-      width: 42px;
-      height: 42px;
-      border-radius: var(--radius-full);
-      background: rgba(187, 209, 0, 0.15);
-      border: 1px solid var(--color-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--color-primary);
-      box-shadow: 0 0 10px rgba(187, 209, 0, 0.2);
-      flex-shrink: 0;
-      animation: pulseGlow 2s infinite;
-    }
-    @keyframes pulseGlow {
-      0% { box-shadow: 0 0 0 0 rgba(187, 209, 0, 0.4); }
-      70% { box-shadow: 0 0 0 10px rgba(187, 209, 0, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(187, 209, 0, 0); }
-    }
-    .success-header__title {
-      font-family: var(--font-headline);
-      font-size: var(--fs-headline-md);
-      font-weight: 600;
-      color: var(--color-on-surface);
-      line-height: 1.2;
-    }
-    .success-header__subtitle {
-      font-size: var(--fs-body-sm);
-      color: var(--color-on-surface-variant);
-      margin-top: 2px;
-    }
-  </style>
+  <!-- Page-specific styles are loaded via css/main.css -->
 </head>
 <body>
   <script src="js/features/page-loader.js"></script>
 
-  <!-- ═══ Top Navigation ═══ -->
-  <nav class="top-nav" id="top-nav">
-    <div class="top-nav__inner">
-
-      <!-- Brand -->
-      <a class="top-nav__brand" href="index.html" id="brand-link">
-        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="IMG/Dark-Logo-T.png" alt="STEGNOLINES"/>
-        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="IMG/White-Logo-T.png" alt="STEGNOLINES"/>
-      </a>
-
-      <!-- Desktop Nav Links -->
-      <nav class="top-nav__links" id="desktop-nav">
-        <div class="top-nav__dropdown" id="nav-embed-dropdown">
-          <button class="top-nav__dropdown-trigger" id="nav-embed" aria-expanded="false" aria-haspopup="true">
-            <span class="material-symbols-outlined">lock</span>
-            <span class="text-label-md" data-i18n="navEmbed">Embed</span>
-            <span class="material-symbols-outlined top-nav__dropdown-chevron">expand_more</span>
-          </button>
-          <div class="top-nav__dropdown-panel" id="embed-dropdown-panel">
-            <a class="top-nav__dropdown-item" href="embed.html#text" data-tab="text">
-              <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">description</span>
-              </div>
-              <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title" data-i18n="emTabText">Text Embed</span>
-                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownTextDesc">Conceal secret text inside cover text</span>
-              </div>
-            </a>
-            <a class="top-nav__dropdown-item" href="embed.html#image" data-tab="image">
-              <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">image</span>
-              </div>
-              <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title" data-i18n="emTabImage">Image Embed</span>
-                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownImageDesc">Hide a mini image inside cover text</span>
-              </div>
-            </a>
-          </div>
-        </div>
-        <div class="top-nav__dropdown" id="nav-extract-dropdown">
-          <button class="top-nav__dropdown-trigger" id="nav-extract" aria-expanded="false" aria-haspopup="true">
-            <span class="material-symbols-outlined">lock_open</span>
-            <span class="text-label-md" data-i18n="navExtract">Extract</span>
-            <span class="material-symbols-outlined top-nav__dropdown-chevron">expand_more</span>
-          </button>
-          <div class="top-nav__dropdown-panel" id="extract-dropdown-panel">
-            <a class="top-nav__dropdown-item" href="extract.html#standard" data-tab="standard">
-              <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">lock_open</span>
-              </div>
-              <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title" data-i18n="exTabStandard">Standard Extract</span>
-                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownStandardDesc">Decrypt with key & params</span>
-              </div>
-            </a>
-            <a class="top-nav__dropdown-item" href="extract.html#scanner" data-tab="scanner">
-              <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">document_scanner</span>
-              </div>
-              <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title" data-i18n="exTabScanner">Scanner</span>
-                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownScannerDesc">Scan chat history for secrets</span>
-              </div>
-            </a>
-            <a class="top-nav__dropdown-item" href="extract.html#hints" data-tab="hints">
-              <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">lightbulb</span>
-              </div>
-              <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title" data-i18n="exTabHints">Hints</span>
-                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownHintsDesc">View stego hints log</span>
-              </div>
-            </a>
-            <a class="top-nav__dropdown-item" href="extract.html#image" data-tab="image">
-              <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">image</span>
-              </div>
-              <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title" data-i18n="exTabImage">Image Extract</span>
-                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownImageExtractDesc">Recover a hidden image from stego text</span>
-              </div>
-            </a>
-          </div>
-        </div>
-        <a class="top-nav__link" href="documentation.html" id="nav-docs">
-          <span class="material-symbols-outlined">menu_book</span>
-          <span class="text-label-md" data-i18n="navDocs">Documentation</span>
-        </a>
-      </nav>
-
-      <!-- Right Actions -->
-      <div class="top-nav__actions">
-        <!-- Dark Mode Toggle (Hidden from visual layout, preserved for JS sync) -->
-        <input type="checkbox" id="toggle-dark-mode" style="display: none !important;" />
-        
-        <div class="settings-menu-wrap">
-          <button class="icon-btn" id="top-nav-settings" aria-label="Settings" title="Settings">
-            <span class="material-symbols-outlined">settings</span>
-          </button>
-        </div>
-
-        <!-- Settings Modal (rendered outside nav flow) -->
-        <div class="settings-modal-backdrop" id="settings-modal-backdrop"></div>
-        <div class="settings-modal" id="settings-modal" role="dialog" aria-modal="true">
-          <!-- Sidebar Panel (Left) -->
-          <aside class="settings-modal__sidebar">
-            <div class="settings-modal__brand">
-              <span class="material-symbols-outlined">settings</span>
-              <span data-i18n="settingsTitle">Preferences</span>
-            </div>
-            <nav class="settings-modal__nav">
-              <button type="button" class="settings-nav-item active" data-target="general">
-                <span class="material-symbols-outlined">tune</span>
-                <span data-i18n="settingsSectionGeneral">General</span>
-              </button>
-              <button type="button" class="settings-nav-item" id="ar-font-toggle-wrap" data-target="typography">
-                <span class="material-symbols-outlined">text_fields</span>
-                <span data-i18n="settingsSectionTypography">Typography</span>
-              </button>
-            </nav>
-          </aside>
-
-          <!-- Main Content Panel (Right) -->
-          <div class="settings-modal__main">
-            <div class="settings-modal__header">
-              <div class="settings-modal__header-left">
-                <div class="settings-modal__title">
-                  <span id="active-section-title" data-i18n="settingsSectionGeneral">General</span>
-                </div>
-                <div class="settings-modal__subtitle" data-i18n="settingsSubtitle">Manage application preferences, language, and display settings.</div>
-              </div>
-              <button class="settings-modal__close" id="settings-modal-close" aria-label="Close settings">
-                <span class="material-symbols-outlined" style="font-size:22px">close</span>
-              </button>
-            </div>
-            <div class="settings-modal__body">
-              <!-- Section: General -->
-              <div class="settings-section-content active" id="section-general">
-                <div class="settings-row">
-                  <div class="settings-row__info">
-                    <span class="settings-row__label" data-i18n="settingsLanguage">Language</span>
-                    <span class="settings-row__desc" data-i18n="settingsLanguageDesc">Choose the interface display language.</span>
-                  </div>
-                  <div class="settings-row__control">
-                    <div class="lang-pills">
-                      <button type="button" class="lang-pill" id="lang-btn-en" onclick="setLanguage('en')">English</button>
-                      <button type="button" class="lang-pill" id="lang-btn-ar" onclick="setLanguage('ar')">العربية</button>
-                    </div>
-                  </div>
-                </div>
-                <div class="settings-row">
-                  <div class="settings-row__info">
-                    <span class="settings-row__label" data-i18n="settingsDarkMode">Dark Mode</span>
-                    <span class="settings-row__desc" data-i18n="settingsDarkModeDesc">Toggle between light and dark theme.</span>
-                  </div>
-                  <div class="settings-row__control">
-                    <label class="theme-toggle" title="Toggle dark mode">
-                      <input type="checkbox" class="theme-toggle__input" id="toggle-dark-mode-modal"/>
-                      <div class="theme-toggle__track">
-                        <div class="theme-toggle__sky">
-                          <div class="theme-toggle__stars">
-                            <span class="theme-toggle__star"></span>
-                            <span class="theme-toggle__star"></span>
-                            <span class="theme-toggle__star"></span>
-                          </div>
-                          <div class="theme-toggle__clouds">
-                            <span class="theme-toggle__cloud"></span>
-                            <span class="theme-toggle__cloud"></span>
-                          </div>
-                        </div>
-                        <div class="theme-toggle__thumb">
-                          <div class="theme-toggle__craters">
-                            <span class="theme-toggle__crater"></span>
-                            <span class="theme-toggle__crater"></span>
-                            <span class="theme-toggle__crater"></span>
-                          </div>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <!-- Section: Typography -->
-              <div class="settings-section-content" id="section-typography">
-                <div class="settings-row">
-                  <div class="settings-row__info">
-                    <span class="settings-row__label" data-i18n="settingsFont">Arabic Font</span>
-                    <span class="settings-row__desc" data-i18n="settingsFontDesc">Select the preferred font for Arabic text display.</span>
-                  </div>
-                  <div class="settings-row__control">
-                    <div class="lang-pills">
-                      <button type="button" class="lang-pill font-pill" id="font-btn-thmanyah" onclick="setArabicFont('thmanyah')">ثمانية</button>
-                      <button type="button" class="lang-pill font-pill" id="font-btn-alexandria" onclick="setArabicFont('alexandria')">Alexandria</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-        <button class="top-nav__hamburger" id="hamburger-btn" aria-label="Open menu">
-          <span class="material-symbols-outlined">menu</span>
-        </button>
-      </div>
-
-    </div>
-  </nav>
-
-  <!-- Mobile Menu -->
-  <div class="top-nav__mobile-menu" id="mobile-menu">
-    <button class="top-nav__link" id="mobile-embed-toggle" type="button" style="border:none; background:none; width:100%; text-align:left; cursor:pointer; display:flex; align-items:center;">
-      <span class="material-symbols-outlined" style="margin-right:8px;">lock</span>
-      <span class="text-label-md" data-i18n="navEmbed">Embed</span>
-      <span class="material-symbols-outlined top-nav__dropdown-chevron" style="margin-left:auto;">expand_more</span>
-    </button>
-    <div class="top-nav__mobile-dropdown-items" id="mobile-embed-items">
-      <a class="top-nav__dropdown-item" href="embed.html#text" data-tab="text">
-        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">description</span></div>
-        <span class="top-nav__dropdown-item-title" data-i18n="emTabText">Text Embed</span>
-      </a>
-      <a class="top-nav__dropdown-item" href="embed.html#image" data-tab="image">
-        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">image</span></div>
-        <span class="top-nav__dropdown-item-title" data-i18n="emTabImage">Image Embed</span>
-      </a>
-    </div>
-    <button class="top-nav__link" id="mobile-extract-toggle" type="button" style="border:none; background:none; width:100%; text-align:left; cursor:pointer;">
-      <span class="material-symbols-outlined">lock_open</span>
-      <span class="text-label-md" data-i18n="navExtract">Extract</span>
-      <span class="material-symbols-outlined top-nav__dropdown-chevron" style="margin-left:auto">expand_more</span>
-    </button>
-    <div class="top-nav__mobile-dropdown-items" id="mobile-extract-items">
-      <a class="top-nav__dropdown-item" href="extract.html#standard" data-tab="standard">
-        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">lock_open</span></div>
-        <span class="top-nav__dropdown-item-title" data-i18n="exTabStandard">Standard Extract</span>
-      </a>
-      <a class="top-nav__dropdown-item" href="extract.html#scanner" data-tab="scanner">
-        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">document_scanner</span></div>
-        <span class="top-nav__dropdown-item-title" data-i18n="exTabScanner">Scanner</span>
-      </a>
-      <a class="top-nav__dropdown-item" href="extract.html#hints" data-tab="hints">
-        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">lightbulb</span></div>
-        <span class="top-nav__dropdown-item-title" data-i18n="exTabHints">Hints</span>
-      </a>
-      <a class="top-nav__dropdown-item" href="extract.html#image" data-tab="image">
-        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">image</span></div>
-        <span class="top-nav__dropdown-item-title" data-i18n="exTabImage">Image Extract</span>
-      </a>
-    </div>
-
-    <a class="top-nav__link" href="documentation.html">
-      <span class="material-symbols-outlined">menu_book</span>
-      <span class="text-label-md" data-i18n="navDocs">Documentation</span>
-    </a>
-  </div>
+  <!-- Top Navigation Placeholder -->
+  <div id="navbar-placeholder"></div>
 
   <!-- ═══ Main Content ═══ -->
   <main class="main-content">
@@ -722,7 +45,7 @@
     </nav>
 
     <!-- Tab Content: Standard Extract -->
-    <div class="tab-panel" id="tab-standard">
+    <div class="tab-panel active" id="tab-standard">
       <section class="card" id="extract-panel">
       <h2 class="text-headline-md card__title" data-i18n="exWorkflowTitle">Extraction Workflow</h2>
 
@@ -811,6 +134,23 @@
                 <div class="success-header__subtitle" data-i18n="extractSuccessSubtitle">The hidden payload has been recovered and decrypted. Your secret message is below.</div>
               </div>
             </div>
+            <!-- Extraction Time Taken card grid -->
+            <div id="extractTimeTaken" class="metric-cards-grid" style="display: none; margin-bottom: var(--space-md);">
+              <div class="metric-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                  <span class="metric-card__label" data-i18n="metricExtractTime">Extraction Duration</span>
+                </div>
+                <span class="metric-card__value" id="extractTimeVal">0 ms</span>
+                <span class="metric-card__badge metric-card__badge--primary" data-i18n="badgeResult">Success</span>
+              </div>
+              <div id="extractDecompressCard" class="metric-card" style="display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                  <span class="metric-card__label" data-i18n="metricDecompressTime">Decompression Duration</span>
+                </div>
+                <span class="metric-card__value" id="extractDecompressTimeVal">0 ms</span>
+                <span class="metric-card__badge metric-card__badge--amber" id="extractDecompressTimeBadge" data-i18n="badgeBrotliActive">Brotli Active</span>
+              </div>
+            </div>
 
             <!-- Secret message display (for JS textContent) -->
             <div class="label-row" style="margin-bottom:var(--space-sm)">
@@ -856,33 +196,45 @@
             <!-- 1. Password -->
             <div>
               <div class="label-row">
-                <label class="form-label text-label-md" for="scannerPassword" style="margin-bottom:0" data-i18n="exScannerKeyLabel">Pre-Shared Key (Stego-Key)</label>
+                <label class="form-label text-label-md" style="margin-bottom:0" data-i18n="exScannerKeyLabel">Pre-Shared Key (Stego-Key)</label>
                 <span class="badge badge--encrypted text-label-md">
                   <span class="material-symbols-outlined">key</span> StegoKey
                 </span>
               </div>
-              <div class="input-eye-wrap">
-                <input class="form-input" id="scannerPassword" type="password" data-i18n-placeholder="exScannerKeyPlaceholder" placeholder="Enter key (leave empty if none was used)..."/>
-                <button class="eye-toggle-btn" id="scanner-eye-toggle-btn" type="button" aria-label="Toggle key visibility">
-                  <span class="material-symbols-outlined" id="scanner-eye-icon">visibility</span>
-                </button>
+              <div id="scannerStegoKeysContainer" class="stack-xs" style="margin-bottom: 4px;">
+                <div class="input-eye-wrap" style="position: relative;">
+                  <input class="form-input scanner-stego-key-input" id="scannerPassword" type="password" data-i18n-placeholder="exScannerKeyPlaceholder" placeholder="Enter key (leave empty if none was used)..."/>
+                  <button class="eye-toggle-btn scanner-stego-eye" type="button" aria-label="Toggle key visibility">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                </div>
               </div>
+              <button class="btn-add-key-premium" id="btnAddScannerStegoKey" type="button">
+                <span class="material-symbols-outlined">add</span>
+                <span data-i18n="btnAddKey">Add Key</span>
+              </button>
             </div>
 
             <!-- 2. Encryption Key (AES-CTR) -->
             <div>
               <div class="label-row">
-                <label class="form-label text-label-md" for="scannerEncryptionKey" style="margin-bottom:0" data-i18n="exScannerEncKeyLabel">Encryption Key (AES-CTR)</label>
+                <label class="form-label text-label-md" style="margin-bottom:0" data-i18n="exScannerEncKeyLabel">Encryption Key (AES-CTR)</label>
                 <span class="badge badge--encrypted text-label-md">
                   <span class="material-symbols-outlined">lock</span> AES
                 </span>
               </div>
-              <div class="input-eye-wrap">
-                <input class="form-input" id="scannerEncryptionKey" type="password" data-i18n-placeholder="exScannerEncKeyPlaceholder" placeholder="Enter AES decryption key (Optional)..."/>
-                <button class="eye-toggle-btn" id="scanner-enc-eye-toggle-btn" type="button" aria-label="Toggle AES key visibility">
-                  <span class="material-symbols-outlined" id="scanner-enc-eye-icon">visibility</span>
-                </button>
+              <div id="scannerAesKeysContainer" class="stack-xs" style="margin-bottom: 4px;">
+                <div class="input-eye-wrap" style="position: relative;">
+                  <input class="form-input scanner-aes-key-input" id="scannerEncryptionKey" type="password" data-i18n-placeholder="exScannerEncKeyPlaceholder" placeholder="Enter AES decryption key (Optional)..."/>
+                  <button class="eye-toggle-btn scanner-aes-eye" type="button" aria-label="Toggle AES key visibility">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                </div>
               </div>
+              <button class="btn-add-key-premium" id="btnAddScannerAesKey" type="button">
+                <span class="material-symbols-outlined">add</span>
+                <span data-i18n="btnAddKey">Add Key</span>
+              </button>
             </div>
 
             <!-- 3. Platform (Custom Dropdown) -->
@@ -947,21 +299,52 @@
             </button>
           </div>
 
-          <!-- 5. Progress Indicator (Hidden by default) -->
-          <div id="scannerProgressBar" style="display:none; flex-direction:column; gap:var(--space-sm);" class="stack-sm">
-            <div class="label-row" style="justify-content:space-between">
-              <span class="text-label-md" id="scannerProgressLabel" style="font-weight:600; color:var(--color-primary);" data-i18n="scannerProgressProcessing">Processing...</span>
+          <!-- 5. Premium Progress Indicator (Hidden by default) -->
+          <div id="scannerProgressBar" class="premium-scanner-loader" style="display:none;">
+            <div class="scanner-loader-radar">
+              <div class="radar-circle radar-circle--outer"></div>
+              <div class="radar-circle radar-circle--middle"></div>
+              <div class="radar-circle radar-circle--inner">
+                <span class="material-symbols-outlined radar-icon-scan">search_activity</span>
+              </div>
             </div>
-            <div class="progress-track"><div class="progress-fill" id="scannerProgressFill" style="width:0%"></div></div>
-            <div style="display:flex; justify-content:space-between; font-size:var(--text-body-sm); color:var(--color-on-surface-variant);">
-              <span id="progStep1" class="scanner-prog-step" data-i18n="scannerStep1Name">① Filter</span>
-              <span id="progStep2" class="scanner-prog-step" data-i18n="scannerStep2Name">② Extract</span>
-              <span id="progStep3" class="scanner-prog-step" data-i18n="scannerStep3Name">③ Test</span>
+            
+            <div class="scanner-loader-content">
+              <h3 class="scanner-loader-title" id="scannerProgressLabel" data-i18n="scannerProgressProcessing">Processing...</h3>
+              <p class="scanner-loader-subtitle" id="scannerProgressSubLabel">Preparing extraction pipeline...</p>
+              
+              <div class="scanner-loader-steps">
+                <div id="progStep1" class="loader-step">
+                  <span class="material-symbols-outlined step-status-icon">lens</span>
+                  <span class="step-text" data-i18n="scannerStep1Name">① Filter Messages</span>
+                </div>
+                <div id="progStep2" class="loader-step">
+                  <span class="material-symbols-outlined step-status-icon">lens</span>
+                  <span class="step-text" data-i18n="scannerStep2Name">② Extract VS Keys</span>
+                </div>
+                <div id="progStep3" class="loader-step">
+                  <span class="material-symbols-outlined step-status-icon">lens</span>
+                  <span class="step-text" data-i18n="scannerStep3Name">③ Test Combinations</span>
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- 6. Results Sections -->
           <div class="stack-md" id="scanner-results-container">
+            <!-- Scanner Time Taken horizontal summary bar -->
+            <div id="scannerTimeTaken" style="display: none; margin-bottom: var(--space-md); width: 100%;">
+              <div class="scanner-duration-bar">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="material-symbols-outlined" style="color: var(--color-primary); font-size: 20px;">timer</span>
+                  <span style="font-size: var(--fs-body-sm); color: var(--color-on-surface-variant); font-family: var(--font-label); font-weight: 600;" data-i18n="metricScanTime">Scan Duration</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <span style="font-size: var(--fs-body-md); font-weight: 700; color: var(--color-on-surface); font-family: var(--font-primary);" id="scannerTimeVal">0 ms</span>
+                  <span class="badge badge--draft text-label-sm" style="background: rgba(187,209,0,0.1); color: var(--color-primary);" data-i18n="badgeResult">Success</span>
+                </div>
+              </div>
+            </div>
             
             <!-- Step 1 Results (Filter) -->
             <div class="accordion" id="scannerStep1Card" style="display:none;">
@@ -1012,45 +395,51 @@
         <div class="stack-xl">
           
           <!-- Latest Active Hint -->
-          <div id="latestHintCard" class="card" style="display:none; border: 1px solid rgba(253, 224, 71, 0.3); background: rgba(253, 224, 71, 0.02);">
-            <div class="label-row" style="margin-bottom: var(--space-md);">
-              <label class="form-label text-label-md" style="color: #fde047; margin: 0; display: flex; align-items: center; gap: 8px;">
-                <span class="material-symbols-outlined" style="font-size: 18px;">bolt</span> <span data-i18n="latestHintLabel">Latest Active Hint</span>
-              </label>
+          <div id="latestHintCard" class="hint-section hint-section--latest hint-active-card" style="display:none;">
+            <div class="hint-section__header">
+              <div class="hint-section__header-icon">
+                <span class="material-symbols-outlined">bolt</span>
+              </div>
+              <span data-i18n="latestHintLabel">Latest Active Hint</span>
             </div>
-            <div id="latestHintContent" style="display: flex; align-items: center; gap: var(--space-md);"></div>
+            <div class="hint-section__body" id="latestHintContent"></div>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-lg);">
+          <div class="hints-sections-grid">
             <!-- Received Hints Log -->
-            <div class="card" style="border: 1px solid rgba(96, 165, 250, 0.2); background: rgba(96, 165, 250, 0.02);">
-              <div class="label-row" style="margin-bottom: var(--space-md);">
-                <label class="form-label text-label-md" style="color: #60a5fa; margin: 0; display: flex; align-items: center; gap: 8px;">
-                  <span class="material-symbols-outlined" style="font-size: 18px;">call_received</span> <span data-i18n="hintsReceivedLabel">Received Hints</span>
-                </label>
+            <div class="hint-section hint-section--received">
+              <div class="hint-section__header">
+                <div class="hint-section__header-icon">
+                  <span class="material-symbols-outlined">call_received</span>
+                </div>
+                <span data-i18n="hintsReceivedLabel">Received Hints</span>
+                <span class="hint-section__header-count" id="hintsReceivedCount">0</span>
               </div>
-              <div id="hintsReceivedContainer"></div>
+              <div class="hint-section__body" id="hintsReceivedContainer"></div>
             </div>
 
             <!-- Sent Hints Log -->
-            <div class="card" style="border: 1px solid rgba(74, 222, 128, 0.2); background: rgba(74, 222, 128, 0.02);">
-              <div class="label-row" style="margin-bottom: var(--space-md);">
-                <label class="form-label text-label-md" style="color: #4ade80; margin: 0; display: flex; align-items: center; gap: 8px;">
-                  <span class="material-symbols-outlined" style="font-size: 18px;">call_made</span> <span data-i18n="hintsSentLabel">Sent Hints</span>
-                </label>
+            <div class="hint-section hint-section--sent">
+              <div class="hint-section__header">
+                <div class="hint-section__header-icon">
+                  <span class="material-symbols-outlined">call_made</span>
+                </div>
+                <span data-i18n="hintsSentLabel">Sent Hints</span>
+                <span class="hint-section__header-count" id="hintsSentCount">0</span>
               </div>
-              <div id="hintsSentContainer"></div>
+              <div class="hint-section__body" id="hintsSentContainer"></div>
             </div>
           </div>
 
           <!-- Clear Button -->
           <div style="text-align: center; margin-top: var(--space-lg);">
-            <button id="btnClearHints" class="btn btn--secondary" onclick="clearHintsLog()" style="display:none;">
+            <button id="btnClearHints" class="btn btn--danger" onclick="clearHintsLog()" style="display:none;">
               <span class="material-symbols-outlined">delete</span> <span data-i18n="btnClearHints">Clear All Hints</span>
             </button>
           </div>
 
         </div>
+
       </section>
     </div>
 
@@ -1096,7 +485,7 @@
 
           <!-- Action Button -->
           <div class="btn-group">
-            <button class="btn btn--primary" id="img-extract-btn" onclick="performImageExtraction()">
+            <button class="btn btn--primary" id="img-extract-btn">
               <span class="material-symbols-outlined" style="font-size:18px">lock_open</span>
               <span data-i18n="imgExBtnExtract">Extract & Decrypt Image</span>
             </button>
@@ -1120,6 +509,23 @@
                 <div class="success-header__subtitle" data-i18n="imgExSuccessSubtitle">The hidden image has been recovered and decrypted. You can view or download it below.</div>
               </div>
             </div>
+            <!-- Extraction Time Taken card grid -->
+            <div id="imgExtractTimeTaken" class="metric-cards-grid" style="display: none; margin-bottom: var(--space-md);">
+              <div class="metric-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                  <span class="metric-card__label" data-i18n="metricExtractTime">Extraction Duration</span>
+                </div>
+                <span class="metric-card__value" id="imgExtractTimeVal">0 ms</span>
+                <span class="metric-card__badge metric-card__badge--primary" data-i18n="badgeResult">Success</span>
+              </div>
+              <div id="imgDecompressCard" class="metric-card" style="display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                  <span class="metric-card__label" data-i18n="metricDecompressTime">Decompression Duration</span>
+                </div>
+                <span class="metric-card__value" id="imgDecompressTimeVal">0 ms</span>
+                <span class="metric-card__badge metric-card__badge--amber" data-i18n="badgeCompressed">AVIF WASM</span>
+              </div>
+            </div>
 
             <!-- Extracted Image Preview -->
             <div class="label-row" style="margin-bottom:var(--space-sm)">
@@ -1129,27 +535,46 @@
               </span>
             </div>
             
-            <div style="padding:var(--space-lg); border-radius:var(--radius-default); background:var(--color-surface-container-low); text-align:center; min-height:100px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--space-md);">
-              <img id="imgExtractedPreview" style="max-width:100%; max-height:350px; border-radius:var(--radius-md); border:1px solid var(--color-outline-variant); display:none;" alt="Extracted Secret Image" />
+            <div class="image-result-canvas-wrap">
+              <div class="image-result-preview-frame">
+                <img id="imgExtractedPreview" style="display:none;" alt="Extracted Secret Image" />
+              </div>
               
               <!-- Download Button -->
-              <a class="btn btn--primary" id="imgDownloadBtn" download="extracted_secret_image" style="text-decoration:none; margin-top:var(--space-sm); display:none;">
+              <a class="btn-download-premium" id="imgDownloadBtn" download="extracted_secret_image" style="display:none;">
                 <span class="material-symbols-outlined" style="font-size:18px">download</span>
                 <span data-i18n="imgExBtnDownload">Download Original Image</span>
               </a>
             </div>
 
             <!-- File Stats Info Box -->
-            <div class="card" style="margin-top:var(--space-lg); border:1px solid var(--color-outline-variant); background:var(--color-surface-container-low);">
-              <div class="label-row" style="margin-bottom: var(--space-sm);">
-                <label class="form-label text-label-md" style="margin:0; display:flex; align-items:center; gap:8px;">
-                  <span class="material-symbols-outlined" style="font-size:18px">info</span> <span data-i18n="imgExFileInfo">File Information</span>
-                </label>
+            <div class="file-info-panel" style="margin-top: var(--space-lg);">
+              <div class="file-info-header">
+                <span class="material-symbols-outlined header-icon">info</span>
+                <span class="header-text" data-i18n="imgExFileInfo">File Information</span>
               </div>
-              <div style="display:grid; grid-template-columns:1fr; gap:var(--space-sm); font-size:var(--fs-body-sm); color:var(--color-on-surface-variant);">
-                <div><span class="font-semibold" data-i18n="imgExFileName">File Name</span>: <span id="imgStatFileName" style="font-family:monospace; color:var(--color-on-surface)"></span></div>
-                <div><span class="font-semibold" data-i18n="imgExFileSize">File Size</span>: <span id="imgStatFileSize" style="font-family:monospace; color:var(--color-on-surface)"></span></div>
-                <div><span class="font-semibold" data-i18n="imgExFileType">File Type</span>: <span id="imgStatFileType" style="font-family:monospace; color:var(--color-on-surface)"></span></div>
+              <div class="file-info-grid">
+                <div class="file-info-item">
+                  <div class="item-meta">
+                    <span class="material-symbols-outlined item-icon">description</span>
+                    <span class="item-label" data-i18n="imgExFileName">File Name</span>
+                  </div>
+                  <span class="item-value" id="imgStatFileName"></span>
+                </div>
+                <div class="file-info-item">
+                  <div class="item-meta">
+                    <span class="material-symbols-outlined item-icon">database</span>
+                    <span class="item-label" data-i18n="imgExFileSize">File Size</span>
+                  </div>
+                  <span class="item-value" id="imgStatFileSize"></span>
+                </div>
+                <div class="file-info-item">
+                  <div class="item-meta">
+                    <span class="material-symbols-outlined item-icon">image_mode</span>
+                    <span class="item-label" data-i18n="imgExFileType">File Type</span>
+                  </div>
+                  <span class="item-value" id="imgStatFileType"></span>
+                </div>
               </div>
             </div>
           </div>
@@ -1159,807 +584,40 @@
 
   </main>
 
-  <!-- ═══ Footer ═══ -->
-  <footer class="main-footer">
-    <div class="main-footer__inner">
-      <div class="main-footer__brand">
-        <div class="main-footer__title" data-i18n="footerTitle">STEGNOLINES</div>
-        <p class="text-body-sm" style="max-width: 300px;" data-i18n="footerSubtitle">
-          Advanced Zero-Overhead Contextual Steganography and Cryptography for secure transmission.
-        </p>
-      </div>
-      
-      <div class="main-footer__links-group">
-        <ul class="main-footer__links">
-          <li><a href="embed.html" class="main-footer__link" data-i18n="footerEmbed">Embed</a></li>
-          <li><a href="extract.html" class="main-footer__link" data-i18n="footerExtract">Extract</a></li>
-          <li><a href="documentation.html" class="main-footer__link" data-i18n="footerDocs">Documentation</a></li>
-          <li><a href="about us.html" class="main-footer__link" data-i18n="footerAbout">About Us</a></li>
-          <li><a href="contact team.html" class="main-footer__link" data-i18n="footerContact">Contact Team</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="main-footer__bottom">
-      <span data-i18n="footerCopyright">&copy; 2026 STEGNOLINES. All rights reserved.</span>
-    </div>
-  </footer>
-
-  <!-- Fixed Security-Log Toast container -->
-  <div id="sec-toast-wrap"></div>
-
-  <!-- ═══ Inline UI Helpers ═══ -->
-  <script>
-    /* ── DOM refs (using OLD IDs that the JS pipeline expects) ── */
-    const stegoInput       = document.getElementById('extractCover');
-    const exPresharedInput = document.getElementById('extractStegoKey');
-    const exCopyBtn        = document.getElementById('ex-copy-btn');
-    const extractBtn       = document.getElementById('extract-btn');
-
-    /* ── Live metrics update ── */
-    function updateMetrics() {
-      const keyLen = exPresharedInput.value ? exPresharedInput.value.length : 0;
-      const counterEl = document.getElementById('ex-preshared-counter');
-      if (counterEl) counterEl.textContent = `${keyLen} chars`;
-    }
-
-    /* ── Copy action ── */
-    async function copyResult() {
-      const el = document.getElementById('extractedResult');
-      const text = el ? (el.textContent || el.innerText) : '';
-      if (!text) { showToast('⚠ Nothing to copy. Run extraction first.'); return; }
-      try { await navigator.clipboard.writeText(text); }
-      catch { /* fallback */ }
-      showToast('📋 Copied to clipboard!');
-    }
-
-    /* ── Eye toggle ── */
-    document.getElementById('ex-eye-toggle-btn').addEventListener('click', () => {
-      const isHidden = exPresharedInput.type === 'password';
-      exPresharedInput.type = isHidden ? 'text' : 'password';
-      document.getElementById('ex-eye-icon').textContent = isHidden ? 'visibility_off' : 'visibility';
-    });
-
-    document.getElementById('ex-enc-eye-toggle-btn').addEventListener('click', () => {
-      const input = document.getElementById('extractEncryptionKey');
-      const icon = document.getElementById('ex-enc-eye-icon');
-      const isHidden = input.type === 'password';
-      input.type = isHidden ? 'text' : 'password';
-      icon.textContent = isHidden ? 'visibility_off' : 'visibility';
-    });
-
-    /* ── Event listeners ── */
-    stegoInput.addEventListener('input', updateMetrics);
-    exPresharedInput.addEventListener('input', updateMetrics);
-    document.getElementById('extractEncryptionKey').addEventListener('input', updateMetrics);
-    // "Extract Data" button → call the real pipeline
-    extractBtn.addEventListener('click', async () => {
-      updateMetrics();
-      await performExtraction();
-      // Show the independent results panel and scroll to it
-      const card = document.getElementById('extractResultCard');
-      if (card && card.style.display !== 'none') {
-        document.getElementById('extract-results-panel').style.display = 'block';
-        setTimeout(() => document.getElementById('extract-results-panel').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-      }
-    });
-    exCopyBtn.addEventListener('click', copyResult);
-
-    // Initialize dark mode based on local storage persistence or system preferences
-    const toggleDarkModeCheck = document.getElementById('toggle-dark-mode');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = localStorage.getItem('stegoTheme');
-
-    // Determine the active theme based on explicit user setting, falling back to system preference
-    let isDarkThemeActive;
-    if (savedTheme === 'dark') {
-      isDarkThemeActive = true;
-    } else if (savedTheme === 'light') {
-      isDarkThemeActive = false;
-    } else {
-      isDarkThemeActive = systemPrefersDark;
-    }
-
-    // Apply the active theme classes to the html element and update the toggle state
-    if (isDarkThemeActive) {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-      if (toggleDarkModeCheck) toggleDarkModeCheck.checked = true;
-    } else {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
-      if (toggleDarkModeCheck) toggleDarkModeCheck.checked = false;
-    }
-
-    // Setup dark mode toggle listener to persist changes
-    if (toggleDarkModeCheck) {
-      toggleDarkModeCheck.addEventListener('change', function () {
-        const isCurrentlyChecked = this.checked;
-        document.documentElement.classList.toggle('dark', isCurrentlyChecked);
-        document.documentElement.classList.toggle('light', !isCurrentlyChecked);
-        localStorage.setItem('stegoTheme', isCurrentlyChecked ? 'dark' : 'light');
-      });
-    }
-
-    // Hamburger
-    document.getElementById('hamburger-btn').addEventListener('click', () => {
-      const menu = document.getElementById('mobile-menu');
-      menu.classList.toggle('is-open');
-      const icon = document.querySelector('#hamburger-btn .material-symbols-outlined');
-      icon.textContent = menu.classList.contains('is-open') ? 'close' : 'menu';
-    });
-
-    // Mark Extract tab as active in navbar
-    document.getElementById('nav-extract').style.background = 'var(--color-surface-container-high)';
-    document.getElementById('nav-extract').style.color      = 'var(--color-on-surface)';
-
-    /* ── Scanner UI Logic ── */
-    const scannerPasswordInput = document.getElementById('scannerPassword');
-    
-    // Scanner Eye Toggle
-    document.getElementById('scanner-eye-toggle-btn').addEventListener('click', () => {
-      const isHidden = scannerPasswordInput.type === 'password';
-      scannerPasswordInput.type = isHidden ? 'text' : 'password';
-      document.getElementById('scanner-eye-icon').textContent = isHidden ? 'visibility_off' : 'visibility';
-    });
-
-    // Scanner AES Eye Toggle
-    document.getElementById('scanner-enc-eye-toggle-btn').addEventListener('click', () => {
-      const input = document.getElementById('scannerEncryptionKey');
-      const icon = document.getElementById('scanner-enc-eye-icon');
-      const isHidden = input.type === 'password';
-      input.type = isHidden ? 'text' : 'password';
-      icon.textContent = isHidden ? 'visibility_off' : 'visibility';
-    });
-
-    // Auto-populate stego-text AND stego-key if forwarded from Embed page
-    const forwarded = localStorage.getItem('stegoTextPayload');
-    if (forwarded) {
-      stegoInput.value = forwarded;
-      localStorage.removeItem('stegoTextPayload');
-    }
-    const forwardedKey = localStorage.getItem('stegoKeyPayload');
-    if (forwardedKey) {
-      exPresharedInput.value = forwardedKey;
-      const scanPresharedField = document.getElementById('scannerPassword');
-      if (scanPresharedField) {
-        scanPresharedField.value = forwardedKey;
-      }
-      localStorage.removeItem('stegoKeyPayload');
-      updateMetrics();
-    }
-    const forwardedEncKey = localStorage.getItem('stegoEncKeyPayload');
-    if (forwardedEncKey) {
-      const encField = document.getElementById('extractEncryptionKey');
-      if (encField) {
-        encField.value = forwardedEncKey;
-      }
-      const scanEncField = document.getElementById('scannerEncryptionKey');
-      if (scanEncField) {
-        scanEncField.value = forwardedEncKey;
-      }
-      localStorage.removeItem('stegoEncKeyPayload');
-      updateMetrics();
-    }
-
-    // Tab switching logic
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabPanels = document.querySelectorAll('.tab-panel');
-
-    tabBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const targetTab = btn.getAttribute('data-tab');
-        tabBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        tabPanels.forEach(panel => {
-          if (panel.id === `tab-${targetTab}`) panel.classList.remove('hidden');
-          else panel.classList.add('hidden');
-        });
-        if (targetTab === 'hints' && typeof renderHintsLog === 'function') renderHintsLog();
-      });
-    });
-
-    // ── GLOABL TRANSLATIONS DICTIONARY ──
-    const TRANSLATIONS_EXTRACT = {
-      en: {
-        navEmbed: "Embed",
-        navExtract: "Extract",
-        navPreferences: "Preferences",
-        navDocs: "Documentation",
-        navDropdownStandardDesc: "Decrypt with key & params",
-        navDropdownScannerDesc: "Scan chat history for secrets",
-        navDropdownHintsDesc: "View stego hints log",
-        emTabText: "Text Embed",
-        emTabImage: "Image Embed",
-        navDropdownTextDesc: "Conceal secret text inside cover text",
-        navDropdownImageDesc: "Hide a mini image inside cover text",
-        labelSecretImage: "Secret Image",
-        badgeSecretImage: "Image Payload",
-        dropzonePrompt: "Drag & drop your secret image here",
-        dropzoneOr: "or click to browse from device",
-        exMainHeaderTitle: "Extraction Interface",
-        exMainHeaderSubtitle: "Reveal the hidden secret message from stego-text using the correct key and parameters.",
-        exTabStandard: "Standard Extract",
-        exTabScanner: "Scanner",
-        exTabHints: "Hints",
-        exTabImage: "Image Extract",
-        navDropdownStandardDesc: "Decrypt with key & params",
-        navDropdownScannerDesc: "Scan chat history for secrets",
-        navDropdownHintsDesc: "View stego hints log",
-        navDropdownImageExtractDesc: "Recover a hidden image from stego text",
-        exWorkflowTitle: "Extraction Workflow",
-        labelStegoText: "Stego-Text",
-        badgeCarrier: "Carrier",
-        placeholderStegoText: "Paste the stego-text here — the cover text that contains the hidden secret message...",
-        labelStegoKey: "Pre-Shared Key",
-        placeholderStegoKey: "Enter Pre-Shared Key (Required)...",
-        labelEncryptionKey: "Encryption Key",
-        placeholderEncryptionKey: "Enter key for AES-256-CTR (0-overhead)...",
-        btnExtractData: "Extract Data",
-        labelExtractedSecret: "Extracted Secret",
-        badgeResult: "Result",
-        labelNextMsgHint: "Next Message Hint",
-        btnCopyResult: "Copy Result",
-        exScannerTitle: "Chat Scanner",
-        exScannerKeyLabel: "Pre-Shared Key (Stego-Key)",
-        exScannerKeyPlaceholder: "Enter key (leave empty if none was used)...",
-        exScannerEncKeyLabel: "Encryption Key (AES-CTR)",
-        exScannerEncKeyPlaceholder: "Enter AES decryption key (Optional)...",
-        exScannerPlatformLabel: "Platform",
-        platformAuto: "🔍 Auto Detect",
-        platformWhatsAppAndroid: "WhatsApp (Android)",
-        platformWhatsAppIos: "WhatsApp (iOS)",
-        platformTelegram: "Telegram",
-        platformDiscord: "Discord",
-        platformSignal: "Signal",
-        platformIMessage: "iMessage",
-        platformManual: "✍️ Manual Input (Name: Message)",
-        platformGeneric: "📝 Plain Text (One message per line)",
-        exScannerChatLabel: "Chat History",
-        exScannerChatPlaceholder: "Paste the full chat history here — from any platform (WhatsApp, Telegram, Discord...)\nOr paste each message on a new line...",
-        scannerOneClickTitle: "Scan & Extract",
-        scannerOneClickDesc: "Filter + Extract + Test in one click",
-        scannerVerifyTitle: "Verify Filter",
-        scannerVerifyDesc: "Review filtered messages & VS chars",
-        scannerProgressProcessing: "Processing...",
-        scannerStep1Name: "① Filter",
-        scannerStep2Name: "② Extract",
-        scannerStep3Name: "③ Test",
-        scannerStep1Title: "Filtered Messages",
-        scannerStep2Title: "Extraction Results — VS Characters",
-        scannerStep3Title: "Trial Results",
-        hintsTitle: "Stego Hints Log",
-        hintsSubtitle: "Track the contextual steganography hints you have sent and received.",
-        latestHintLabel: "Latest Active Hint",
-        hintsReceivedLabel: "Received Hints",
-        hintsSentLabel: "Sent Hints",
-        btnClearHints: "Clear All Hints",
-        footerTitle: "STEGNOLINES",
-        footerSubtitle: "Advanced Zero-Overhead Contextual Steganography and Cryptography for secure transmission.",
-        footerEmbed: "Embed",
-        footerExtract: "Extract",
-        footerDocs: "Documentation",
-        footerAbout: "About Us",
-        footerContact: "Contact Team",
-        footerCopyright: "© 2026 STEGNOLINES. All rights reserved.",
-        settingsTitle: "Preferences",
-        settingsSubtitle: "Manage application preferences, language, and display settings.",
-        settingsSectionGeneral: "General",
-        settingsLanguage: "Language",
-        settingsLanguageDesc: "Choose the interface display language.",
-        settingsDarkMode: "Dark Mode",
-        settingsDarkModeDesc: "Toggle between light and dark theme.",
-        settingsSectionTypography: "Typography",
-        settingsFont: "Arabic Font",
-        settingsFontDesc: "Select the preferred font for Arabic text display.",
-        floatingGuideTooltip: "Site Guide",
-        imgExWorkflowTitle: "Image Extraction Workflow",
-        imgExLabelStegoText: "Stego-Text containing Image",
-        imgExPlaceholderStegoText: "Paste the stego-text containing the hidden image here...",
-        imgExLabelKey: "AES-CTR Decryption Key",
-        imgExPlaceholderKey: "Enter AES-CTR key used during embedding...",
-        imgExBtnExtract: "Extract & Decrypt Image",
-        imgExSuccessTitle: "Image Extracted Successfully!",
-        imgExSuccessSubtitle: "The hidden image has been recovered and decrypted. You can view or download it below.",
-        imgExLabelResult: "Extracted Image Result",
-        imgExBtnDownload: "Download Original Image",
-        imgExFileInfo: "File Information",
-        imgExFileName: "File Name",
-        imgExFileSize: "File Size",
-        imgExFileType: "File Type"
-      },
-      ar: {
-        navEmbed: "التضمين",
-        navExtract: "الاستخراج",
-        navPreferences: "التفضيلات",
-        navDocs: "المستندات",
-        navDropdownStandardDesc: "فك التشفير باستخدام المفتاح والمعاملات",
-        navDropdownScannerDesc: "مسح سجل المحادثات بحثاً عن رسائل مخفية",
-        navDropdownHintsDesc: "عرض سجل التلميحات النشطة والمستلمة",
-        emTabText: "تضمين نص داخل نص",
-        emTabImage: "تضمين صورة داخل نص",
-        navDropdownTextDesc: "إخفاء رسالة نصية داخل نص التغطية",
-        navDropdownImageDesc: "إخفاء صورة صغيرة داخل نص التغطية",
-        labelSecretImage: "الصورة السرية",
-        badgeSecretImage: "حمولة الصورة",
-        dropzonePrompt: "اسحب وأسقط صورتك السرية هنا",
-        dropzoneOr: "أو انقر لتصفح ملفات جهازك",
-        exMainHeaderTitle: "واجهة الاستخراج",
-        exMainHeaderSubtitle: "كشف الرسالة السرية المخفية من النص الإخفائي باستخدام المفاتيح والمعاملات الصحيحة.",
-        exTabStandard: "استخراج قياسي",
-        exTabScanner: "المسح التلقائي",
-        exTabHints: "التلميحات المستلمة",
-        exTabImage: "استخراج صورة من نص",
-        navDropdownStandardDesc: "فك التشفير باستخدام المفتاح والمعاملات",
-        navDropdownScannerDesc: "مسح سجل المحادثات بحثاً عن رسائل مخفية",
-        navDropdownHintsDesc: "عرض سجل التلميحات النشطة والمستلمة",
-        navDropdownImageExtractDesc: "استرجاع الصورة المخفية من نص التغطية",
-        exWorkflowTitle: "مراحل عملية الاستخراج",
-        labelStegoText: "النص الإخفائي",
-        badgeCarrier: "الحامل",
-        placeholderStegoText: "قم بلصق النص الإخفائي هنا — النص الحامل الذي يحتوي على الرسالة السرية المخفية...",
-        labelStegoKey: "المفتاح المشترك مسبقاً",
-        placeholderStegoKey: "أدخل المفتاح المشترك مسبقاً (مطلوب)...",
-        labelEncryptionKey: "مفتاح التشفير",
-        placeholderEncryptionKey: "أدخل مفتاح خوارزمية تشفير AES-256-CTR...",
-        btnExtractData: "استخراج البيانات",
-        labelExtractedSecret: "الرسالة المستخرجة",
-        badgeResult: "النتيجة",
-        labelNextMsgHint: "تلميح الرسالة القادمة",
-        btnCopyResult: "نسخ النتيجة",
-        exScannerTitle: "ماسح المحادثات",
-        exScannerKeyLabel: "المفتاح المشترك مسبقاً (Stego-Key)",
-        exScannerKeyPlaceholder: "أدخل المفتاح (اتركه فارغاً إذا لم يتم استخدام مفتاح)...",
-        exScannerEncKeyLabel: "مفتاح التشفير (AES-CTR)",
-        exScannerEncKeyPlaceholder: "أدخل مفتاح فك التشفير AES (اختياري)...",
-        exScannerPlatformLabel: "منصة المحادثة",
-        platformAuto: "🔍 كشف تلقائي",
-        platformWhatsAppAndroid: "واتساب (أندرويد)",
-        platformWhatsAppIos: "واتساب (آي أو إس)",
-        platformTelegram: "تيليجرام",
-        platformDiscord: "ديسكورد",
-        platformSignal: "سيجنال",
-        platformIMessage: "آي مسج",
-        platformManual: "✍️ إدخال يدوي (الاسم: الرسالة)",
-        platformGeneric: "📝 نص عادي (رسالة واحدة لكل سطر)",
-        exScannerChatLabel: "سجل المحادثة",
-        exScannerChatPlaceholder: "الصق سجل المحادثة الكامل هنا — من أي منصة (واتساب، تيليجرام، ديسكورد...)\nأو الصق كل رسالة في سطر جديد...",
-        scannerOneClickTitle: "مسح واستخراج",
-        scannerOneClickDesc: "تصفية + استخراج + تجربة في ضغطة واحدة",
-        scannerVerifyTitle: "التحقق من التصفية",
-        scannerVerifyDesc: "مراجعة الرسائل المصفاة وأحرف التعتيم",
-        scannerProgressProcessing: "جاري المعالجة...",
-        scannerStep1Name: "① التصفية",
-        scannerStep2Name: "② الاستخراج",
-        scannerStep3Name: "③ التجربة",
-        scannerStep1Title: "الرسائل المصفاة",
-        scannerStep2Title: "نتائج الاستخراج — أحرف التعتيم",
-        scannerStep3Title: "نتائج التجربة",
-        hintsTitle: "سجل تلميحات الستيجانو",
-        hintsSubtitle: "تتبع تلميحات ستيجانوغرافي السياقية التي قمت بإرسالها واستلامها.",
-        latestHintLabel: "آخر تلميح نشط",
-        hintsReceivedLabel: "التلميحات المستلمة",
-        hintsSentLabel: "التلميحات المرسلة",
-        btnClearHints: "مسح كافة التلميحات",
-        footerTitle: "STEGNOLINES",
-        footerSubtitle: "تقنيات إخفاء وتشفير متقدمة بدون عبء إضافي لضمان النقل الآمن للمعلومات.",
-        footerEmbed: "التضمين",
-        footerExtract: "الاستخراج",
-        footerDocs: "المستندات",
-        footerAbout: "حول الفريق",
-        footerContact: "اتصل بنا",
-        footerCopyright: "© 2026 STEGNOLINES. جميع الحقوق محفوظة.",
-        settingsTitle: "التفضيلات",
-        settingsSubtitle: "إدارة تفضيلات التطبيق واللغة وإعدادات العرض.",
-        settingsSectionGeneral: "عام",
-        settingsLanguage: "اللغة",
-        settingsLanguageDesc: "اختر لغة عرض الواجهة.",
-        settingsDarkMode: "الوضع الداكن",
-        settingsDarkModeDesc: "التبديل بين الوضع الفاتح والداكن.",
-        settingsSectionTypography: "الخطوط",
-        settingsFont: "خط اللغة العربية",
-        settingsFontDesc: "اختر الخط المفضل لعرض النص العربي.",
-        floatingGuideTooltip: "إرشادات الموقع",
-        imgExWorkflowTitle: "مراحل عملية استخراج الصورة",
-        imgExLabelStegoText: "النص الإخفائي الحامل للصورة",
-        imgExPlaceholderStegoText: "الصق النص الإخفائي الذي يحتوي على الصورة المخفية هنا...",
-        imgExLabelKey: "مفتاح فك تشفير AES-CTR",
-        imgExPlaceholderKey: "أدخل مفتاح AES-CTR المستخدم أثناء التضمين...",
-        imgExBtnExtract: "استخراج وفك تشفير الصورة",
-        imgExSuccessTitle: "تم استخراج الصورة بنجاح!",
-        imgExSuccessSubtitle: "تم استرداد الصورة المخفية وفك تشفيرها بنجاح. يمكنك معاينتها أو تنزيلها أدناه.",
-        imgExLabelResult: "الصورة المستخرجة",
-        imgExBtnDownload: "تحميل الصورة الأصلية",
-        imgExFileInfo: "معلومات الملف",
-        imgExFileName: "اسم الملف",
-        imgExFileSize: "حجم الملف",
-        imgExFileType: "نوع الملف"
-      }
-    };
-
-    const TRANSLATIONS = TRANSLATIONS_EXTRACT;
-
-    function applyLanguage(lang) {
-      document.documentElement.setAttribute('lang', lang);
-      document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-
-      // Update active selector state inside Settings pill switcher
-      document.querySelectorAll('.lang-pill').forEach(pill => {
-        pill.classList.toggle('active', pill.id === `lang-btn-${lang}`);
-      });
-
-      // Sync layout for fonts toggle (now a sidebar navigation button)
-      const arFontToggle = document.getElementById('ar-font-toggle-wrap');
-      if (arFontToggle) {
-        if (lang === 'ar') {
-          arFontToggle.style.display = 'flex';
-        } else {
-          arFontToggle.style.display = 'none';
-          if (arFontToggle.classList.contains('active')) {
-            const generalBtn = document.querySelector('.settings-nav-item[data-target="general"]');
-            if (generalBtn) generalBtn.click();
-          }
-        }
-      }
-
-      // Translate all data-i18n static labels
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
-          // Preserve child structures like Material Symbol icons
-          const hasIcon = el.querySelector('.material-symbols-outlined');
-          if (hasIcon) {
-            el.childNodes.forEach(child => {
-              if (child.nodeType === Node.TEXT_NODE && child.textContent.trim().length > 0) {
-                child.textContent = TRANSLATIONS[lang][key];
-              }
-            });
-          } else {
-            el.textContent = TRANSLATIONS[lang][key];
-          }
-        }
-      });
-
-      // Translate input text placeholders
-      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.getAttribute('data-i18n-placeholder');
-        if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
-          el.setAttribute('placeholder', TRANSLATIONS[lang][key]);
-        }
-      });
-
-      // Translate tooltips
-      document.querySelectorAll('[data-i18n-tooltip]').forEach(el => {
-        const key = el.getAttribute('data-i18n-tooltip');
-        if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
-          el.setAttribute('data-tooltip', TRANSLATIONS[lang][key]);
-        }
-      });
-
-      // Update current selected platform text if it has a dynamic i18n
-      const selectLabel = document.getElementById('platformSelectLabel');
-      if (selectLabel) {
-        const key = selectLabel.getAttribute('data-i18n');
-        if (key && TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
-          selectLabel.textContent = TRANSLATIONS[lang][key];
-        }
-      }
-
-      // Refresh metrics text count localization
-      updateMetrics();
-    }
-
-    function setLanguage(lang) {
-      localStorage.setItem('stegoLang', lang);
-      applyLanguage(lang);
-    }
-
-    function applyArabicFont(font) {
-      document.documentElement.setAttribute('data-arabic-font', font);
-      document.querySelectorAll('.font-pill').forEach(pill => {
-        pill.classList.toggle('active', pill.id === `font-btn-${font}`);
-      });
-    }
-
-    function setArabicFont(font) {
-      localStorage.setItem('stegoFont', font);
-      applyArabicFont(font);
-    }
-
-    // Settings modal open/close logic
-    const settingsBtn = document.getElementById('top-nav-settings');
-    const settingsModal = document.getElementById('settings-modal');
-    const settingsBackdrop = document.getElementById('settings-modal-backdrop');
-    const settingsCloseBtn = document.getElementById('settings-modal-close');
-
-    function openSettingsModal() {
-      settingsModal.style.display = 'flex';
-      requestAnimationFrame(() => {
-        settingsModal.classList.add('active');
-        settingsBackdrop.classList.add('active');
-        document.body.classList.add('settings-modal-open');
-      });
-      // Sync dark-mode toggle state inside modal
-      const navToggle = document.getElementById('toggle-dark-mode');
-      const modalToggle = document.getElementById('toggle-dark-mode-modal');
-      if (navToggle && modalToggle) modalToggle.checked = navToggle.checked;
-    }
-
-    function closeSettingsModal() {
-      settingsModal.classList.remove('active');
-      settingsBackdrop.classList.remove('active');
-      document.body.classList.remove('settings-modal-open');
-      setTimeout(() => { settingsModal.style.display = 'none'; }, 300);
-    }
-
-    if (settingsBtn && settingsModal) {
-      settingsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openSettingsModal();
-      });
-      settingsCloseBtn.addEventListener('click', closeSettingsModal);
-      settingsBackdrop.addEventListener('click', closeSettingsModal);
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && settingsModal.classList.contains('active')) closeSettingsModal();
-      });
-      // Sync modal dark-mode toggle with the nav bar toggle
-      const modalDarkToggle = document.getElementById('toggle-dark-mode-modal');
-      const navDarkToggle = document.getElementById('toggle-dark-mode');
-      if (modalDarkToggle && navDarkToggle) {
-        modalDarkToggle.addEventListener('change', () => {
-          navDarkToggle.checked = modalDarkToggle.checked;
-          navDarkToggle.dispatchEvent(new Event('change'));
-        });
-      }
-
-      // Split Settings Modal Section Navigation switching
-      const navItems = settingsModal.querySelectorAll('.settings-nav-item');
-      const sections = settingsModal.querySelectorAll('.settings-section-content');
-      const sectionTitle = document.getElementById('active-section-title');
-
-      navItems.forEach(item => {
-        item.addEventListener('click', () => {
-          const target = item.getAttribute('data-target');
-          navItems.forEach(btn => btn.classList.toggle('active', btn === item));
-          sections.forEach(sec => sec.classList.toggle('active', sec.id === `section-${target}`));
-          
-          if (sectionTitle) {
-            const spanText = item.querySelector('span:not(.material-symbols-outlined)').textContent;
-            sectionTitle.textContent = spanText;
-            const i18nAttr = item.querySelector('span:not(.material-symbols-outlined)').getAttribute('data-i18n');
-            if (i18nAttr) sectionTitle.setAttribute('data-i18n', i18nAttr);
-            else sectionTitle.removeAttribute('data-i18n');
-          }
-        });
-      });
-    }
-
-    // ── MAIN IMAGE EXTRACTION PIPELINE ──
-    async function performImageExtraction() {
-      const currentLang = localStorage.getItem('stegoLang') || 'en';
-      hideImgExtractResultsPanel();
-
-      const stegoText = document.getElementById('imgExtractStego').value.trim();
-      const stegoKey = document.getElementById('imgExtractKey').value.trim();
-
-      // 1. Validations
-      if (!stegoText) {
-        showToast(currentLang === 'ar' ? '⚠ الرجاء إدخل النص الإخفائي.' : '⚠ Please input the stego-text.');
-        return;
-      }
-      if (!stegoKey) {
-        showToast(currentLang === 'ar' ? '⚠ الرجاء إدخال مفتاح فك التشفير AES-CTR.' : '⚠ Please input the AES-CTR Key.');
-        return;
-      }
-
-      try {
-        // 2. Extract Variation Selector bytes from stego text
-        const { vsBytes, cleanText: coverText } = extractVSFromText(stegoText);
-
-        if (vsBytes.length === 0) {
-          throw new Error(currentLang === 'ar' ? 'لا توجد أحرف إخفاء (VS) مخفية في النص. تأكد من نسخ النص بالكامل.' : 'No hidden VS characters found in the message. Make sure to paste the complete text.');
-        }
-
-        // 3. Verify standard file steganographic payload marker for images
-        //    Format: [0xFF marker] [nameLen: 1] [nameBytes: nameLen] [fileSize: 4] [fileData]
-        const IMG_FILE_MARKER = 0xFF;
-        if (vsBytes[0] !== IMG_FILE_MARKER) {
-          throw new Error(currentLang === 'ar' ? 'تنسيق غير صالح: هذا النص الإخفائي لا يحتوي على صورة مخفية.' : 'Invalid format: This stego-text does not contain a hidden image.');
-        }
-
-        // 4. Extract Name Length and File Name
-        const nameLen = vsBytes[1];
-        if (nameLen === 0 || vsBytes.length < 2 + nameLen + 4) {
-          throw new Error(currentLang === 'ar' ? 'تنسيق الحمولة غير صالح أو تالف.' : 'Invalid or corrupted payload structure.');
-        }
-
-        const nameBytes = vsBytes.subarray(2, 2 + nameLen);
-        const fileName = new TextDecoder().decode(nameBytes);
-
-        // 5. Extract File Size (Big Endian)
-        let offset = 2 + nameLen;
-        const fileSize = (vsBytes[offset] << 24) | (vsBytes[offset+1] << 16) | (vsBytes[offset+2] << 8) | vsBytes[offset+3];
-        offset += 4;
-
-        if (vsBytes.length < offset + fileSize) {
-          throw new Error(currentLang === 'ar' ? 'حجم البيانات المستخرج غير مكتمل أو تالف.' : 'Extracted data size is incomplete or corrupted.');
-        }
-
-        // 6. Extract Encrypted Payload Bytes
-        const encryptedData = vsBytes.subarray(offset, offset + fileSize);
-
-        // 7. Decrypt Payload using AES-CTR (coverText is used to derive key/IV deterministically)
-        let decryptedBytes;
-        try {
-          decryptedBytes = await decryptPayloadCtr(encryptedData, stegoKey, coverText);
-        } catch (e) {
-          throw new Error(currentLang === 'ar' ? 'فشل فك التشفير — تأكد من أن مفتاح AES-CTR صحيح.' : 'Decryption failed — make sure the AES-CTR Key is correct.');
-        }
-
-        // 8. Resolve MIME Type based on File Extension
-        const lowerName = fileName.toLowerCase();
-        let mimeType = 'image/jpeg';
-        if (lowerName.endsWith('.webp')) mimeType = 'image/webp';
-        else if (lowerName.endsWith('.avif')) mimeType = 'image/avif';
-        else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) mimeType = 'image/jpeg';
-
-        // 9. Generate Blob and set Preview & Download Link
-        const blob = new Blob([decryptedBytes], { type: mimeType });
-        const blobUrl = URL.createObjectURL(blob);
-
-        const imgPreview = document.getElementById('imgExtractedPreview');
-        const downloadBtn = document.getElementById('imgDownloadBtn');
-
-        if (imgPreview) {
-          imgPreview.src = blobUrl;
-          imgPreview.style.display = 'block';
-        }
-
-        if (downloadBtn) {
-          downloadBtn.href = blobUrl;
-          downloadBtn.download = fileName;
-          downloadBtn.style.display = 'inline-flex';
-        }
-
-        // 10. Update File Stats Cards
-        document.getElementById('imgStatFileName').textContent = fileName;
-        document.getElementById('imgStatFileSize').textContent = `${(decryptedBytes.length / 1024).toFixed(2)} KB (${decryptedBytes.length.toLocaleString()} bytes)`;
-        document.getElementById('imgStatFileType').textContent = mimeType;
-
-        showImgExtractResultsPanel();
-        showToast(currentLang === 'ar' ? '✅ تم استخراج الصورة وفك تشفيرها بنجاح!' : '✅ Image extracted and decrypted successfully!');
-
-      } catch (error) {
-        showToast('❌ ' + error.message);
-      }
-    }
-
-    function showImgExtractResultsPanel() {
-      const panel = document.getElementById('img-extract-results-panel');
-      if (panel) {
-        panel.style.display = 'block';
-        setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
-      }
-    }
-
-    function hideImgExtractResultsPanel() {
-      const panel = document.getElementById('img-extract-results-panel');
-      if (panel) panel.style.display = 'none';
-    }
-
-    // Bind Eye toggle visibility for imgExtractKey
-    document.addEventListener('DOMContentLoaded', () => {
-      const $imgExEyeToggle = document.getElementById('img-ex-eye-toggle-btn');
-      const $imgExKeyInput = document.getElementById('imgExtractKey');
-      if ($imgExEyeToggle && $imgExKeyInput) {
-        $imgExEyeToggle.addEventListener('click', () => {
-          const isHidden = $imgExKeyInput.type === 'password';
-          $imgExKeyInput.type = isHidden ? 'text' : 'password';
-          document.getElementById('img-ex-eye-icon').textContent = isHidden ? 'visibility_off' : 'visibility';
-        });
-      }
-
-      // If we have forwarded payload from image embedding on hash match
-      const hash = window.location.hash;
-      if (hash === '#image') {
-        const forwarded = localStorage.getItem('stegoTextPayload');
-        if (forwarded) {
-          const imgStegoTextarea = document.getElementById('imgExtractStego');
-          if (imgStegoTextarea) {
-            imgStegoTextarea.value = forwarded;
-          }
-          localStorage.removeItem('stegoTextPayload');
-        }
-        
-        const forwardedKey = localStorage.getItem('stegoKeyPayload');
-        if (forwardedKey) {
-          const imgKeyField = document.getElementById('imgExtractKey');
-          if (imgKeyField) {
-            imgKeyField.value = forwardedKey;
-          }
-          localStorage.removeItem('stegoKeyPayload');
-        }
-      }
-    });
-
-    // Initialize Language from Storage
-    const initLang = localStorage.getItem('stegoLang') || 'en';
-    applyLanguage(initLang);
-    const initFont = localStorage.getItem('stegoFont') || 'thmanyah';
-    applyArabicFont(initFont);
-  </script>
-
-  <!-- ═══ Stage 0: Brotli WASM Compression Engine ═══ -->
-  <script src="js/stage1_Compress/Wasm_Load_&_Init.JS"></script>
-  <script src="js/stage1_Compress/wasm_bridge.js"></script>
-  <script src="js/stage1_Compress/compression.js"></script>
-  <script src="js/stage2_Encription/encryption.js"></script>
-
-  <!-- ═══ JS Pipeline (same order as old index.html) ═══ -->
+  <!-- Footer Placeholder -->
+  <div id="footer-placeholder"></div>
+
+  <!-- Inline UI Helpers moved to js/features/extract-controller.js -->
+
+  <!-- ═══ Brotli WASM & Web Cryptography modules ═══ -->
+  <script src="js/core/compression/wasm-engine.js"></script>
+  <script src="js/core/compression/wasm-bridge.js"></script>
+  <script src="js/core/compression/brotli-service.js"></script>
+  <script src="js/core/crypto/sha256.js"></script>
+  <script src="js/core/crypto/aes-ctr.js"></script>
+
+  <!-- ═══ Stego Core Logic Steps ═══ -->
   <script src="js/shared/text_codec.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/stage3_hide/step1_payload.js"></script>
-  <script src="js/stage3_hide/step2_prng.js"></script>
-  <script src="js/stage3_hide/step3_xor.js"></script>
-  <script src="js/stage3_hide/step4_vs_codec.js"></script>
-  <script src="js/stage3_hide/step5_stego_object.js"></script>
+  <script src="js/shared/ui-helpers.js"></script>
+  <script src="js/core/stego/payload-codec.js"></script>
+  <script src="js/core/stego/prng-generator.js"></script>
+  <script src="js/core/stego/xor-mask.js"></script>
+  <script src="js/core/stego/vs-codec.js"></script>
+  <script src="js/core/stego/stego-composer.js"></script>
+
+  <!-- ═══ UI Features & Controllers ═══ -->
   <script src="js/features/F_stego_capacity.js"></script>
   <script src="js/features/F_stego_hint.js"></script>
   <script src="js/features/F_stego_analysis.js"></script>
   <script src="js/features/F_chat_parser.js"></script>
   <script src="js/features/F_chat_scanner.js"></script>
-  <script src="js/stage3_hide/embedding.js"></script>
-  <script src="js/stage3_hide/extraction.js"></script>
-  <!-- Custom Dropdown JS -->
-  <script defer>
-    function togglePlatformSelect(e) {
-      e.stopPropagation();
-      document.getElementById('platformSelectOptions').classList.toggle('open');
-    }
+  <script src="js/features/extract-controller.js"></script>
+  <script src="js/features/image-extract-controller.js"></script>
+  <script src="js/features/chat-scanner-controller.js"></script>
 
-    function selectPlatformOption(value, label) {
-      document.getElementById('scannerPlatform').value = value;
-      const labelSpan = document.getElementById('platformSelectLabel');
-      
-      const translationKeys = {
-        auto: "platformAuto",
-        whatsapp_android: "platformWhatsAppAndroid",
-        whatsapp_ios: "platformWhatsAppIos",
-        telegram: "platformTelegram",
-        discord: "platformDiscord",
-        signal: "platformSignal",
-        imessage: "platformIMessage",
-        manual: "platformManual",
-        generic: "platformGeneric"
-      };
-      
-      const key = translationKeys[value];
-      if (key && typeof TRANSLATIONS_EXTRACT !== 'undefined') {
-        labelSpan.setAttribute('data-i18n', key);
-        const currentLang = document.documentElement.getAttribute('lang') || 'en';
-        labelSpan.textContent = TRANSLATIONS_EXTRACT[currentLang][key] || label;
-      } else {
-        labelSpan.removeAttribute('data-i18n');
-        labelSpan.textContent = label;
-      }
-      
-      // Update selected class
-      const options = document.querySelectorAll('#platformSelectOptions .custom-option');
-      options.forEach(opt => {
-        if (opt.getAttribute('data-value') === value) opt.classList.add('selected');
-        else opt.classList.remove('selected');
-      });
-      
-      document.getElementById('platformSelectOptions').classList.remove('open');
-    }
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-      const wrapper = document.getElementById('platformSelectWrapper');
-      if (wrapper && !wrapper.contains(e.target)) {
-        document.getElementById('platformSelectOptions').classList.remove('open');
-      }
-    });
-  </script>
+  <!-- ═══ Dynamic Templates Loader ═══ -->
+  <script src="js/shared/template-loader.js"></script>
+  <!-- Dropdown helpers moved to features controllers -->
 
   <!-- Floating Help/Guide Button -->
   <button type="button" class="floating-guide-btn" data-i18n-tooltip="floatingGuideTooltip" data-tooltip="Site Guide">

@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/png" href="../../assets/brand/favicon.png" />
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>STEGNOLINES — Writing documentation</title>
+  <title>StegoLines — Writing documentation</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../../New_styles.css"/>
-  <link rel="stylesheet" href="../../documentation.css"/>
+  <link rel="stylesheet" href="../../css/main.css"/>
+  <link rel="stylesheet" href="../../css/pages/docs.css"/>
   <script>
     (function() {
       // Retrieve theme preference immediately to prevent FOUC
@@ -40,9 +42,9 @@
     <div class="top-nav__inner">
 
       <!-- Brand -->
-      <a class="top-nav__brand" href="../../index.html">
-        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="../../IMG/Dark-Logo-T.png" alt="STEGNOLINES"/>
-        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="../../IMG/White-Logo-T.png" alt="STEGNOLINES"/>
+      <a class="top-nav__brand" href="../../embed.html" id="brand-link">
+        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="../../assets/brand/logo-dark.png" alt="STEGNOLINES"/>
+        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="../../assets/brand/logo-light.png" alt="STEGNOLINES"/>
       </a>
 
       <!-- Desktop Nav Links -->
@@ -50,7 +52,7 @@
         <div class="top-nav__dropdown" id="nav-embed-dropdown">
           <button class="top-nav__dropdown-trigger" id="nav-embed" aria-expanded="false" aria-haspopup="true">
             <span class="material-symbols-outlined">lock</span>
-            <span class="text-label-md">Embed</span>
+            <span class="text-label-md" data-i18n="navEmbed">Embed</span>
             <span class="material-symbols-outlined top-nav__dropdown-chevron">expand_more</span>
           </button>
           <div class="top-nav__dropdown-panel" id="embed-dropdown-panel">
@@ -59,8 +61,8 @@
                 <span class="material-symbols-outlined">description</span>
               </div>
               <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title">Text Embed</span>
-                <span class="top-nav__dropdown-item-desc">Conceal secret text inside cover text</span>
+                <span class="top-nav__dropdown-item-title" data-i18n="emTabText">Text Embed</span>
+                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownTextDesc">Conceal secret text inside cover text</span>
               </div>
             </a>
             <a class="top-nav__dropdown-item" href="../../embed.html#image" data-tab="image">
@@ -68,35 +70,36 @@
                 <span class="material-symbols-outlined">image</span>
               </div>
               <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title">Image Embed</span>
-                <span class="top-nav__dropdown-item-desc">Hide a mini image inside cover text</span>
+                <span class="top-nav__dropdown-item-title" data-i18n="emTabImage">Image Embed</span>
+                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownImageDesc">Hide a mini image inside cover text</span>
               </div>
             </a>
           </div>
         </div>
+
         <div class="top-nav__dropdown" id="nav-extract-dropdown">
           <button class="top-nav__dropdown-trigger" id="nav-extract" aria-expanded="false" aria-haspopup="true">
             <span class="material-symbols-outlined">lock_open</span>
-            <span class="text-label-md">Extract</span>
+            <span class="text-label-md" data-i18n="navExtract">Extract</span>
             <span class="material-symbols-outlined top-nav__dropdown-chevron">expand_more</span>
           </button>
           <div class="top-nav__dropdown-panel" id="extract-dropdown-panel">
             <a class="top-nav__dropdown-item" href="../../extract.html#standard" data-tab="standard">
               <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">lock_open</span>
+                <span class="material-symbols-outlined">screen_search_desktop</span>
               </div>
               <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title">Standard Extract</span>
-                <span class="top-nav__dropdown-item-desc">Decrypt with key & params</span>
+                <span class="top-nav__dropdown-item-title" data-i18n="exTabStandard">Standard Extract</span>
+                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownStandardDesc">Decrypt with key & params</span>
               </div>
             </a>
             <a class="top-nav__dropdown-item" href="../../extract.html#scanner" data-tab="scanner">
               <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">document_scanner</span>
+                <span class="material-symbols-outlined">cell_tower</span>
               </div>
               <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title">Scanner</span>
-                <span class="top-nav__dropdown-item-desc">Scan chat history for secrets</span>
+                <span class="top-nav__dropdown-item-title" data-i18n="exTabScanner">Scanner</span>
+                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownScannerDesc">Scan chat history for secrets</span>
               </div>
             </a>
             <a class="top-nav__dropdown-item" href="../../extract.html#hints" data-tab="hints">
@@ -104,8 +107,8 @@
                 <span class="material-symbols-outlined">lightbulb</span>
               </div>
               <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title">Hints</span>
-                <span class="top-nav__dropdown-item-desc">View stego hints log</span>
+                <span class="top-nav__dropdown-item-title" data-i18n="exTabHints">Hints</span>
+                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownHintsDesc">View stego hints log</span>
               </div>
             </a>
             <a class="top-nav__dropdown-item" href="../../extract.html#image" data-tab="image">
@@ -113,66 +116,62 @@
                 <span class="material-symbols-outlined">image</span>
               </div>
               <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title">Image Extract</span>
-                <span class="top-nav__dropdown-item-desc">Recover a hidden image from stego text</span>
+                <span class="top-nav__dropdown-item-title" data-i18n="exTabImage">Image Extract</span>
+                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownImageDesc">Reveal hidden image payload</span>
               </div>
             </a>
           </div>
         </div>
-        <a class="top-nav__link top-nav__link--active" href="../../documentation.html" id="nav-docs"><span class="material-symbols-outlined">menu_book</span><span class="text-label-md">Documentation</span></a>
+
+        <a class="top-nav__link top-nav__link--active" href="../../documentation.html" id="nav-docs">
+          <span class="material-symbols-outlined">help</span>
+          <span class="text-label-md" data-i18n="navDocs">Documentation</span>
+        </a>
       </nav>
 
-      <!-- Right Actions -->
+      <!-- Dynamic theme toggle / Preferences Trigger button -->
       <div class="top-nav__actions">
-        <!-- Dark Mode Toggle (Hidden from visual layout, preserved for JS sync) -->
         <input type="checkbox" id="toggle-dark-mode" style="display: none !important;" />
-        
-        <button class="top-nav__hamburger" id="hamburger-btn" aria-label="Open menu"><span class="material-symbols-outlined">menu</span></button>
+        <button class="icon-btn" id="top-nav-settings" aria-label="Settings" title="Settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
       </div>
+
+      <!-- Hamburger (Mobile layout) -->
+      <button class="top-nav__hamburger" id="hamburger-btn" aria-label="Open menu">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
     </div>
   </nav>
 
-  <!-- Mobile Menu -->
+  <!-- Mobile Navigation Drawer -->
   <div class="top-nav__mobile-menu" id="mobile-menu">
     <button class="top-nav__link" id="mobile-embed-toggle" type="button" style="border:none; background:none; width:100%; text-align:left; cursor:pointer; display:flex; align-items:center;">
-      <span class="material-symbols-outlined" style="margin-right:8px;">lock</span>
-      <span class="text-label-md">Embed</span>
-      <span class="material-symbols-outlined top-nav__dropdown-chevron" style="margin-left:auto;">expand_more</span>
+      <span class="material-symbols-outlined">lock</span>
+      <span class="text-label-md" data-i18n="navEmbed" style="margin-left: 8px;">Embed</span>
+      <span class="material-symbols-outlined" style="margin-left: auto;">expand_more</span>
     </button>
-    <div class="top-nav__mobile-dropdown-items" id="mobile-embed-items">
-      <a class="top-nav__dropdown-item" href="../../embed.html#text" data-tab="text">
-        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">description</span></div>
-        <span class="top-nav__dropdown-item-title">Text Embed</span>
-      </a>
-      <a class="top-nav__dropdown-item" href="../../embed.html#image" data-tab="image">
-        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">image</span></div>
-        <span class="top-nav__dropdown-item-title">Image Embed</span>
-      </a>
+    <div class="top-nav__mobile-dropdown-items" id="mobile-embed-items" style="display:none; padding-left: 20px;">
+      <a class="top-nav__link" href="../../embed.html#text" data-tab="text" data-i18n="emTabText">Text Embed</a>
+      <a class="top-nav__link" href="../../embed.html#image" data-tab="image" data-i18n="emTabImage">Image Embed</a>
     </div>
-    <button class="top-nav__link" id="mobile-extract-toggle" type="button" style="border:none; background:none; width:100%; text-align:left; cursor:pointer; display:flex; align-items:center;">
-      <span class="material-symbols-outlined" style="margin-right:8px;">lock_open</span>
-      <span class="text-label-md">Extract</span>
-      <span class="material-symbols-outlined top-nav__dropdown-chevron" style="margin-left:auto;">expand_more</span>
+
+    <button class="top-nav__link" id="mobile-extract-toggle" type="button" style="border:none; background:none; width:100%; text-align:left; cursor:pointer; display:flex; align-items:center; margin-top:12px;">
+      <span class="material-symbols-outlined">lock_open</span>
+      <span class="text-label-md" data-i18n="navExtract" style="margin-left: 8px;">Extract</span>
+      <span class="material-symbols-outlined" style="margin-left: auto;">expand_more</span>
     </button>
-    <div class="top-nav__mobile-dropdown-items" id="mobile-extract-items">
-      <a class="top-nav__dropdown-item" href="../../extract.html#standard" data-tab="standard">
-        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">lock_open</span></div>
-        <span class="top-nav__dropdown-item-title">Standard Extract</span>
-      </a>
-      <a class="top-nav__dropdown-item" href="../../extract.html#scanner" data-tab="scanner">
-        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">document_scanner</span></div>
-        <span class="top-nav__dropdown-item-title">Scanner</span>
-      </a>
-      <a class="top-nav__dropdown-item" href="../../extract.html#hints" data-tab="hints">
-        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">lightbulb</span></div>
-        <span class="top-nav__dropdown-item-title">Hints</span>
-      </a>
-      <a class="top-nav__dropdown-item" href="../../extract.html#image" data-tab="image">
-        <div class="top-nav__dropdown-item-icon"><span class="material-symbols-outlined">image</span></div>
-        <span class="top-nav__dropdown-item-title">Image Extract</span>
-      </a>
+    <div class="top-nav__mobile-dropdown-items" id="mobile-extract-items" style="display:none; padding-left: 20px;">
+      <a class="top-nav__link" href="../../extract.html#standard" data-tab="standard" data-i18n="exTabStandard">Standard Extract</a>
+      <a class="top-nav__link" href="../../extract.html#scanner" data-tab="scanner" data-i18n="exTabScanner">Scanner</a>
+      <a class="top-nav__link" href="../../extract.html#hints" data-tab="hints" data-i18n="exTabHints">Hints</a>
+      <a class="top-nav__link" href="../../extract.html#image" data-tab="image" data-i18n="exTabImage">Image Extract</a>
     </div>
-    <a class="top-nav__link top-nav__link--active" href="../../documentation.html">Documentation</a>
+
+    <a class="top-nav__link" href="../../documentation.html" style="margin-top:12px; display:flex; align-items:center;">
+      <span class="material-symbols-outlined" style="margin-right: 8px;">help</span>
+      <span class="text-label-md" data-i18n="navDocs">Documentation</span>
+    </a>
   </div>
 
   <div class="docs-wrap">
@@ -201,19 +200,37 @@
         
         <article class="docs-article">
           <h1>Writing documentation</h1>
-          <p>To add a page, create an HTML file under <code>docs/</code>, add an entry to <code>js/docs/nav-data.js</code>, and use the same layout as existing articles.</p>
-<h2>Index page</h2><p>The tree on <a href="../../documentation.html">documentation.html</a> is generated automatically from <code>nav-data.js</code>.</p>
+          <p>The documentation in STEGNOLINES is compiled statically from a single source of truth inside the generator script: <code>js/docs/article-shell.js</code>.</p>
+
+<h2>Compiling Documentation</h2>
+<p>To update or add documentation pages, follow these steps:</p>
+<ol>
+  <li>Open the master build script: [article-shell.js](file:///e:/مشروع%20التخرج/Embding-Algo/js/docs/article-shell.js).</li>
+  <li>Locate the <code>pages</code> array and update the corresponding HTML content inside the page objects.</li>
+  <li>If you wish to add a new page, append a new object to the array, defining its <code>file</code>, <code>title</code>, <code>section</code>, and <code>body</code>.</li>
+  <li>Ensure any new page is registered in the sidebar tree in [nav-data.js](file:///e:/مشروع%20التخرج/Embding-Algo/js/docs/nav-data.js).</li>
+  <li>Run the build script using Node.js:
+    <pre style="padding:8px 12px; background:var(--color-surface-container); border-radius:var(--radius-default); display:inline-block; font-family:monospace;">node js/docs/article-shell.js</pre>
+  </li>
+  <li>The build script will automatically compile, format, and generate the static HTML files under the <code>docs/</code> folder.</li>
+</ol>
         </article>
         
         <!-- Pager -->
         <nav class="docs-pager" aria-label="Documentation pagination">
-          <a class="docs-pager__link" id="docs-prev-link" href="#" hidden>
-            <span class="docs-pager__dir">Previous</span>
-            <span class="docs-pager__label"></span>
+          <a class="docs-pager__link docs-pager__link--prev" id="docs-prev-link" href="#" hidden>
+            <span class="material-symbols-outlined docs-pager__icon" aria-hidden="true">arrow_back</span>
+            <div class="docs-pager__text">
+              <span class="docs-pager__dir" data-i18n="prevBtn">Previous</span>
+              <span class="docs-pager__label"></span>
+            </div>
           </a>
           <a class="docs-pager__link docs-pager__link--next" id="docs-next-link" href="#" hidden>
-            <span class="docs-pager__dir">Next</span>
-            <span class="docs-pager__label"></span>
+            <div class="docs-pager__text">
+              <span class="docs-pager__dir" data-i18n="nextBtn">Next</span>
+              <span class="docs-pager__label"></span>
+            </div>
+            <span class="material-symbols-outlined docs-pager__icon" aria-hidden="true">arrow_forward</span>
           </a>
         </nav>
       </div>
@@ -229,17 +246,70 @@
   <!-- Footer -->
   <footer class="main-footer">
     <div class="main-footer__inner">
-      <div class="main-footer__brand"><div class="main-footer__title">STEGNOLINES</div></div>
-      <div class="main-footer__links-group">
-        <ul class="main-footer__links">
-          <li><a href="../../documentation.html" class="main-footer__link">Documentation</a></li>
-        </ul>
+      <div class="main-footer__brand">
+        <div class="main-footer__title" data-i18n="footerTitle">STEGNOLINES</div>
+        <p class="text-body-sm" style="max-width: 300px;" data-i18n="footerSubtitle">
+          Advanced Zero-Overhead Contextual Steganography and Cryptography for secure transmission.
+        </p>
+      </div>
+      
+      <div class="main-footer__cols-group">
+        <!-- Column 1: Embed -->
+        <div class="main-footer__col">
+          <div class="main-footer__col-title" data-i18n="footerColEmbed">Embed</div>
+          <ul class="main-footer__col-links">
+            <li><a href="../../embed.html#text" class="main-footer__link" data-i18n="footerEmbedText">Text Steganography</a></li>
+            <li><a href="../../embed.html#image" class="main-footer__link" data-i18n="footerEmbedImage">Image Steganography</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 2: Extract -->
+        <div class="main-footer__col">
+          <div class="main-footer__col-title" data-i18n="footerColExtract">Extract</div>
+          <ul class="main-footer__col-links">
+            <li><a href="../../extract.html#standard" class="main-footer__link" data-i18n="footerExtractStandard">Standard Extract</a></li>
+            <li><a href="../../extract.html#scanner" class="main-footer__link" data-i18n="footerExtractScanner">Chat Scanner</a></li>
+            <li><a href="../../extract.html#hints" class="main-footer__link" data-i18n="footerExtractHints">Stego Hints Log</a></li>
+            <li><a href="../../extract.html#image" class="main-footer__link" data-i18n="footerExtractImage">Image Payload Recovery</a></li>
+          </ul>
+        </div>
+
+                <!-- Column: Steganalysis -->
+        <div class="main-footer__col">
+          <div class="main-footer__col-title" data-i18n="footerColSteganalysis">Steganalysis</div>
+          <ul class="main-footer__col-links">
+            <li><a href="../../steganalysis.html" class="main-footer__link" data-i18n="footerSteganalysis">Text Steganalysis</a></li>
+          </ul>
+        </div>
+
+<!-- Column 3: Documentation -->
+        <div class="main-footer__col">
+          <div class="main-footer__col-title" data-i18n="footerColResources">Documentation</div>
+          <ul class="main-footer__col-links">
+            <li><a href="../../docs/getting-started/overview.html" class="main-footer__link" data-i18n="footerResDocs">Getting started</a></li>
+            <li><a href="../../docs/user-guide/embedding.html" class="main-footer__link" data-i18n="footerResUi">User guide</a></li>
+            <li><a href="../../docs/technical-reference/pipeline.html" class="main-footer__link" data-i18n="footerResTest">Technical reference</a></li>
+            <li><a href="../../docs/development/project-structure.html" class="main-footer__link" data-i18n="footerResDev">Development</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 4: Team -->
+        <div class="main-footer__col">
+          <div class="main-footer__col-title" data-i18n="footerColTeam">Team</div>
+          <ul class="main-footer__col-links">
+            <li><a href="../../about us.html" class="main-footer__link" data-i18n="footerAboutTeam">About Team</a></li>
+            <li><a href="../../contact team.html" class="main-footer__link" data-i18n="footerContactTeam">Contact With Team</a></li>
+          </ul>
+        </div>
       </div>
     </div>
-    <div class="main-footer__bottom"><span>&copy; 2026 STEGNOLINES. All rights reserved.</span></div>
+    <div class="main-footer__bottom">
+      <span>&copy; 2026 STEGNOLINES. All rights reserved.</span>
+    </div>
   </footer>
 
   <script src="../../js/utils.js"></script>
+  <script src="../../js/shared/theme-manager.js"></script>
   <script src="../../js/docs/nav-data.js"></script>
   <script src="../../js/docs/docs.js"></script>
   <script>

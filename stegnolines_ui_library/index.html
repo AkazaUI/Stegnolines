@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — UI Components Library</title>
+  <meta name="description" content="Merged light and dark mode UI component library for the STEGNOLINES steganography platform."/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+  <!-- ═══ Top Navigation ═══ -->
+  <nav class="top-nav" id="top-nav">
+    <div class="top-nav__inner">
+
+      <!-- Brand -->
+      <a class="top-nav__brand" href="index.html" id="brand-link">
+        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="Dark-Logo-T.png" alt="STEGNOLINES"/>
+        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="White-Logo-T.png" alt="STEGNOLINES"/>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="top-nav__links" id="desktop-nav">
+        <a class="top-nav__link" href="embed.html" id="nav-embed">
+          <span class="material-symbols-outlined">lock</span>
+          <span class="text-label-md">Embed</span>
+        </a>
+        <a class="top-nav__link" href="extract.html" id="nav-extract">
+          <span class="material-symbols-outlined">lock_open</span>
+          <span class="text-label-md">Extract</span>
+        </a>
+        <a class="top-nav__link" href="#" id="nav-preferences">
+          <span class="material-symbols-outlined">tune</span>
+          <span class="text-label-md">Preferences</span>
+        </a>
+        <a class="top-nav__link" href="documentation.html" id="nav-docs">
+          <span class="material-symbols-outlined">menu_book</span>
+          <span class="text-label-md">Documentation</span>
+        </a>
+      </nav>
+
+      <!-- Right Actions -->
+      <div class="top-nav__actions">
+        <!-- Dark Mode Toggle -->
+        <label class="toggle" title="Toggle dark mode" style="margin-right: var(--space-xs);">
+          <input type="checkbox" class="toggle__input" id="toggle-dark-mode"/>
+          <div class="toggle__track"></div>
+        </label>
+        
+        <button class="icon-btn" id="top-nav-settings" aria-label="Settings" title="Settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+        <button class="icon-btn" id="top-nav-notifications" aria-label="Notifications" title="Notifications">
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <div class="top-nav__user">
+          <div class="top-nav__avatar">
+            <span class="material-symbols-outlined">person</span>
+          </div>
+        </div>
+        <button class="top-nav__hamburger" id="hamburger-btn" aria-label="Open menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="top-nav__mobile-menu" id="mobile-menu">
+    <a class="top-nav__link" href="embed.html">
+      <span class="material-symbols-outlined">lock</span>
+      <span class="text-label-md">Embed</span>
+    </a>
+    <a class="top-nav__link" href="extract.html">
+      <span class="material-symbols-outlined">lock_open</span>
+      <span class="text-label-md">Extract</span>
+    </a>
+    <a class="top-nav__link" href="#">
+      <span class="material-symbols-outlined">tune</span>
+      <span class="text-label-md">Preferences</span>
+    </a>
+    <a class="top-nav__link" href="documentation.html">
+      <span class="material-symbols-outlined">menu_book</span>
+      <span class="text-label-md">Documentation</span>
+    </a>
+  </div>
+
+  <!-- ═══ Main Content ═══ -->
+  <main class="main-content">
+
+    <header class="main-header">
+      <h1 class="text-display-lg">UI Components Library</h1>
+      <p class="text-body-lg">Reference for technical organic interface elements.</p>
+    </header>
+
+    <div class="grid-2col">
+
+      <!-- ── 1. Buttons ── -->
+      <section class="card" id="section-buttons">
+        <h2 class="text-headline-md card__title">Buttons</h2>
+        <div class="stack-xl">
+          <div>
+            <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-sm)">Primary Buttons</h3>
+            <div class="btn-group">
+              <button class="btn btn--primary" id="btn-hide-data">Hide Data</button>
+              <button class="btn btn--primary" disabled id="btn-active-state">Active State</button>
+              <button class="btn btn--disabled" disabled id="btn-disabled-primary">Disabled</button>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-sm)">Secondary Buttons</h3>
+            <div class="btn-group">
+              <button class="btn btn--secondary" id="btn-extract-data">Extract Data</button>
+              <button class="btn btn--secondary-hover" id="btn-hover-state">Hover State</button>
+              <button class="btn btn--secondary-disabled" disabled id="btn-disabled-secondary">Disabled</button>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-sm)">Ghost Buttons</h3>
+            <div class="btn-group">
+              <button class="btn btn--ghost" id="btn-view-details">
+                <span class="material-symbols-outlined" style="font-size:18px">info</span>
+                View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 2. Input Fields ── -->
+      <section class="card" id="section-inputs">
+        <h2 class="text-headline-md card__title">Input Fields</h2>
+        <div class="stack-xl">
+          <div>
+            <label class="form-label text-label-md" for="stego-key">Stego-Key (Standard Input)</label>
+            <input class="form-input" id="stego-key" type="text" placeholder="Enter encryption key..."/>
+          </div>
+          <div>
+            <label class="form-label text-label-md" for="cover-text">Cover Text (Textarea)</label>
+            <textarea class="form-textarea" id="cover-text" rows="3" placeholder="Paste text to hide data within..."></textarea>
+          </div>
+          <div>
+            <label class="form-label text-label-md" for="secret-message">Secret Message (Active State)</label>
+            <textarea class="form-textarea form-input--active" id="secret-message" rows="3">The eagle flies at midnight.</textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 3. Selection & Controls ── -->
+      <section class="card col-span-full" id="section-controls">
+        <h2 class="text-headline-md card__title">Selection &amp; Controls</h2>
+        <div class="grid-2col-md">
+          <div class="stack-lg">
+            <div>
+              <label class="form-label text-label-md" for="stego-method">Steganography Method</label>
+              <div class="select-wrapper">
+                <select class="form-select" id="stego-method">
+                  <option>Format-based Steganography</option>
+                  <option>ASCII-based Steganography</option>
+                  <option>Linguistic Steganography</option>
+                </select>
+                <span class="material-symbols-outlined select-icon">expand_more</span>
+              </div>
+            </div>
+          </div>
+          <div class="stack-lg">
+            <div class="toggle-row">
+              <div>
+                <div class="text-body-md toggle-row__label">Enable Encryption</div>
+                <div class="text-body-sm toggle-row__desc">AES-256 layer before embedding</div>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" class="toggle__input" checked id="toggle-encryption"/>
+                <div class="toggle__track"></div>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="text-body-md toggle-row__label">Dark Mode Toggle</div>
+                <div class="text-body-sm toggle-row__desc">Switch UI theme</div>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" class="toggle__input" id="toggle-dark-mode"/>
+                <div class="toggle__track"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 4. Status & Feedback ── -->
+      <section class="card col-span-full" id="section-status">
+        <h2 class="text-headline-md card__title">Status &amp; Feedback</h2>
+        <div class="grid-2col-md" style="margin-bottom:var(--space-xl)">
+          <div class="alert alert--success">
+            <span class="material-symbols-outlined">check_circle</span>
+            <div>
+              <div class="text-body-md alert__title">Data hidden successfully!</div>
+              <div class="text-body-sm alert__desc">Your secret message is now embedded in the cover text.</div>
+            </div>
+          </div>
+          <div class="alert alert--error">
+            <span class="material-symbols-outlined">error</span>
+            <div>
+              <div class="text-body-md alert__title">Extraction failed</div>
+              <div class="text-body-sm alert__desc">Invalid Stego-Key provided for this file.</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-sm)">Badges / Chips</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm)">
+            <span class="badge badge--encrypted text-label-md">
+              <span class="material-symbols-outlined">lock</span> Encrypted
+            </span>
+            <span class="badge badge--draft text-label-md">
+              <span class="material-symbols-outlined">draft</span> Draft
+            </span>
+            <span class="badge badge--danger text-label-md">
+              <span class="material-symbols-outlined">warning</span> High Risk
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 5. Advanced Steganography & Data Components ── -->
+      <section class="card col-span-full" id="section-advanced">
+        <h2 class="text-headline-md card__title">Advanced Steganography &amp; Data Components</h2>
+        <div class="grid-2col-md">
+
+          <!-- File Upload Area -->
+          <div class="stack-sm">
+            <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-xs)">File Upload Area</h3>
+            <div class="file-upload" id="file-upload-area">
+              <span class="material-symbols-outlined">cloud_upload</span>
+              <p class="text-body-md file-upload__title">Drag &amp; drop your file here</p>
+              <p class="text-body-sm file-upload__hint">or click to browse</p>
+            </div>
+          </div>
+
+          <!-- Progress Indicators & Range Sliders -->
+          <div class="stack-xl">
+            <div class="stack-sm">
+              <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-xs)">Progress Indicators</h3>
+              <div class="stack-md">
+                <div>
+                  <div class="progress-meta text-body-sm">
+                    <span>Uploading...</span><span>65%</span>
+                  </div>
+                  <div class="progress-track"><div class="progress-fill" style="width:65%"></div></div>
+                </div>
+                <div class="spinner text-body-sm">
+                  <span class="material-symbols-outlined">progress_activity</span>
+                  Processing file...
+                </div>
+              </div>
+            </div>
+            <div class="stack-sm">
+              <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-xs)">Range Sliders</h3>
+              <div>
+                <div class="range-meta text-body-sm">
+                  <span>LSB Depth</span>
+                  <span class="range-meta__value">2 bits</span>
+                </div>
+                <input class="range-input" type="range" min="1" max="8" value="2" id="range-lsb-depth"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordions -->
+          <div class="stack-sm">
+            <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-xs)">Accordions</h3>
+            <div class="accordion accordion--open" id="accordion-advanced">
+              <button class="accordion__trigger" id="accordion-trigger" type="button">
+                <span class="text-body-md accordion__trigger-text">Advanced Settings</span>
+                <span class="material-symbols-outlined">expand_more</span>
+              </button>
+              <div class="accordion__body text-body-sm" id="accordion-body">
+                Configure advanced embedding algorithms and encryption layers before finalizing the steganography process.
+              </div>
+            </div>
+          </div>
+
+          <!-- Tooltips -->
+          <div class="stack-sm">
+            <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-xs)">Tooltips</h3>
+            <div class="tooltip-trigger">
+              <span class="text-body-md tooltip-trigger__label">Steganography Key</span>
+              <span class="material-symbols-outlined">info</span>
+              <div class="tooltip-bubble text-body-sm">
+                This key is required to extract the hidden data later. Keep it safe.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ── 6. Team Demographics (Grid Section) ── -->
+      <section class="card col-span-full" id="section-team">
+        <h2 class="text-headline-md card__title card__title--alt">Team Demographics</h2>
+        <div class="grid-2col-md">
+          <div class="profile-card">
+            <div class="profile-card__avatar"><span class="material-symbols-outlined">person</span></div>
+            <h3 class="text-headline-md profile-card__name">Abdullah Adel</h3>
+            <p class="text-body-sm profile-card__role">Cybersecurity Researcher</p>
+            <p class="text-body-md profile-card__bio">Specializes in advanced data hiding techniques and cryptography.</p>
+            <div class="profile-card__links">
+              <a href="#" aria-label="Code"><span class="material-symbols-outlined">code</span></a>
+              <a href="#" aria-label="Link"><span class="material-symbols-outlined">link</span></a>
+              <a href="#" aria-label="Email"><span class="material-symbols-outlined">mail</span></a>
+            </div>
+          </div>
+          <div class="profile-card">
+            <div class="profile-card__avatar"><span class="material-symbols-outlined">person</span></div>
+            <h3 class="text-headline-md profile-card__name">Mohammed Saleh</h3>
+            <p class="text-body-sm profile-card__role">Frontend Developer</p>
+            <p class="text-body-md profile-card__bio">Responsible for crafting the technical, organic interface of STEGNOLINES.</p>
+            <div class="profile-card__links">
+              <a href="#" aria-label="Code"><span class="material-symbols-outlined">code</span></a>
+              <a href="#" aria-label="Link"><span class="material-symbols-outlined">link</span></a>
+              <a href="#" aria-label="Email"><span class="material-symbols-outlined">mail</span></a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /grid-2col -->
+
+    <!-- ── 6. Notifications, Validation & Capacity ── -->
+    <section class="card card--mt" id="section-validation">
+      <h2 class="text-headline-md card__title">Notifications, Validation &amp; Capacity Indicators</h2>
+      <div class="grid-2col-md">
+        <!-- Toasts -->
+        <div class="stack-sm">
+          <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-xs)">Toast Notifications (Static)</h3>
+          <div class="stack-md">
+            <div class="toast toast--success">
+              <span class="material-symbols-outlined">check_circle</span>
+              <span class="text-body-sm font-semibold" style="color:var(--color-on-surface)">Copied to clipboard!</span>
+            </div>
+            <div class="toast toast--error">
+              <span class="material-symbols-outlined">error</span>
+              <span class="text-body-sm font-semibold">Missing Stego-Key!</span>
+            </div>
+          </div>
+        </div>
+        <!-- Validation -->
+        <div class="stack-xl">
+          <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-xs)">Form Validation States</h3>
+          <div class="stack-md">
+            <div>
+              <label class="form-label text-label-md" for="stego-key-error">Stego-Key</label>
+              <input class="form-input form-input--error" id="stego-key-error" type="text" value=""/>
+              <p class="form-error-text text-label-md">Error: Stego-Key is required for this encryption method.</p>
+            </div>
+            <div>
+              <label class="form-label text-label-md" for="secret-message-error">Secret Message</label>
+              <textarea class="form-textarea form-input--error" id="secret-message-error" rows="2"></textarea>
+              <p class="form-error-text text-label-md">Error: Secret message cannot be empty.</p>
+            </div>
+          </div>
+        </div>
+        <!-- Capacity Meters -->
+        <div class="col-span-full divider-t">
+          <div class="grid-3col-md">
+            <div class="stack-sm">
+              <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-xs)">Cover Text Capacity</h3>
+              <div class="progress-meta text-body-sm">
+                <span>450 / 1000 Bytes Used</span><span>45%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:45%"></div></div>
+            </div>
+            <div class="stack-sm">
+              <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-xs)">Secret Message Size</h3>
+              <div class="progress-meta text-body-sm">
+                <span>Payload Weight</span><span class="font-semibold" style="color:var(--color-on-surface)">75%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:75%"></div></div>
+            </div>
+            <div class="stack-sm">
+              <h3 class="text-label-md" style="color:var(--color-on-surface-variant);margin-bottom:var(--space-xs)">Key Strength Meter</h3>
+              <input class="form-input" type="password" value="password123" style="margin-bottom:var(--space-sm)"/>
+              <div class="strength-bars">
+                <div class="strength-bar strength-bar--filled"></div>
+                <div class="strength-bar strength-bar--filled"></div>
+                <div class="strength-bar strength-bar--empty"></div>
+              </div>
+              <p class="text-label-md" style="color:var(--color-on-surface-variant);margin-top:var(--space-xs)">
+                Strength: <span class="font-bold" style="color:var(--color-primary)">Medium</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 7. Typography System ── -->
+    <section class="card card--mt" id="section-typography">
+      <h2 class="text-headline-md card__title">Typography System</h2>
+      <div class="stack-lg">
+        <div>
+          <p class="text-label-md" style="color:var(--color-outline-variant);margin-bottom:var(--space-xs)">Display Large (H1)</p>
+          <h1 class="text-display-lg" style="color:var(--color-on-surface)">The Eagle Flies at Midnight</h1>
+        </div>
+        <div>
+          <p class="text-label-md" style="color:var(--color-outline-variant);margin-bottom:var(--space-xs)">Headline Medium (H2)</p>
+          <h2 class="text-headline-md" style="color:var(--color-on-surface)">Secure Data Communication</h2>
+        </div>
+        <div>
+          <p class="text-label-md" style="color:var(--color-outline-variant);margin-bottom:var(--space-xs)">Headline Large (H3)</p>
+          <h3 class="text-headline-lg" style="color:var(--color-on-surface)">Encryption Protocols</h3>
+        </div>
+        <div>
+          <p class="text-label-md" style="color:var(--color-outline-variant);margin-bottom:var(--space-xs)">Body Large</p>
+          <p class="text-body-lg" style="color:var(--color-on-surface-variant)">This is the primary body text for long-form reading and detailed descriptions.</p>
+        </div>
+        <div>
+          <p class="text-label-md" style="color:var(--color-outline-variant);margin-bottom:var(--space-xs)">Body Medium / Small</p>
+          <p class="text-body-md" style="color:var(--color-on-surface);margin-bottom:var(--space-xs)">Standard interface text for labels and inputs.</p>
+          <p class="text-body-sm" style="color:var(--color-on-surface-variant)">Caption and auxiliary information for secondary details.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 9. Card Components ── -->
+    <section class="card card--mt" id="section-cards">
+      <h2 class="text-headline-md card__title">Card Components</h2>
+      <div class="grid-3col-lg">
+        <div class="stat-card" id="stat-system-integrity">
+          <div class="stat-card__header">
+            <div class="stat-card__header-left">
+              <span class="material-symbols-outlined">database</span>
+              <span class="text-body-md font-semibold">System Integrity</span>
+            </div>
+            <div class="stat-card__header-right">
+              <span class="material-symbols-outlined">more_vert</span>
+            </div>
+          </div>
+          <div class="stat-card__body">
+            <div class="text-display-lg stat-card__value">99.9%</div>
+            <p class="text-body-sm stat-card__desc">Data verification success rate across all steganography nodes for the current cycle.</p>
+          </div>
+          <div class="stat-card__footer">
+            <button class="stat-card__action" id="btn-view-audit">View Audit Log</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+ 
+
+  </main>
+
+  <!-- ═══ Footer ═══ -->
+  <footer class="main-footer">
+    <div class="main-footer__inner">
+      <!-- Brand / Intro Column -->
+      <div class="main-footer__brand">
+        <div class="main-footer__title">STEGNOLINES</div>
+        <p class="text-body-sm">
+          Advanced Zero-Overhead Contextual Steganography and Cryptography for secure transmission.
+        </p>
+      </div>
+      
+      <!-- Multi-column links group -->
+      <div class="main-footer__cols-group">
+        <!-- EMBED Column -->
+        <div class="main-footer__col">
+          <div class="main-footer__col-title">EMBED</div>
+          <ul class="main-footer__col-links">
+            <li><a href="embed.html#text" class="main-footer__link">Text Steganography</a></li>
+            <li><a href="embed.html#image" class="main-footer__link">Image Steganography</a></li>
+          </ul>
+        </div>
+        
+        <!-- EXTRACT Column -->
+        <div class="main-footer__col">
+          <div class="main-footer__col-title">EXTRACT</div>
+          <ul class="main-footer__col-links">
+            <li><a href="extract.html#standard" class="main-footer__link">Standard Extract</a></li>
+            <li><a href="extract.html#scanner" class="main-footer__link">Chat Scanner</a></li>
+            <li><a href="extract.html#hints" class="main-footer__link">Stego Hints Log</a></li>
+            <li><a href="extract.html#image" class="main-footer__link">Image Payload Recovery</a></li>
+          </ul>
+        </div>
+        
+        <!-- DOCUMENTATION Column -->
+        <div class="main-footer__col">
+          <div class="main-footer__col-title">DOCUMENTATION</div>
+          <ul class="main-footer__col-links">
+            <li><a href="docs/getting-started/overview.html" class="main-footer__link">Getting started</a></li>
+            <li><a href="docs/user-guide/embedding.html" class="main-footer__link">User guide</a></li>
+            <li><a href="docs/technical-reference/security.html" class="main-footer__link">Technical reference</a></li>
+            <li><a href="docs/development/project-structure.html" class="main-footer__link">Development</a></li>
+          </ul>
+        </div>
+        
+        <!-- TEAM Column -->
+        <div class="main-footer__col">
+          <div class="main-footer__col-title">TEAM</div>
+          <ul class="main-footer__col-links">
+            <li><a href="about us.html" class="main-footer__link">About Team</a></li>
+            <li><a href="contact team.html" class="main-footer__link">Contact With Team</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="main-footer__bottom">
+      <span>&copy; 2026 STEGNOLINES. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <!-- ═══ Interactive Scripts ═══ -->
+  <script>
+    // Dark mode toggle
+    const toggle = document.getElementById('toggle-dark-mode');
+    toggle.addEventListener('change', () => {
+      document.documentElement.classList.toggle('dark', toggle.checked);
+      document.documentElement.classList.toggle('light', !toggle.checked);
+    });
+
+    // Accordion toggle
+    const accTrigger = document.getElementById('accordion-trigger');
+    const accContainer = document.getElementById('accordion-advanced');
+    const accBody = document.getElementById('accordion-body');
+    accTrigger.addEventListener('click', () => {
+      accContainer.classList.toggle('accordion--open');
+      accBody.style.display = accContainer.classList.contains('accordion--open') ? '' : 'none';
+    });
+
+    // Hamburger mobile menu toggle
+    const hamburger = document.getElementById('hamburger-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    hamburger.addEventListener('click', () => {
+      mobileMenu.classList.toggle('is-open');
+      const icon = hamburger.querySelector('.material-symbols-outlined');
+      icon.textContent = mobileMenu.classList.contains('is-open') ? 'close' : 'menu';
+    });
+  </script>
+  <script src="js/utils.js"></script>
+</body>
+</html>

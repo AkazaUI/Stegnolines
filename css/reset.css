@@ -1,0 +1,65 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-body-md);
+  color: var(--color-on-surface);
+  background-color: var(--color-background);
+  min-height: 100vh;
+  padding-top: 100px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: var(--transition-colors);
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Premium smooth transitions for theme changes */
+body, 
+.top-nav, 
+.top-nav__brand, 
+.top-nav__links, 
+.top-nav__dropdown-panel, 
+.main-footer, 
+.card, 
+.tab-panel, 
+.settings-modal, 
+.settings-modal__sidebar, 
+.settings-modal__main, 
+.settings-row,
+.diag-accordion,
+textarea,
+input,
+select,
+button {
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── TYPOGRAPHY ── */
+.text-display-lg  { font-family: var(--font-display);  font-size: var(--fs-display-lg);  font-weight: 700; line-height: 1.2; }
+.text-headline-lg { font-family: var(--font-headline); font-size: var(--fs-headline-lg); font-weight: 700; line-height: 1.3; }
+.text-headline-md { font-family: var(--font-headline); font-size: var(--fs-headline-md); font-weight: 600; line-height: 1.3; }
+.text-body-lg     { font-family: var(--font-body);     font-size: var(--fs-body-lg);     font-weight: 400; line-height: 1.6; }
+.text-body-md     { font-family: var(--font-body);     font-size: var(--fs-body-md);     font-weight: 400; line-height: 1.5; }
+.text-body-sm     { font-family: var(--font-body);     font-size: var(--fs-body-sm);     font-weight: 400; line-height: 1.5; }
+.text-label-md    { font-family: var(--font-label);    font-size: var(--fs-label-md);    font-weight: 500; line-height: 1.4; }
+
+/* Dynamic direction helper styles */
+html[dir="rtl"] {
+  text-align: right;
+}
+html[dir="ltr"] {
+  text-align: left;
+}

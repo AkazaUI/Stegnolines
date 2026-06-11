@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — About Us</title>
+  <meta name="description" content="Meet the team behind Stegnolines."/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    /* Custom grid for 5 cards: 3 on top, 2 centered on bottom (using flex wrap on container) */
+    .team-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--space-lg);
+    }
+    .team-grid .profile-card {
+      flex: 1 1 calc(33.333% - var(--space-lg));
+      min-width: 280px;
+      max-width: 400px;
+    }
+    .profile-card__list {
+      text-align: left;
+      color: var(--color-on-surface-variant);
+      margin-bottom: var(--space-md);
+      padding-left: 20px;
+      font-size: var(--fs-body-sm);
+      width: 100%;
+    }
+    .profile-card__list li {
+      margin-bottom: 6px;
+    }
+    .page-header-wrapper {
+      text-align: center;
+      margin-bottom: var(--space-xxl);
+      padding: var(--space-xl) 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ Top Navigation ═══ -->
+  <nav class="top-nav" id="top-nav">
+    <div class="top-nav__inner">
+      <a class="top-nav__brand" href="index.html" id="brand-link">
+        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="Dark-Logo-T.png" alt="STEGNOLINES"/>
+        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="White-Logo-T.png" alt="STEGNOLINES"/>
+      </a>
+      <nav class="top-nav__links" id="desktop-nav">
+        <a class="top-nav__link" href="embed.html" id="nav-embed">
+          <span class="material-symbols-outlined">lock</span>
+          <span class="text-label-md">Embed</span>
+        </a>
+        <a class="top-nav__link" href="extract.html" id="nav-extract">
+          <span class="material-symbols-outlined">lock_open</span>
+          <span class="text-label-md">Extract</span>
+        </a>
+        <a class="top-nav__link" href="#" id="nav-preferences">
+          <span class="material-symbols-outlined">tune</span>
+          <span class="text-label-md">Preferences</span>
+        </a>
+        <a class="top-nav__link" href="documentation.html" id="nav-docs">
+          <span class="material-symbols-outlined">menu_book</span>
+          <span class="text-label-md">Documentation</span>
+        </a>
+      </nav>
+      <div class="top-nav__actions">
+        <label class="toggle" title="Toggle dark mode" style="margin-right: var(--space-xs);">
+          <input type="checkbox" class="toggle__input" id="toggle-dark-mode"/>
+          <div class="toggle__track"></div>
+        </label>
+        <button class="icon-btn" id="top-nav-settings" aria-label="Settings" title="Settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+        <button class="icon-btn" id="top-nav-notifications" aria-label="Notifications" title="Notifications">
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <div class="top-nav__user">
+          <div class="top-nav__avatar">
+            <span class="material-symbols-outlined">person</span>
+          </div>
+        </div>
+        <button class="top-nav__hamburger" id="hamburger-btn" aria-label="Open menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="top-nav__mobile-menu" id="mobile-menu">
+    <a class="top-nav__link" href="embed.html">
+      <span class="material-symbols-outlined">lock</span>
+      <span class="text-label-md">Embed</span>
+    </a>
+    <a class="top-nav__link" href="extract.html">
+      <span class="material-symbols-outlined">lock_open</span>
+      <span class="text-label-md">Extract</span>
+    </a>
+    <a class="top-nav__link" href="#">
+      <span class="material-symbols-outlined">tune</span>
+      <span class="text-label-md">Preferences</span>
+    </a>
+    <a class="top-nav__link" href="documentation.html">
+      <span class="material-symbols-outlined">menu_book</span>
+      <span class="text-label-md">Documentation</span>
+    </a>
+  </div>
+
+  <!-- ═══ Main Content ═══ -->
+  <main class="main-content">
+    
+    <div class="page-header-wrapper">
+      <h1 class="text-display-lg" style="color: var(--color-primary); margin-bottom: var(--space-sm);">About Our Team</h1>
+      <p class="text-body-lg" style="color: var(--color-on-surface-variant); max-width: 600px; margin: 0 auto;">
+        We are a passionate team of five developers and cybersecurity enthusiasts dedicated to pushing the boundaries of secure digital communication.
+      </p>
+    </div>
+
+    <div class="team-grid">
+      <!-- Developer 1 -->
+      <div class="profile-card">
+        <div class="profile-card__avatar">
+          <span class="material-symbols-outlined">code</span>
+        </div>
+        <h3 class="profile-card__name text-headline-sm">[Developer Name 1]</h3>
+        <p class="profile-card__role text-label-md">Lead Cybersecurity Engineer</p>
+        <ul class="profile-card__list">
+          <li>Architected the zero-overhead steganography algorithm.</li>
+          <li>Developed the core extraction and embedding logic.</li>
+          <li>Ensured strict AES cryptographic standards.</li>
+        </ul>
+        <div class="profile-card__links">
+          <a href="#" title="GitHub"><span class="material-symbols-outlined">terminal</span></a>
+          <a href="#" title="LinkedIn"><span class="material-symbols-outlined">work</span></a>
+        </div>
+      </div>
+      
+      <!-- Developer 2 -->
+      <div class="profile-card">
+        <div class="profile-card__avatar">
+          <span class="material-symbols-outlined">design_services</span>
+        </div>
+        <h3 class="profile-card__name text-headline-sm">[Developer Name 2]</h3>
+        <p class="profile-card__role text-label-md">Frontend Architect & UI/UX</p>
+        <ul class="profile-card__list">
+          <li>Designed the Stegnolines UI Library and dashboard.</li>
+          <li>Implemented fully responsive, accessible web interfaces.</li>
+          <li>Engineered dynamic cyber-tech aesthetics.</li>
+        </ul>
+        <div class="profile-card__links">
+          <a href="#" title="GitHub"><span class="material-symbols-outlined">terminal</span></a>
+          <a href="#" title="LinkedIn"><span class="material-symbols-outlined">work</span></a>
+        </div>
+      </div>
+
+      <!-- Developer 3 -->
+      <div class="profile-card">
+        <div class="profile-card__avatar">
+          <span class="material-symbols-outlined">dns</span>
+        </div>
+        <h3 class="profile-card__name text-headline-sm">[Developer Name 3]</h3>
+        <p class="profile-card__role text-label-md">Backend & Systems Engineer</p>
+        <ul class="profile-card__list">
+          <li>Developed robust server-side processing workflows.</li>
+          <li>Managed secure data handling and application state.</li>
+          <li>Optimized performance for complex encryptions.</li>
+        </ul>
+        <div class="profile-card__links">
+          <a href="#" title="GitHub"><span class="material-symbols-outlined">terminal</span></a>
+          <a href="#" title="LinkedIn"><span class="material-symbols-outlined">work</span></a>
+        </div>
+      </div>
+
+      <!-- Developer 4 -->
+      <div class="profile-card">
+        <div class="profile-card__avatar">
+          <span class="material-symbols-outlined">bug_report</span>
+        </div>
+        <h3 class="profile-card__name text-headline-sm">[Developer Name 4]</h3>
+        <p class="profile-card__role text-label-md">QA & Cryptanalysis</p>
+        <ul class="profile-card__list">
+          <li>Led rigorous quality assurance and security testing.</li>
+          <li>Analyzed algorithm edge cases and platform limitations.</li>
+          <li>Ensured seamless parsing for WhatsApp & Telegram.</li>
+        </ul>
+        <div class="profile-card__links">
+          <a href="#" title="GitHub"><span class="material-symbols-outlined">terminal</span></a>
+          <a href="#" title="LinkedIn"><span class="material-symbols-outlined">work</span></a>
+        </div>
+      </div>
+
+      <!-- Developer 5 -->
+      <div class="profile-card">
+        <div class="profile-card__avatar">
+          <span class="material-symbols-outlined">query_stats</span>
+        </div>
+        <h3 class="profile-card__name text-headline-sm">[Developer Name 5]</h3>
+        <p class="profile-card__role text-label-md">Data Scientist & Analytics</p>
+        <ul class="profile-card__list">
+          <li>Built the stego-analysis visualizers and dashboards.</li>
+          <li>Researched and modelled carrier text capacities.</li>
+          <li>Designed statistical payload threshold models.</li>
+        </ul>
+        <div class="profile-card__links">
+          <a href="#" title="GitHub"><span class="material-symbols-outlined">terminal</span></a>
+          <a href="#" title="LinkedIn"><span class="material-symbols-outlined">work</span></a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══ Footer ═══ -->
+  <footer class="main-footer">
+    <div class="main-footer__inner">
+      <div class="main-footer__brand">
+        <div class="main-footer__title">STEGNOLINES</div>
+        <p class="text-body-sm" style="max-width: 300px;">
+          Advanced Zero-Overhead Contextual Steganography and Cryptography for secure transmission.
+        </p>
+      </div>
+      
+      <div class="main-footer__links-group">
+        <ul class="main-footer__links">
+          <li><a href="embed.html" class="main-footer__link">Embed</a></li>
+          <li><a href="extract.html" class="main-footer__link">Extract</a></li>
+          <li><a href="documentation.html" class="main-footer__link">Documentation</a></li>
+          <li><a href="about us.html" class="main-footer__link">About Us</a></li>
+          <li><a href="contact team.html" class="main-footer__link">Contact Team</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="main-footer__bottom">
+      <span>&copy; 2026 STEGNOLINES. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <!-- ═══ Scripts ═══ -->
+  <script>
+    // Dark mode toggle
+    document.getElementById('toggle-dark-mode').addEventListener('change', function () {
+      document.documentElement.classList.toggle('dark',  this.checked);
+      document.documentElement.classList.toggle('light', !this.checked);
+    });
+
+    // Hamburger
+    document.getElementById('hamburger-btn').addEventListener('click', () => {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('is-open');
+      const icon = document.querySelector('#hamburger-btn .material-symbols-outlined');
+      icon.textContent = menu.classList.contains('is-open') ? 'close' : 'menu';
+    });
+  </script>
+  <script src="js/utils.js"></script>
+</body>
+</html>

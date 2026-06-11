@@ -17,8 +17,7 @@
 let _scannerState = {
   messages: [],        // [{ sender, message }]  — raw parsed messages
   cleanMessages: [],   // [string]               — messages without VS
-  vsKey: null,         // Uint8Array | null       — extracted VS bytes
-  carrierIndex: -1,    // index of carrier message
+  carriers: [],        // [{ index: number, vsKey: Uint8Array }] — extracted carriers
   platform: 'generic', // detected platform key
 };
 
@@ -54,25 +53,73 @@ function toggleScannerResult(bodyId) {
  */
 function _updateProgress(step, label, percent) {
   const bar = document.getElementById('scannerProgressBar');
-  bar.style.display = 'block';
+  if (bar) {
+    if (bar.style.display === 'none' || !bar.style.display) {
+      bar.style.display = 'flex';
+      setTimeout(() => {
+        bar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    }
+  }
 
-  document.getElementById('scannerProgressLabel').textContent = label;
-  document.getElementById('scannerProgressFill').style.width = percent + '%';
+  const labelEl = document.getElementById('scannerProgressLabel');
+  if (labelEl) labelEl.textContent = label;
+
+  const subtitleEl = document.getElementById('scannerProgressSubLabel');
+  if (subtitleEl) {
+    const currentLang = localStorage.getItem('stegoLang') || 'en';
+    if (step === 1) {
+      subtitleEl.textContent = currentLang === 'ar' ? 'جاري تصفية واستخراج نصوص المحادثة...' : 'Analyzing and filtering chat messages...';
+    } else if (step === 2) {
+      subtitleEl.textContent = currentLang === 'ar' ? 'جاري استخراج أحرف الـ Variation Selectors المخفية...' : 'Searching for and extracting hidden Variation Selectors...';
+    } else if (step === 3) {
+      subtitleEl.textContent = currentLang === 'ar' ? 'جاري تجربة فك التشفير ومطابقة خرائط الغلاف والمفاتيح...' : 'Testing key combinations and resolving decryption maps...';
+    }
+  }
 
   for (let i = 1; i <= 3; i++) {
     const el = document.getElementById('progStep' + i);
-    el.classList.remove('active', 'done');
-    if (i < step) el.classList.add('done');
-    if (i === step) el.classList.add('active');
+    if (el) {
+      el.classList.remove('active', 'done');
+      const icon = el.querySelector('.step-status-icon');
+      if (i < step) {
+        el.classList.add('done');
+        if (icon) {
+          icon.textContent = 'check_circle';
+          icon.style.fontVariationSettings = "'FILL' 1";
+          icon.style.animation = 'none';
+        }
+      } else if (i === step) {
+        el.classList.add('active');
+        if (icon) {
+          icon.textContent = 'sync';
+          icon.style.fontVariationSettings = "'FILL' 0";
+          icon.style.animation = 'spinClockwise 1.5s linear infinite';
+        }
+      } else {
+        if (icon) {
+          icon.textContent = 'circle';
+          icon.style.fontVariationSettings = "'FILL' 0";
+          icon.style.animation = 'none';
+        }
+      }
+    }
   }
 }
 
 
 /**
- * Hide the progress bar.
+ * Hide the progress bar with a smooth fade-out animation.
  */
-function _hideProgress() {
-  document.getElementById('scannerProgressBar').style.display = 'none';
+async function _hideProgress() {
+  const bar = document.getElementById('scannerProgressBar');
+  if (!bar || bar.style.display === 'none') return;
+  
+  bar.classList.add('hiding');
+  await _delay(400); // Wait for the 400ms fadeOut keyframes to complete
+  
+  bar.style.display = 'none';
+  bar.classList.remove('hiding');
 }
 
 
@@ -83,6 +130,25 @@ function _resetScannerResults() {
   document.getElementById('scannerStep1Card').style.display = 'none';
   document.getElementById('scannerStep2Card').style.display = 'none';
   document.getElementById('scannerStep3Card').style.display = 'none';
+  const timeEl = document.getElementById('scannerTimeTaken');
+  if (timeEl) timeEl.style.display = 'none';
+}
+
+/**
+ * Display the scanner execution duration badge.
+ * @param {number} durationMs - Execution time in milliseconds.
+ */
+function _displayScannerTime(durationMs) {
+  const timeEl = document.getElementById('scannerTimeTaken');
+  const timeVal = document.getElementById('scannerTimeVal');
+  if (timeEl && timeVal) {
+    const currentLang = localStorage.getItem('stegoLang') || 'en';
+    timeVal.setAttribute('data-duration', durationMs);
+    timeVal.textContent = currentLang === 'ar'
+      ? `${durationMs.toFixed(1)} ملي ثانية`
+      : `${durationMs.toFixed(1)} ms`;
+    timeEl.style.display = 'flex';
+  }
 }
 
 
@@ -109,11 +175,20 @@ async function scannerOneClick() {
 
   _resetScannerResults();
 
+  let totalDurationMs = 0;
+
   // ── Step 1: Filter ──
   _updateProgress(1, '① Filtering messages...', 15);
   await _delay(100);
 
-  if (!_runFilterStep(rawText)) return _hideProgress();
+  const t1 = performance.now();
+  const filterSuccess = _runFilterStep(rawText);
+  totalDurationMs += (performance.now() - t1);
+
+  if (!filterSuccess) {
+    await _hideProgress();
+    return;
+  }
 
   _updateProgress(1, '① Filter completed ✓', 33);
   await _delay(150);
@@ -122,11 +197,14 @@ async function scannerOneClick() {
   _updateProgress(2, '② Extracting VS characters...', 50);
   await _delay(100);
 
+  const t2 = performance.now();
   _runExtractStep();
+  totalDurationMs += (performance.now() - t2);
 
-  if (!_scannerState.vsKey) {
-    _hideProgress();
+  if (_scannerState.carriers.length === 0) {
+    await _hideProgress();
     _showStep2Results(true);
+    _displayScannerTime(totalDurationMs);
     return showToast('❌ No hidden key in the chat.');
   }
 
@@ -137,20 +215,24 @@ async function scannerOneClick() {
   _updateProgress(3, '③ Testing candidate covers...', 80);
   await _delay(100);
 
+  const t3 = performance.now();
   try {
     await _runTryStep();
   } catch (e) {
     console.error('[Scanner] _runTryStep crashed:', e);
     showToast('❌ Scanner Step 3 error: ' + (e.message || e));
   }
+  totalDurationMs += (performance.now() - t3);
 
   _updateProgress(3, '✅ Scan completed', 100);
   await _delay(500);
-  _hideProgress();
+  await _hideProgress();
 
   // Show all result cards (collapsed by default, Step 3 expanded)
   _showStep1Results(false);
   _showStep2Results(false);
+
+  _displayScannerTime(totalDurationMs);
 }
 
 
@@ -164,16 +246,27 @@ async function scannerVerifyFilter() {
 
   _resetScannerResults();
 
+  let totalDurationMs = 0;
+
   // ── Step 1: Filter ──
-  if (!_runFilterStep(rawText)) return;
+  const t1 = performance.now();
+  const filterSuccess = _runFilterStep(rawText);
+  totalDurationMs += (performance.now() - t1);
+
+  if (!filterSuccess) return;
   _showStep1Results(true);
 
   // ── Step 2: Extract VS ──
+  const t2 = performance.now();
   _runExtractStep();
+  totalDurationMs += (performance.now() - t2);
+
   _showStep2Results(true);
 
-  if (_scannerState.vsKey) {
-    showToast(`✅ Filtered ${_scannerState.messages.length} messages + extracted VS key (${_scannerState.vsKey.length} bytes).`);
+  _displayScannerTime(totalDurationMs);
+
+  if (_scannerState.carriers.length > 0) {
+    showToast(`✅ Filtered ${_scannerState.messages.length} messages + extracted ${_scannerState.carriers.length} VS keys.`);
   } else {
     showToast(`✅ Filtered ${_scannerState.messages.length} messages — no hidden VS characters.`);
   }
@@ -216,22 +309,22 @@ function _runFilterStep(rawText) {
 function _runExtractStep() {
   const messages = _scannerState.messages;
   const cleanMessages = [];
-  let vsKey = null;
-  let carrierIndex = -1;
+  const carriers = [];
 
   for (let i = 0; i < messages.length; i++) {
     const { vsBytes, cleanText } = extractVSFromText(messages[i].message);
     cleanMessages.push(cleanText);
 
-    if (vsBytes.length > 0 && !vsKey) {
-      vsKey = vsBytes;
-      carrierIndex = i;
+    if (vsBytes.length > 0) {
+      carriers.push({
+        index: i,
+        vsKey: vsBytes
+      });
     }
   }
 
   _scannerState.cleanMessages = cleanMessages;
-  _scannerState.vsKey = vsKey;
-  _scannerState.carrierIndex = carrierIndex;
+  _scannerState.carriers = carriers;
 }
 
 
@@ -243,129 +336,275 @@ function _runExtractStep() {
  * UTF-8 printable text, it's a match.
  */
 async function _runTryStep() {
-  const vsKey = _scannerState.vsKey;
+  const carriers = _scannerState.carriers;
   const cleanMessages = _scannerState.cleanMessages;
-  const carrierIndex = _scannerState.carrierIndex;
-  const password = document.getElementById('scannerPassword').value.trim();
-  const encryptionKey = document.getElementById('scannerEncryptionKey').value.trim();
 
-  if (!vsKey) return;
+  // Gather all stego keys and filter unique
+  const stegoInputs = Array.from(document.querySelectorAll('.scanner-stego-key-input'));
+  const stegoKeys = Array.from(new Set(stegoInputs.map(inp => inp.value.trim())));
 
-  const xorKeyBinary = bytesToBinary(vsKey);
-  const matches = [];
-  const nonMatches = [];
-  const skipped = [];
+  // Gather all AES encryption keys and filter unique
+  const aesInputs = Array.from(document.querySelectorAll('.scanner-aes-key-input'));
+  const aesKeys = Array.from(new Set(aesInputs.map(inp => inp.value.trim())));
 
-  for (let i = 0; i < cleanMessages.length; i++) {
-    if (i === carrierIndex) {
-      skipped.push({ index: i + 1, type: 'carrier' });
-      continue;
-    }
-
-    const candidateCover = cleanMessages[i];
-    const result = await _tryOneCover(candidateCover, xorKeyBinary, password, encryptionKey);
-
-    if (result.match) {
-      matches.push({
-        index: i + 1,
-        coverText: candidateCover,
-        secretMessage: result.secretMessage,
-        hint: result.hint,
-        type: 'normal'
-      });
-    } else {
-      nonMatches.push({
-        index: i + 1,
-        coverText: candidateCover,
-        reasonObj: result
-      });
-    }
+  // Ensure there is at least one blank AES key tested (for unencrypted CTR messages)
+  if (!aesKeys.includes("")) {
+    aesKeys.push("");
   }
 
-  // ── Carrier fallback: also try the carrier's own clean text ──
-  // In normal mode (VS embedded in cover), the carrier IS the cover.
-  // The scanner extracted VS from it and skipped it above.
-  // Try its clean text as a last-resort cover candidate.
-  if (matches.length === 0 && carrierIndex >= 0 && cleanMessages[carrierIndex]) {
+  if (carriers.length === 0) return;
+
+  const currentLang = localStorage.getItem('stegoLang') || 'en';
+  let totalMatchesCount = 0;
+  const carrierResults = [];
+
+  for (let c = 0; c < carriers.length; c++) {
+    const carrier = carriers[c];
+    const carrierIndex = carrier.index;
+    const vsKey = carrier.vsKey;
+    const xorKeyBinary = bytesToBinary(vsKey);
+
+    const matches = [];
+
+    // 1. Try the carrier's own clean text first (fallback or normal embedding)
     const carrierCleanText = cleanMessages[carrierIndex];
-    const result = await _tryOneCover(carrierCleanText, xorKeyBinary, password, encryptionKey);
+    let carrierMatched = false;
 
-    if (result.match) {
-      matches.push({
-        index: carrierIndex + 1,
-        coverText: carrierCleanText,
-        secretMessage: result.secretMessage,
-        hint: result.hint,
-        type: 'carrier_fallback'
-      });
+    for (const stKey of stegoKeys) {
+      for (const aesKey of aesKeys) {
+        const carrierResult = await _tryOneCover(carrierCleanText, xorKeyBinary, stKey, aesKey);
+        if (carrierResult.match) {
+          matches.push({
+            index: carrierIndex + 1,
+            coverText: carrierCleanText,
+            secretMessage: carrierResult.secretMessage,
+            hint: carrierResult.hint,
+            type: 'carrier_fallback',
+            usedStegoKey: stKey
+          });
+          carrierMatched = true;
+          break;
+        }
+      }
+      if (carrierMatched) break;
+    }
 
-      // Remove carrier from skipped list since we found a match on it
-      const skippedIdx = skipped.findIndex(s => s.index === (carrierIndex + 1));
-      if (skippedIdx !== -1) {
-        skipped.splice(skippedIdx, 1);
+    // 2. Try other clean messages in the chat if carrier fallback didn't match
+    if (!carrierMatched) {
+      for (let i = 0; i < cleanMessages.length; i++) {
+        if (i === carrierIndex) continue;
+
+        const candidateCover = cleanMessages[i];
+        let foundMatchForCover = false;
+
+        for (const stKey of stegoKeys) {
+          for (const aesKey of aesKeys) {
+             const result = await _tryOneCover(candidateCover, xorKeyBinary, stKey, aesKey);
+            if (result.match) {
+              const isDuplicate = matches.some(m => m.secretMessage === result.secretMessage);
+              if (!isDuplicate) {
+                matches.push({
+                  index: i + 1,
+                  coverText: candidateCover,
+                  secretMessage: result.secretMessage,
+                  hint: result.hint,
+                  type: 'normal',
+                  usedStegoKey: stKey
+                });
+              }
+              foundMatchForCover = true;
+              break;
+            }
+          }
+          if (foundMatchForCover) break;
+        }
       }
     }
+
+    carrierResults.push({
+      carrierIndex,
+      vsKeyLength: vsKey.length,
+      matches
+    });
+    totalMatchesCount += matches.length;
   }
 
-  let html = `
-    <div class="stego-table" style="margin-top: 0;">
-      <div class="stego-table__body">`;
+  // Build Premium Dashboard Summary Layout
+  let html = `<div class="scanner-results-container" style="display: flex; flex-direction: column; gap: var(--space-lg); width: 100%;">`;
 
-  if (matches.length === 0) {
-    html += `
-      <div class="stego-table__row stego-table__row--error">
-        <div class="stego-table__cell" style="padding: var(--space-lg);">
-          <div style="display: flex; align-items: flex-start; gap: 12px; text-align: left;" dir="ltr">
-            <span class="material-symbols-outlined" style="color: var(--color-error); font-size: 24px; margin-top: 2px;">error</span>
-            <div>
-              <h4 style="margin: 0; color: var(--color-error); font-weight: 700; font-size: 14px; margin-bottom: 6px; font-family: var(--font-primary);">No Matching Secret Message Found</h4>
-              <p style="margin: 0; color: var(--color-on-surface-variant); font-size: 12px; line-height: 1.5; font-family: var(--font-body);">
-                All messages were tested using the extracted VS key, but none matched the password. 
-                Please verify your <strong>password</strong> and ensure the pasted text contains the original cover message.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  // 1. Render matches
-  for (const m of matches) {
-    html += _buildMatchHTML(m.index, m.coverText, m.secretMessage, m.hint, m.type);
-  }
-
-  // 2. Render skipped items
-  for (const s of skipped) {
-    html += _buildSkippedHTML(s.index);
-  }
-
-  // 3. Render non-matches
-  for (const n of nonMatches) {
-    html += _buildNoMatchHTML(n.index, n.coverText, n.reasonObj);
-  }
+  // 1. Metrics Grid
+  const labelCarriers = currentLang === 'ar' ? 'الناقلات المكتشفة' : 'Carriers Detected';
+  const labelDecrypted = currentLang === 'ar' ? 'الرسائل المستخرجة' : 'Decrypted Secrets';
+  const labelCombos = currentLang === 'ar' ? 'الاحتمالات المجربة' : 'Key Combos Tested';
 
   html += `
+    <div class="scanner-dashboard-summary">
+      <div class="summary-metric-card">
+        <span class="metric-icon">🔑</span>
+        <div class="metric-info">
+          <span class="metric-value">${carriers.length}</span>
+          <span class="metric-label">${labelCarriers}</span>
+        </div>
       </div>
-    </div>`;
+      <div class="summary-metric-card ${totalMatchesCount > 0 ? 'success' : 'warning'}">
+        <span class="metric-icon">${totalMatchesCount > 0 ? '🔓' : '🔒'}</span>
+        <div class="metric-info">
+          <span class="metric-value">${totalMatchesCount}</span>
+          <span class="metric-label">${labelDecrypted}</span>
+        </div>
+      </div>
+      <div class="summary-metric-card">
+        <span class="metric-icon">⚙️</span>
+        <div class="metric-info">
+          <span class="metric-value">${stegoKeys.length * aesKeys.length}</span>
+          <span class="metric-label">${labelCombos}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const matchedCarriers = carrierResults.filter(r => r.matches.length > 0);
+  const unmatchedCarriers = carrierResults.filter(r => r.matches.length === 0);
+
+  // 2. Results List
+  if (totalMatchesCount > 0) {
+    html += `<div style="display: flex; flex-direction: column; gap: var(--space-md); width: 100%;">`;
+    for (const cr of matchedCarriers) {
+      const headerTitle = currentLang === 'ar' ? `رسالة الناقلة رقم #${cr.carrierIndex + 1}` : `Carrier Message #${cr.carrierIndex + 1}`;
+      const badgeText = currentLang === 'ar' ? `${cr.vsKeyLength} بايت` : `${cr.vsKeyLength} bytes VS`;
+
+      html += `
+        <div class="scanner-carrier-group">
+          <div class="scanner-carrier-header">
+            <div class="scanner-carrier-header-title">
+              <span class="material-symbols-outlined" style="color: var(--color-primary); font-size: 20px;">lock_open</span>
+              <span>${headerTitle}</span>
+            </div>
+            <span class="badge badge--success text-label-md">${badgeText}</span>
+          </div>
+          <div class="scanner-carrier-body">
+      `;
+      for (const m of cr.matches) {
+        html += _buildMatchHTML(m.index, m.coverText, m.secretMessage, m.hint, m.type, m.usedStegoKey);
+      }
+      html += `
+          </div>
+        </div>`;
+    }
+    html += `</div>`;
+
+    // Compact list of unmatched carriers if any
+    if (unmatchedCarriers.length > 0) {
+      const toggleTitle = currentLang === 'ar' ? `ناقلات لم يتم فكها (${unmatchedCarriers.length})` : `Unresolved Carriers (${unmatchedCarriers.length})`;
+      const unresolvedLabel = currentLang === 'ar' ? 'لا يوجد مطابقة' : 'No Match';
+
+      html += `
+        <div class="scanner-unmatched-section">
+          <div class="scanner-unmatched-toggle" onclick="document.getElementById('scannerUnmatchedList').classList.toggle('open'); this.classList.toggle('active');" style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-sm) var(--space-md); background: var(--color-surface-container-low); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-lg); cursor: pointer; font-size: var(--fs-body-sm); color: var(--color-on-surface-variant); font-weight: 500;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="material-symbols-outlined" style="font-size: 18px;">help_center</span>
+              <span>${toggleTitle}</span>
+            </div>
+            <span class="material-symbols-outlined unmatched-chevron" style="font-size: 18px;">expand_more</span>
+          </div>
+          <div id="scannerUnmatchedList" class="scanner-unmatched-list" style="flex-direction: column; gap: var(--space-xs); margin-top: var(--space-xs); padding-left: 2px;">
+      `;
+      for (const u of unmatchedCarriers) {
+        const uLabel = currentLang === 'ar' ? `رسالة الناقلة (#${u.carrierIndex + 1} — تحتوي ${u.vsKeyLength} رموز)` : `Carrier Message (#${u.carrierIndex + 1} — contains ${u.vsKeyLength} VS)`;
+        html += `
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-sm) var(--space-md); background: var(--color-surface-container-lowest); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-md); font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-weight: bold; background: var(--color-surface-container-high); color: var(--color-on-surface); padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 11px;">#${u.carrierIndex + 1}</span>
+              <span>${uLabel}</span>
+            </div>
+            <span style="color: var(--color-error); font-size: 11px; font-weight: 600; text-transform: uppercase;">${unresolvedLabel}</span>
+          </div>`;
+      }
+      html += `
+          </div>
+        </div>`;
+    }
+  } else {
+    // Zero matches found
+    const emptyTitle = currentLang === 'ar' ? 'لم يتم فك أي رسائل مخفية' : 'No Hidden Messages Decrypted';
+    const emptyDesc = currentLang === 'ar'
+      ? `تم اكتشاف ${carriers.length} رسالة تحتوي على رموز مخفية، ولكن لم نتمكن من استرجاع أي محتوى سري. تم تجربة ${stegoKeys.length} مفتاح Stego و ${aesKeys.length} مفتاح تشفير AES.`
+      : `We found ${carriers.length} message(s) containing Variation Selectors, but could not decrypt any hidden content. Tested ${stegoKeys.length} Stego-Key(s) and ${aesKeys.length} AES decryption key(s).`;
+    const tipsTitle = currentLang === 'ar' ? 'نصائح لاستكشاف الأخطاء وإصلاحها:' : 'Troubleshooting Tips:';
+    const tip1 = currentLang === 'ar' ? 'تأكد من نسخ المحادثة بالكامل بما في ذلك رسالة الناقل ورسائل الغلاف.' : 'Verify you have pasted the complete chat log, including the carrier and corresponding covers.';
+    const tip2 = currentLang === 'ar' ? 'تحقق من صحة كتابة مفتاح Stego ومفتاح تشفير AES.' : 'Double-check the Stego-Key and AES key spelling.';
+    const tip3 = currentLang === 'ar' ? 'تأكد من تحديد المنصة الصحيحة للمحادثة أو الكشف التلقائي.' : 'Ensure the correct platform was selected or auto-detected.';
+
+    html += `
+      <div class="scanner-empty-state-card" style="margin-bottom: var(--space-md);">
+        <span class="material-symbols-outlined empty-state-icon">lock</span>
+        <h3 class="empty-state-title">${emptyTitle}</h3>
+        <p class="empty-state-desc">${emptyDesc}</p>
+        <div style="margin-top: var(--space-md); padding: var(--space-md); background: rgba(0, 0, 0, 0.02); border-radius: var(--radius-md); border: 1px solid var(--color-outline-variant); text-align: left; width: 100%;">
+          <div style="font-weight: 600; font-size: var(--fs-body-sm); margin-bottom: var(--space-sm); display: flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary);">info</span>
+            <span>${tipsTitle}</span>
+          </div>
+          <ul style="font-size: var(--fs-body-sm); color: var(--color-on-surface-variant); padding-left: var(--space-md); margin: 0; display: flex; flex-direction: column; gap: 4px; line-height: 1.4;">
+            <li>${tip1}</li>
+            <li>${tip2}</li>
+            <li>${tip3}</li>
+          </ul>
+        </div>
+      </div>
+    `;
+
+    // Compact list of carriers detected
+    const listHeader = currentLang === 'ar' ? `الناقلات المكتشفة (${carriers.length}):` : `Detected Carriers (${carriers.length}):`;
+    const noMatchLabel = currentLang === 'ar' ? 'بلا مطابقة' : 'No Match';
+
+    html += `
+      <div style="display: flex; flex-direction: column; gap: var(--space-xs); width: 100%;">
+        <div style="font-weight: 600; font-size: var(--fs-body-sm); color: var(--color-on-surface-variant); margin-bottom: var(--space-xs);">
+          ${listHeader}
+        </div>
+    `;
+    for (const u of unmatchedCarriers) {
+      const uLabel = currentLang === 'ar' ? `رسالة ناقل تحتوي على ${u.vsKeyLength} بايت من البيانات المخفية` : `Carrier Message containing ${u.vsKeyLength} bytes of hidden data`;
+      html += `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-md); background: var(--color-surface-container-low); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-lg); font-size: var(--fs-body-sm); color: var(--color-on-surface-variant); width: 100%;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-weight: bold; background: var(--color-surface-container-high); color: var(--color-on-surface); padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 11px;">#${u.carrierIndex + 1}</span>
+            <span>${uLabel}</span>
+          </div>
+          <span class="badge badge--danger text-label-sm" style="font-family: var(--font-label);">${noMatchLabel}</span>
+        </div>`;
+    }
+    html += `</div>`;
+  }
+
+  html += `</div>`;
 
   // Inject trial summary status into Step 3 trigger count element
   const countSpan = document.getElementById('scannerStep3Count');
   if (countSpan) {
-    if (matches.length > 0) {
-      countSpan.innerHTML = `<span class="badge badge--encrypted text-label-md" style="margin-left: 8px;">Decrypted! (${matches.length})</span>`;
+    countSpan.replaceChildren();
+    const badge = document.createElement('span');
+    if (totalMatchesCount > 0) {
+      badge.className = 'badge badge--encrypted text-label-md';
+      badge.style.marginLeft = '8px';
+      badge.textContent = currentLang === 'ar' ? `تم الفك! (${totalMatchesCount}/${carriers.length})` : `Decrypted! (${totalMatchesCount}/${carriers.length})`;
     } else {
-      countSpan.innerHTML = `<span class="badge badge--danger text-label-md" style="margin-left: 8px;">No Match</span>`;
+      badge.className = 'badge badge--danger text-label-md';
+      badge.style.marginLeft = '8px';
+      badge.textContent = currentLang === 'ar' ? 'بلا مطابقة' : 'No Match';
     }
+    countSpan.appendChild(badge);
   }
 
   const container = document.getElementById('scannerTryResults');
-  container.innerHTML = html;
+  container.innerHTML = html; // SECURITY: All dynamic values are escaped via escapeHtml()
   document.getElementById('scannerStep3Card').style.display = 'block';
 
-  if (matches.length > 0) {
-    showToast('✅ Hidden message found!');
+  if (totalMatchesCount > 0) {
+    showToast(currentLang === 'ar' ? '✅ تم العثور على رسالة مخفية!' : '✅ Hidden message found!');
   } else {
-    showToast('❌ No match found.');
+    showToast(currentLang === 'ar' ? '❌ لم يتم العثور على أي مطابقة.' : '❌ No match found.');
   }
 }
 
@@ -486,49 +725,55 @@ async function _tryOneCover(candidateCover, xorKeyBinary, password, encryptionKe
 /**
  * Build HTML for a matching cover result.
  */
-function _buildMatchHTML(msgNum, coverText, secretMessage, hint, type) {
+function _buildMatchHTML(msgNum, coverText, secretMessage, hint, type, usedStegoKey) {
   let typeLabel = '';
   if (type === 'carrier_fallback') {
-    typeLabel = '<span class="badge badge--draft text-label-md" style="margin-left: 8px;">(Cover = Carrier)</span>';
+    typeLabel = '<span class="badge badge--draft text-label-sm" style="background: rgba(187,209,0,0.1); color: var(--color-primary); font-family: var(--font-label);">(Cover = Carrier)</span>';
+  }
+
+  let keyLabel = '';
+  if (usedStegoKey) {
+    keyLabel = `
+      <div style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; background: var(--color-surface-container-high); padding: 2px 8px; border-radius: var(--radius-full); font-weight: 600; color: var(--color-primary); font-family: var(--font-label);">
+        <span class="material-symbols-outlined" style="font-size: 12px;">key</span>
+        <span>${escapeHtml(usedStegoKey)}</span>
+      </div>`;
   }
 
   return `
-    <div class="stego-table__row stego-table__row--success">
-      <div class="stego-table__cell" style="padding: var(--space-lg); text-align: left;" dir="ltr">
-        
-        <!-- 1. Secret Message Box -->
-        <div style="background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-xl); padding: var(--space-md); margin-bottom: var(--space-md);">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-sm);">
-            <div style="display: inline-flex; align-items: center; gap: var(--space-sm);">
-              <span class="material-symbols-outlined" style="color: var(--color-secondary); font-size: 20px;">lock_open</span>
-              <span style="font-family: var(--font-primary); font-weight: 700; color: var(--color-secondary); font-size: var(--fs-body-md);">Secret Message:</span>
-            </div>
-            <button class="btn btn--secondary" data-secret="${escapeHtml(secretMessage)}" onclick="navigator.clipboard.writeText(this.getAttribute('data-secret')); showToast('📋 Secret message copied successfully!');" style="padding: var(--space-xs) var(--space-sm); font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
-              <span class="material-symbols-outlined" style="font-size: 14px;">content_copy</span>
-              <span>Copy</span>
-            </button>
-          </div>
-          <div style="font-size: var(--fs-headline-md); font-weight: 700; color: var(--color-on-surface); word-break: break-all; font-family: var(--font-primary); line-height: 1.4;">${escapeHtml(secretMessage)}</div>
-        </div>
-
-        <!-- 2. Attached Stego Hint (if present) -->
-        ${hint ? `
-        <div style="margin-bottom: var(--space-md); background: var(--color-surface-container-low); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-xl); padding: var(--space-md); display: flex; align-items: flex-start; gap: 12px;">
-          <span class="material-symbols-outlined" style="color: var(--color-tertiary); font-size: 20px; margin-top: 2px;">lightbulb</span>
-          <div>
-            <div style="font-size: var(--fs-body-sm); font-weight: bold; color: var(--color-tertiary); font-family: var(--font-label); margin-bottom: 2px;">Hint:</div>
-            <div style="font-size: var(--fs-body-md); color: var(--color-on-surface); font-family: var(--font-body); line-height: 1.5;">${escapeHtml(hint)}</div>
-          </div>
-        </div>` : ''}
-
-        <!-- 3. Source Cover Message Descriptor -->
-        <div style="display: flex; align-items: center; gap: var(--space-sm); font-family: var(--font-body); font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">
-          <span class="stego-table__index">#${msgNum}</span>
+    <div class="scanner-match-card">
+      <!-- Top info -->
+      <div class="scanner-match-header">
+        <div class="scanner-match-meta">
+          <span class="scanner-match-meta-index">#${msgNum}</span>
           <span>Extracted from cover message <strong>#${msgNum}</strong></span>
           ${typeLabel}
         </div>
-
+        ${keyLabel}
       </div>
+
+      <!-- Secret Message Box -->
+      <div>
+        <div class="scanner-match-secret-label-row">
+          <span class="scanner-match-secret-label">Secret Message</span>
+          <button class="btn btn--secondary" data-secret="${escapeHtml(secretMessage)}" onclick="navigator.clipboard.writeText(this.getAttribute('data-secret')); showToast('📋 Secret message copied successfully!');" style="padding: 2px var(--space-sm); font-size: 11px; display: inline-flex; align-items: center; gap: 4px; border-radius: var(--radius-default); background: var(--color-surface-container); border: 1px solid var(--color-outline-variant); height: 24px;">
+            <span class="material-symbols-outlined" style="font-size: 14px;">content_copy</span>
+            <span>Copy</span>
+          </button>
+        </div>
+        <div class="scanner-match-secret-text" dir="auto">${escapeHtml(secretMessage)}</div>
+      </div>
+
+      <!-- Hint (if present) -->
+      ${hint ? `
+      <div class="scanner-hint-box">
+        <span class="material-symbols-outlined" style="color: #D97706; font-size: 18px; margin-top: 1px;">lightbulb</span>
+        <div style="text-align: left;">
+          <div class="scanner-hint-title">Hint:</div>
+          <div class="scanner-hint-text" dir="auto">${escapeHtml(hint)}</div>
+        </div>
+      </div>` : ''}
+
     </div>`;
 }
 
@@ -537,69 +782,7 @@ function _buildMatchHTML(msgNum, coverText, secretMessage, hint, type) {
  * Build HTML for a non-matching cover result.
  */
 function _buildNoMatchHTML(msgNum, candidateText, reasonObj) {
-  const reason = reasonObj.reason;
-  const details = reasonObj.details || {};
-  const errorMsg = reasonObj.errorMsg || '';
-
-  let explanationHtml = '';
-  let statusBadge = '';
-  let rowClass = 'stego-table__row--error';
-
-  const previewText = candidateText.length > 60 ? candidateText.substring(0, 60) + '...' : candidateText;
-
-  if (reason === 'too_short') {
-    rowClass = 'stego-table__row--warning';
-    statusBadge = `<span class="badge badge--draft text-label-md">⚠️ Too Short</span>`;
-    explanationHtml = `
-      <div style="font-size: 12px; color: var(--color-tertiary); margin-top: 6px; font-weight: 600; font-family: var(--font-primary);">Message is too short to be the cover text</div>
-      <div class="stego-table__content" style="font-size: 11px; margin-top: 2px; line-height: 1.4; font-family: var(--font-body);">
-        The current message size (<strong style="color: var(--color-on-surface); font-family: monospace;">${details.available} bits</strong>) is smaller than the required VS key size (<strong style="color: var(--color-on-surface); font-family: monospace;">${details.needed} bits</strong>). It is too short to carry the hidden steganographic payload.
-      </div>
-    `;
-  } else if (reason === 'unreadable') {
-    statusBadge = `<span class="badge badge--danger text-label-md">❌ Unreadable</span>`;
-    explanationHtml = `
-      <div style="font-size: 12px; color: var(--color-error); margin-top: 6px; font-weight: 600; font-family: var(--font-primary);">Decrypted payload is unreadable (garbage data)</div>
-      <div class="stego-table__content" style="font-size: 11px; margin-top: 2px; line-height: 1.4; font-family: var(--font-body);">
-        Decapsulation and reverse XOR completed, but the recovered binary representation yielded random, unprintable characters. This usually happens when testing a wrong candidate cover or using an incorrect password.
-      </div>
-    `;
-  } else if (reason === 'invalid_utf8') {
-    statusBadge = `<span class="badge badge--danger text-label-md">🛑 Malformed Encoding</span>`;
-    explanationHtml = `
-      <div style="font-size: 12px; color: var(--color-error); margin-top: 6px; font-weight: 600; font-family: var(--font-primary);">Invalid UTF-8 binary encoding</div>
-      <div class="stego-table__content" style="font-size: 11px; margin-top: 2px; line-height: 1.4; font-family: var(--font-body);">
-        The recovered binary payload does not represent a valid UTF-8 text string, indicating data corruption or cover text mismatch.
-      </div>
-      <div style="font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--color-on-surface-variant); background: var(--color-surface-container); padding: 4px 8px; border-radius: 4px; margin-top: 6px; word-break: break-all; text-align: left;" dir="ltr">
-        Technical error: ${escapeHtml(errorMsg)}
-      </div>
-    `;
-  } else {
-    statusBadge = `<span class="badge badge--draft text-label-md">⚠️ Scan Error</span>`;
-    explanationHtml = `
-      <div style="font-size: 12px; color: var(--color-on-surface-variant); margin-top: 6px; font-weight: 600; font-family: var(--font-primary);">Verification trial failed</div>
-      <div class="stego-table__content" style="font-size: 11px; margin-top: 2px; line-height: 1.4; font-family: var(--font-body);">
-        The scan trial failed due to an unknown reason: ${escapeHtml(reason || 'unspecified')}
-      </div>
-    `;
-  }
-
-  return `
-    <div class="stego-table__row ${rowClass}">
-      <div class="stego-table__cell">
-        <div class="stego-table__meta">
-          <div class="stego-table__title-row">
-            <span class="stego-table__index">#${msgNum}</span>
-            <span class="stego-table__sender" style="color: var(--color-on-surface-variant); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;" title="${escapeHtml(candidateText)}">
-              "${escapeHtml(previewText)}"
-            </span>
-          </div>
-          ${statusBadge}
-        </div>
-        ${explanationHtml}
-      </div>
-    </div>`;
+  return '';
 }
 
 
@@ -608,20 +791,12 @@ function _buildNoMatchHTML(msgNum, candidateText, reasonObj) {
  */
 function _buildSkippedHTML(msgNum) {
   return `
-    <div class="stego-table__row stego-table__row--skipped">
-      <div class="stego-table__cell">
-        <div class="stego-table__meta">
-          <div class="stego-table__title-row">
-            <span class="stego-table__index">#${msgNum}</span>
-            <span class="stego-table__sender" style="color: var(--color-on-surface-variant); font-weight: 500;">
-              Extracted Carrier Message (Contains VS)
-            </span>
-          </div>
-          <span class="badge badge--draft text-label-md">
-            Skipped (Carrier)
-          </span>
-        </div>
+    <div style="background: var(--color-surface-container-low); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-lg); padding: var(--space-md) var(--space-lg); display: flex; align-items: center; justify-content: space-between; opacity: 0.75; width: 100%;">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: var(--fs-body-sm); color: var(--color-on-surface-variant); font-family: var(--font-body);">
+        <span style="font-weight: bold; background: var(--color-surface-container-high); color: var(--color-on-surface); padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 11px;">#${msgNum}</span>
+        <span>Extracted Carrier Message (Contains VS)</span>
       </div>
+      <span class="badge badge--draft text-label-sm" style="color: var(--color-on-surface-variant); font-family: var(--font-label);">Skipped (Carrier)</span>
     </div>`;
 }
 
@@ -665,7 +840,7 @@ function _showStep1Results(expanded) {
   html += `
       </div>
     </div>`;
-  container.innerHTML = html;
+  container.innerHTML = html; // SECURITY: All dynamic values are escaped via escapeHtml()
 
   // Update count badge
   document.getElementById('scannerStep1Count').textContent = `(📱 ${platformLabel} — ${messages.length} messages)`;
@@ -693,26 +868,27 @@ function _showStep1Results(expanded) {
  * @param {boolean} expanded - Whether to show the body expanded.
  */
 function _showStep2Results(expanded) {
-  const vsKey = _scannerState.vsKey;
-  const carrierIndex = _scannerState.carrierIndex;
+  const carriers = _scannerState.carriers;
 
   const container = document.getElementById('scannerExtractedList');
   let html = `
     <div class="stego-table" style="margin-top: 0;">
       <div class="stego-table__body">`;
 
-  // ── 1. VS Key Row (if exists)
-  if (vsKey) {
-    const hexDisplay = Array.from(vsKey).map(b => '0x' + b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
-    html += `
-      <div class="stego-table__row stego-table__row--warning">
-        <div class="stego-table__cell" dir="ltr" style="padding: var(--space-md);">
-          <div style="font-family: var(--font-body); font-size: var(--fs-body-md); color: var(--color-on-surface-variant); margin-bottom: var(--space-sm);">
-            Found in: <strong>Message #${carrierIndex + 1}</strong>
+  if (carriers.length > 0) {
+    for (let c = 0; c < carriers.length; c++) {
+      const carrier = carriers[c];
+      const hexDisplay = Array.from(carrier.vsKey).map(b => '0x' + b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      html += `
+        <div class="stego-table__row stego-table__row--warning">
+          <div class="stego-table__cell" dir="ltr" style="padding: var(--space-md);">
+            <div style="font-family: var(--font-body); font-size: var(--fs-body-md); color: var(--color-on-surface-variant); margin-bottom: var(--space-sm);">
+              🔑 Carrier Message #${carrier.index + 1} (${carrier.vsKey.length} bytes VS)
+            </div>
+            <div class="stego-table__hex-container" dir="ltr" style="margin-top: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--color-on-surface); border: 1px solid var(--color-outline-variant);">${hexDisplay}</div>
           </div>
-          <div class="stego-table__hex-container" dir="ltr" style="margin-top: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--color-on-surface); border: 1px solid var(--color-outline-variant);">${hexDisplay}</div>
-        </div>
-      </div>`;
+        </div>`;
+    }
   } else {
     html += `
       <div class="stego-table__row stego-table__row--error">
@@ -727,11 +903,11 @@ function _showStep2Results(expanded) {
   html += `
       </div>
     </div>`;
-  container.innerHTML = html;
+  container.innerHTML = html; // SECURITY: All dynamic values are escaped via escapeHtml()
 
   // Update count badge
-  const countText = vsKey
-    ? `(🔑 Extracted ${vsKey.length} bytes)`
+  const countText = carriers.length > 0
+    ? `(🔑 Extracted ${carriers.length} VS keys)`
     : '(❌ No VS detected)';
   document.getElementById('scannerStep2Count').textContent = countText;
 
@@ -757,14 +933,20 @@ function _showStep2Results(expanded) {
 
 /**
  * Check if a string contains mostly printable/readable characters.
+ * Implements a strict noise filter for short strings to prevent false positives.
  */
 function isPrintableText(text) {
   if (!text || text.length === 0) return false;
 
   let printableCount = 0;
-  for (const char of text) {
+  let hasLetterOrDigitOrEmoji = false;
+  let hasSuspiciousChar = false;
+
+  const chars = [...text];
+  for (const char of chars) {
     const code = char.codePointAt(0);
-    if (
+    
+    const isPrintable = (
       (code >= 0x20 && code <= 0x7E) ||  // ASCII printable
       (code >= 0x0600 && code <= 0x06FF) ||  // Arabic
       (code >= 0x0750 && code <= 0x077F) ||  // Arabic Supplement
@@ -775,12 +957,43 @@ function isPrintableText(text) {
       (code >= 0x1F300 && code <= 0x1FAFF) || // Emoji
       code === 0x0A || code === 0x0D ||       // Newline, CR
       code === 0x09                           // Tab
-    ) {
+    );
+
+    if (isPrintable) {
       printableCount++;
+    }
+
+    // Check if it's a letter, digit, or emoji
+    if (
+      /[\p{L}\p{N}]/u.test(char) ||
+      (code >= 0x1F300 && code <= 0x1FAFF)
+    ) {
+      hasLetterOrDigitOrEmoji = true;
+    }
+
+    // Check for suspicious characters in short strings
+    if (
+      code === 0x7B || code === 0x7D || // { }
+      code === 0x5B || code === 0x5D || // [ ]
+      code === 0x5C || code === 0x7C || // \ |
+      code === 0x5E || code === 0x7E || // ^ ~
+      code === 0x60 ||                  // `
+      code === 0x7F                     // DEL
+    ) {
+      hasSuspiciousChar = true;
     }
   }
 
-  return (printableCount / [...text].length) >= 0.8;
+  const totalLen = chars.length;
+  const ratio = printableCount / totalLen;
+
+  if (totalLen <= 8) {
+    // Short message must be 100% printable, contain at least one letter/digit/emoji, and have no suspicious characters
+    return ratio === 1.0 && hasLetterOrDigitOrEmoji && !hasSuspiciousChar;
+  }
+
+  // Longer messages need to be at least 80% printable
+  return ratio >= 0.8;
 }
 
 

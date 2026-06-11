@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — Text Steganalysis</title>
+  <meta name="description" content="Analyze text for hidden Unicode characters that may indicate steganographic content. Detect zero-width, directional, and variation selector characters."/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+  <script src="js/i18n/common.js"></script>
+  <script src="js/i18n/steganalysis.js"></script>
+  <script src="js/i18n/toasts.js"></script>
+  <script src="js/i18n/index.js"></script>
+  <script>
+    window.translations = mergeI18n(I18N_COMMON, I18N_STEGANALYSIS, I18N_TOASTS);
+  </script>
+  <script src="js/shared/theme-manager.js"></script>
+  <link rel="stylesheet" href="css/pages/steganalysis.css"/>
+</head>
+<body>
+  <script src="js/features/page-loader.js"></script>
+
+  <!-- Top Navigation Placeholder -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- ═══ Main Content ═══ -->
+  <main class="main-content">
+
+    <header class="main-header">
+      <h1 class="text-display-lg" data-i18n="steganalysisMainTitle">Text Steganalysis</h1>
+      <p class="text-body-lg" data-i18n="steganalysisMainSubtitle">Analyze text for hidden Unicode characters that may indicate steganographic content — without extracting the hidden message.</p>
+    </header>
+
+    <!-- ═══ Input Section ═══ -->
+    <section class="card" id="steganalysis-input-panel">
+      <h2 class="text-headline-md card__title" data-i18n="steganalysisCardTitle">Analysis Workflow</h2>
+
+      <div class="stack-xl">
+        <!-- Text Input -->
+        <div>
+          <div class="label-row">
+            <label class="form-label text-label-md" for="steganalysisInput" style="margin-bottom:0" data-i18n="steganalysisTextareaLabel">Input Text</label>
+            <span class="badge badge--encrypted text-label-md">
+              <span class="material-symbols-outlined">search_insights</span> <span data-i18n="steganalysisBadgeInput">Analyze</span>
+            </span>
+          </div>
+          <textarea
+            class="form-textarea"
+            id="steganalysisInput"
+            rows="10"
+            data-i18n-placeholder="steganalysisTextareaPlaceholder"
+            placeholder="Paste any chat message or text here to scan for hidden Unicode characters..."
+          ></textarea>
+        </div>
+
+        <!-- Action Button -->
+        <div class="btn-group">
+          <button class="btn btn--primary" id="steganalysis-btn">
+            <span class="material-symbols-outlined" style="font-size:18px">search_insights</span>
+            <span data-i18n="btnAnalyzeText">Analyze Text</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ Results Section (Hidden by default) ═══ -->
+    <section class="card" id="steganalysis-results-panel" style="display: none; margin-top: var(--space-lg);">
+      <h2 class="text-headline-md card__title" data-i18n="steganalysisResultsTitle">Analysis Results</h2>
+
+      <div class="stack-xl">
+        <!-- Success Header -->
+        <div class="success-header">
+          <div class="success-header__icon-wrap">
+            <span class="material-symbols-outlined" style="font-size:24px">analytics</span>
+          </div>
+          <div>
+            <div class="success-header__title" data-i18n="steganalysisResultsTitle">Analysis Results</div>
+            <div class="success-header__subtitle" data-i18n="steganalysisResultsSubtitle">Hidden character detection report for the provided text.</div>
+          </div>
+        </div>
+
+
+
+        <!-- Metric Cards -->
+        <div class="metric-cards-grid">
+          <div class="metric-card">
+            <span class="metric-card__label" data-i18n="metricTotalHidden">Hidden Characters</span>
+            <span class="metric-card__value" id="steganalysisTotalVal">0</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-card__label" data-i18n="metricDistinctTypes">Distinct Types</span>
+            <span class="metric-card__value" id="steganalysisTypesVal">0</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-card__label" data-i18n="metricAnalysisTime">Analysis Duration</span>
+            <span class="metric-card__value" id="steganalysisTimeVal">0 ms</span>
+          </div>
+        </div>
+
+        <!-- Results Body (Table or Clean State rendered here by JS) -->
+        <div id="steganalysisResultsBody"></div>
+
+        <!-- Summary -->
+        <div class="steganalysis-summary" id="steganalysisSummary" style="display: none;">
+          <span class="material-symbols-outlined steganalysis-summary__icon">summarize</span>
+          <span class="steganalysis-summary__text" id="steganalysisSummaryText"></span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer Placeholder -->
+  <div id="footer-placeholder"></div>
+
+  <!-- ═══ Core Libraries ═══ -->
+  <script src="js/shared/ui-helpers.js"></script>
+
+  <!-- ═══ Detection Engine ═══ -->
+  <script src="js/features/F_text_steganalysis.js"></script>
+
+  <!-- ═══ Dynamic Templates Loader ═══ -->
+  <script src="js/shared/template-loader.js"></script>
+
+  <!-- Floating Help/Guide Button -->
+  <button type="button" class="floating-guide-btn" data-i18n-tooltip="floatingGuideTooltip" data-tooltip="Site Guide">
+    <span class="material-symbols-outlined">help</span>
+  </button>
+</body>
+</html>

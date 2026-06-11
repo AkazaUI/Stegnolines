@@ -3,11 +3,63 @@
  * Handles sidebar tree generation, dynamic TOC, search filtering,
  * pagination calculation, theme management, and accessible navigation.
  */
+
+let docsTranslationsLoaded = false;
+let domReady = false;
+let docsInitialized = false;
+
+function tryInitDocs() {
+  if (domReady && (docsTranslationsLoaded || typeof I18N_COMMON !== 'undefined')) {
+    initDocs();
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  domReady = true;
+  tryInitDocs();
+});
+
+// Load translation files dynamically if they are not already loaded
+(function() {
+  const base = window.DOCS_BASE !== undefined ? window.DOCS_BASE : '';
+  
+  function loadScript(src, callback) {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = callback;
+    script.onerror = callback;
+    document.head.appendChild(script);
+  }
+
+  if (typeof I18N_COMMON === 'undefined') {
+    loadScript(base + 'js/i18n/common.js', function() {
+      loadScript(base + 'js/i18n/docs.js', function() {
+        loadScript(base + 'js/i18n/index.js', function() {
+          if (typeof mergeI18n === 'function') {
+            window.translations = mergeI18n(I18N_COMMON, I18N_DOCS);
+          }
+          docsTranslationsLoaded = true;
+          tryInitDocs();
+        });
+      });
+    });
+  } else {
+    if (typeof mergeI18n === 'function' && typeof I18N_DOCS !== 'undefined') {
+      window.translations = mergeI18n(I18N_COMMON, I18N_DOCS);
+    }
+    docsTranslationsLoaded = true;
+  }
+})();
+
+function initDocs() {
+  if (docsInitialized) return;
+  docsInitialized = true;
+
   const base = window.DOCS_BASE !== undefined ? window.DOCS_BASE : '';
   const currentPath = window.location.pathname.replace(/\\/g, '/');
+  const savedLang = localStorage.getItem('stegoLang') || 'en';
 
-  // ── 1. THEME SYNCRONIZATION ───────────────────────────────
+  // ── 1. THEME & LANGUAGE SYNCRONIZATION ───────────────────────────
   const themeToggles = document.querySelectorAll('#toggle-dark-mode');
   const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const savedTheme = localStorage.getItem('stegoTheme');
@@ -29,6 +81,14 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('stegoTheme', isDarkActive ? 'dark' : 'light');
     });
   });
+
+  // Apply translations immediately to data-i18n elements
+  if (typeof applyLanguageUI === 'function') {
+    applyLanguageUI(savedLang);
+  }
+
+  // Translate search placeholder and breadcrumbs
+  translateDocsExtras(savedLang);
 
   // ── 2. TOP NAV DROPDOWNS & HAMBURGER ──────────────────────
   const dropdowns = document.querySelectorAll('.top-nav__dropdown');
@@ -90,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── 3. PORTAL INDEX GRID GENERATION (documentation.html) ──
   const indexGrid = document.getElementById('docs-index-grid');
   if (indexGrid && window.DOCS_NAV) {
-    indexGrid.innerHTML = ''; // clear placeholder
+    indexGrid.replaceChildren(); // SAFE: clear placeholder without innerHTML
     window.DOCS_NAV.forEach(section => {
       const card = document.createElement('div');
       card.className = 'card docs-index-card';
@@ -104,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const title = document.createElement('h2');
       title.className = 'text-headline-md docs-index-card__title';
-      title.textContent = section.title;
+      title.textContent = (window.translations && window.translations[savedLang] && window.translations[savedLang][section.title]) || section.title;
 
       header.appendChild(icon);
       header.appendChild(title);
@@ -117,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const li = document.createElement('li');
         const link = document.createElement('a');
         link.href = base + item.href;
-        link.textContent = item.title;
+        link.textContent = (window.translations && window.translations[savedLang] && window.translations[savedLang][item.title]) || item.title;
         li.appendChild(link);
         list.appendChild(li);
       });
@@ -160,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── 4. DYNAMIC SIDEBAR TREE GENERATION ────────────────────
   const sidebarNav = document.getElementById('docs-sidebar-nav');
   if (sidebarNav && window.DOCS_NAV) {
-    sidebarNav.innerHTML = '';
+    sidebarNav.replaceChildren(); // SAFE: clear without innerHTML
     window.DOCS_NAV.forEach(section => {
       const sectionDiv = document.createElement('div');
       sectionDiv.className = 'docs-sidebar__section';
@@ -173,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
       icon.textContent = section.icon || 'play_circle';
       
       const label = document.createElement('span');
-      label.textContent = section.title;
+      label.textContent = (window.translations && window.translations[savedLang] && window.translations[savedLang][section.title]) || section.title;
       
       sectionTitle.appendChild(icon);
       sectionTitle.appendChild(label);
@@ -187,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const link = document.createElement('a');
         link.className = 'docs-sidebar__link';
         link.href = base + item.href;
-        link.textContent = item.title;
+        link.textContent = (window.translations && window.translations[savedLang] && window.translations[savedLang][item.title]) || item.title;
 
         // Check active state robustly
         if (currentPath.endsWith(item.href)) {
@@ -228,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const onpageToc = document.getElementById('docs-onpage-toc');
   const articleContent = document.querySelector('.docs-article');
   if (onpageToc && articleContent) {
-    onpageToc.innerHTML = '';
+    onpageToc.replaceChildren(); // SAFE: clear without innerHTML
     const headings = articleContent.querySelectorAll('h2, h3');
     
     if (headings.length > 0) {
@@ -276,7 +336,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const prevItem = flatItems[currentIndex - 1];
         prevLink.href = base + prevItem.href;
         const labelEl = prevLink.querySelector('.docs-pager__label');
-        if (labelEl) labelEl.textContent = prevItem.title;
+        if (labelEl) {
+          labelEl.textContent = (window.translations && window.translations[savedLang] && window.translations[savedLang][prevItem.title]) || prevItem.title;
+        }
         prevLink.removeAttribute('hidden');
       }
 
@@ -285,9 +347,61 @@ document.addEventListener('DOMContentLoaded', () => {
         const nextItem = flatItems[currentIndex + 1];
         nextLink.href = base + nextItem.href;
         const labelEl = nextLink.querySelector('.docs-pager__label');
-        if (labelEl) labelEl.textContent = nextItem.title;
+        if (labelEl) {
+          labelEl.textContent = (window.translations && window.translations[savedLang] && window.translations[savedLang][nextItem.title]) || nextItem.title;
+        }
         nextLink.removeAttribute('hidden');
       }
     }
   }
-});
+}
+
+function translateDocsExtras(savedLang) {
+  if (!window.translations || !window.translations[savedLang]) return;
+  
+  // 1. Translate search placeholder
+  const searchInput = document.getElementById('docs-search-input');
+  if (searchInput && window.translations[savedLang].docsSearchPlaceholder) {
+    searchInput.setAttribute('placeholder', window.translations[savedLang].docsSearchPlaceholder);
+    searchInput.setAttribute('data-i18n-placeholder', 'docsSearchPlaceholder');
+  }
+
+  // 2. Translate breadcrumbs
+  const breadcrumb = document.querySelector('.docs-breadcrumb');
+  if (breadcrumb) {
+    const links = breadcrumb.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'documentation') {
+        link.textContent = savedLang === 'ar' ? 'فهرس التوثيق' : 'Documentation';
+      }
+    });
+    const spans = breadcrumb.querySelectorAll('span:not(.docs-breadcrumb__sep)');
+    if (spans.length >= 2) {
+      const secText = spans[0].textContent.trim();
+      const titleText = spans[1].textContent.trim();
+      spans[0].textContent = (window.translations[savedLang] && window.translations[savedLang][secText]) || secText;
+      spans[1].textContent = (window.translations[savedLang] && window.translations[savedLang][titleText]) || titleText;
+    }
+  }
+
+  // 3. Translate "On this page" heading in TOC sidebar
+  const tocHeading = document.querySelector('.docs-toc__heading');
+  if (tocHeading) {
+    tocHeading.textContent = savedLang === 'ar' ? 'في هذه الصفحة' : 
+                             savedLang === 'fr' ? 'Sur cette page' :
+                             savedLang === 'zh' ? '本页内容' :
+                             savedLang === 'la' ? 'In hac pagina' : 'On this page';
+  }
+  
+  // 4. Translate "Contents" button text on mobile
+  const sidebarToggle = document.getElementById('docs-sidebar-toggle');
+  if (sidebarToggle) {
+    const textNode = Array.from(sidebarToggle.childNodes).find(n => n.nodeType === Node.TEXT_NODE && n.textContent.trim().length > 0);
+    if (textNode) {
+      textNode.textContent = ' ' + (savedLang === 'ar' ? 'المحتويات' : 
+                                    savedLang === 'fr' ? 'Contenu' :
+                                    savedLang === 'zh' ? '目录' :
+                                    savedLang === 'la' ? 'Index' : 'Contents');
+    }
+  }
+}

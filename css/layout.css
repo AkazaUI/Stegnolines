@@ -1,0 +1,91 @@
+/* ── LAYOUT & CONTAINERS ── */
+
+.main-content {
+  padding: var(--space-margin-mobile);
+  max-width: 80rem;
+  margin: 0 auto;
+  flex: 1 0 auto;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .main-content {
+    padding: var(--space-margin-desktop);
+  }
+}
+
+.main-header {
+  margin-bottom: var(--space-xl);
+}
+.main-header h1 {
+  color: var(--color-on-surface);
+  margin-bottom: var(--space-xs);
+}
+.main-header p {
+  color: var(--color-on-surface-variant);
+}
+
+/* ── GRID SYSTEM ── */
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-gutter);
+}
+@media (min-width: 1024px) {
+  .grid-2col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.grid-2col-md {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-gutter);
+}
+@media (min-width: 768px) {
+  .grid-2col-md {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.grid-3col-md {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-gutter);
+}
+@media (min-width: 768px) {
+  .grid-3col-md {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.col-span-full {
+  grid-column: 1 / -1;
+}
+
+/* ── CARD SECTIONS ── */
+.card {
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-colors);
+}
+.card--mt { margin-top: var(--space-gutter); }
+.card--mb { margin-bottom: var(--space-3xl); }
+
+.card__title {
+  color: var(--color-on-surface);
+  border-bottom: 1px solid var(--color-surface-variant);
+  padding-bottom: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+.card__title--alt {
+  border-bottom-color: var(--color-outline-variant);
+}
+
+/* ── STACK FLOW FLOW CONTROL (Vertical Spacings) ── */
+.stack-xl > * + * { margin-top: var(--space-xl); }
+.stack-lg > * + * { margin-top: var(--space-lg); }
+.stack-md > * + * { margin-top: var(--space-md); }
+.stack-sm > * + * { margin-top: var(--space-sm); }

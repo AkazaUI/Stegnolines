@@ -93,9 +93,29 @@ function updateVSVisualization(binaryKey, bytesArr) {
       }
       htmlContent += `</div>`;
       htmlContent += `<div style="margin-top: var(--space-sm); padding-top: var(--space-xs); border-top: 1px solid var(--color-outline-variant); font-weight: 600; color: var(--color-on-surface-variant); opacity: 0.7; font-size: 0.72rem; font-family: 'Sora', sans-serif;">${bytesArr.length} bytes \u2192 ${bytesArr.length} VS characters</div>`;
-      htmlContainer.innerHTML = htmlContent;
+      // SAFE: Build visualization header + grid + footer programmatically
+      htmlContainer.replaceChildren();
+
+      const headerDiv = document.createElement('div');
+      headerDiv.style.cssText = "margin-bottom: var(--space-sm); font-weight: 600; color: var(--color-on-surface-variant); opacity: 0.7; font-size: 0.72rem; letter-spacing: 0.5px; font-family: 'Sora', sans-serif;";
+      headerDiv.innerHTML = `BINARY KEY &mdash; ${binaryKey.length} BITS`; // SECURITY: binaryKey.length is a number (safe)
+
+      const gridDiv = document.createElement('div');
+      gridDiv.className = 'vs-bytes-grid';
+      // SECURITY: formatKeyByteLineHtml uses only computed numeric values (safe)
+      gridDiv.innerHTML = bytesArr.map((b, i) => formatKeyByteLineHtml(b, i)).join('');
+
+      const footerDiv = document.createElement('div');
+      footerDiv.style.cssText = "margin-top: var(--space-sm); padding-top: var(--space-xs); border-top: 1px solid var(--color-outline-variant); font-weight: 600; color: var(--color-on-surface-variant); opacity: 0.7; font-size: 0.72rem; font-family: 'Sora', sans-serif;";
+      footerDiv.textContent = `${bytesArr.length} bytes \u2192 ${bytesArr.length} VS characters`;
+
+      htmlContainer.replaceChildren(headerDiv, gridDiv, footerDiv);
     } else {
-      htmlContainer.innerHTML = `<span style="opacity: 0.5; font-style: italic;">No VS characters analyzed.</span>`;
+      // SAFE: fallback text set via textContent
+      const fallbackSpan = document.createElement('span');
+      fallbackSpan.style.cssText = 'opacity: 0.5; font-style: italic;';
+      fallbackSpan.textContent = 'No VS characters analyzed.';
+      htmlContainer.replaceChildren(fallbackSpan);
     }
   }
 }
