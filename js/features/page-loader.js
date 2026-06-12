@@ -135,17 +135,18 @@
     observer.observe(document.documentElement, { childList: true });
   }
 
-  // ── FADE OUT CONTROL ──
-  // Enforce a minimum display duration and verify all document fonts are fully loaded
+  // ── SMART FADE OUT & NETWORK DURATION CONTROL ──
   const loadStartTime = Date.now();
-  const MIN_LOAD_TIME = 4000; // 4 seconds minimum overlay duration
+  const FAST_LOAD_THRESHOLD = 1500; // 1.5 seconds threshold for fast connection
+  const MIN_FAST_LOAD_TIME = 800;   // 0.8 seconds minimum duration for fast connection (premium visual transition)
+  const MAX_LOAD_TIME = 6000;       // 6.0 seconds maximum loading time before slowness/offline handling
   let hasFaded = false;
+  let failsafeTimeoutId = null;
 
   async function fadeOutLoader() {
     if (hasFaded) return;
-    hasFaded = true;
-    
-    // Premium Font Loading API integration: wait until all Google Fonts/Material Symbols are fully loaded
+
+    // Premium Font Loading API integration: wait until Google Fonts/Material Symbols are fully loaded
     if (document.fonts && typeof document.fonts.ready === 'object') {
       try {
         await document.fonts.ready;
@@ -153,26 +154,62 @@
         // Fallback on font load failure
       }
     }
-    
+
+    // Double check hasFaded in case the 6-second timeout triggered while we were waiting for fonts
+    if (hasFaded) return;
+    hasFaded = true;
+
+    // Clear failsafe/slowness timeout since we are fading out successfully
+    if (failsafeTimeoutId) {
+      clearTimeout(failsafeTimeoutId);
+    }
+
     const loaderEl = document.getElementById('page-loader');
     if (loaderEl) {
       const elapsed = Date.now() - loadStartTime;
-      const remaining = Math.max(0, MIN_LOAD_TIME - elapsed);
-      
+      let remaining = 0;
+
+      if (elapsed <= FAST_LOAD_THRESHOLD) {
+        // Fast load: enforce a tiny aesthetic delay to prevent jar/flicker
+        remaining = Math.max(0, MIN_FAST_LOAD_TIME - elapsed);
+      } else {
+        // Slow load (but under 6s): hide immediately to show content as fast as possible
+        remaining = 0;
+      }
+
       setTimeout(() => {
         loaderEl.classList.add('fade-out');
       }, remaining);
     }
   }
 
-  // Bind loader removal to window load or a failsafe timeout
+  // Bind loader removal to window load
   if (document.readyState === 'complete') {
     fadeOutLoader();
   } else {
     window.addEventListener('load', fadeOutLoader);
-    // Failsafe backup timeout: 8 seconds maximum loading state (prevents infinite loader)
-    setTimeout(fadeOutLoader, 8000);
   }
+
+  // Smart slowness/offline handling: if loader persists for > 6 seconds, redirect to offline page
+  failsafeTimeoutId = setTimeout(() => {
+    if (hasFaded) return;
+
+    // Detect if current page is offline.html to prevent infinite redirect loops
+    const isOfflinePage = window.location.pathname.endsWith('offline.html');
+
+    if (!isOfflinePage) {
+      // Redirect to offline page with current page as a redirect parameter for retry
+      const currentUrl = window.location.href;
+      window.location.href = 'offline.html?redirect=' + encodeURIComponent(currentUrl);
+    } else {
+      // If we are on the offline page itself, just fade out the loader so it's not stuck forever
+      hasFaded = true;
+      const loaderEl = document.getElementById('page-loader');
+      if (loaderEl) {
+        loaderEl.classList.add('fade-out');
+      }
+    }
+  }, MAX_LOAD_TIME);
 
   // ── EFFICIENT NAVIGATION INTERCEPTION ──
   // Intercept all internal page-to-page navigation links to play exit transitions

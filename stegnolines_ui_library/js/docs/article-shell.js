@@ -71,7 +71,6 @@ function shell(meta) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>STEGNOLINES — ${meta.title}</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../../styles.css"/>
   <link rel="stylesheet" href="../../documentation.css"/>
   <script>window.DOCS_BASE = '../../';</script>

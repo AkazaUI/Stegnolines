@@ -11,6 +11,7 @@
 @import url('layout.css');
 
 /* ── 3. REUSABLE ATOMIC COMPONENTS ── */
+@import url('components/material-symbols.css');
 @import url('components/navbar.css');
 @import url('components/footer.css');
 @import url('components/buttons.css');

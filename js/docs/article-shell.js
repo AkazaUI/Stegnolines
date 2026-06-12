@@ -286,7 +286,6 @@ function shell(meta) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>STEGNOLINES — ${meta.title}</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../../New_styles.css"/>
   <link rel="stylesheet" href="../../css/main.css"/>
   <link rel="stylesheet" href="../../css/pages/docs.css"/>
