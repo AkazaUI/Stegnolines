@@ -372,25 +372,36 @@ async function _runTryStep() {
 
     // 1. Try the carrier's own clean text first (fallback or normal embedding)
     const carrierCleanText = cleanMessages[carrierIndex];
+    const carrierCoverBits = stringToBinary(carrierCleanText);
     let carrierMatched = false;
 
-    for (const stKey of stegoKeys) {
-      for (const aesKey of aesKeys) {
-        const carrierResult = await _tryOneCover(carrierCleanText, xorKeyBinary, stKey, aesKey);
-        if (carrierResult.match) {
-          matches.push({
-            index: carrierIndex + 1,
-            coverText: carrierCleanText,
-            secretMessage: carrierResult.secretMessage,
-            hint: carrierResult.hint,
-            type: 'carrier_fallback',
-            usedStegoKey: stKey
-          });
-          carrierMatched = true;
-          break;
-        }
+    if (carrierCoverBits.length >= xorKeyBinary.length) {
+      // Pre-resolve stego keys for this carrier clean text
+      const resolvedStegoKeysMap = {};
+      for (const stKey of stegoKeys) {
+        const { resolvedStegoKey } = await resolveStegoKey(stKey, carrierCleanText);
+        resolvedStegoKeysMap[stKey] = resolvedStegoKey;
       }
-      if (carrierMatched) break;
+
+      for (const stKey of stegoKeys) {
+        const resolvedStegoKey = resolvedStegoKeysMap[stKey];
+        for (const aesKey of aesKeys) {
+          const carrierResult = await _tryOneCover(carrierCleanText, carrierCoverBits, xorKeyBinary, resolvedStegoKey, aesKey);
+          if (carrierResult.match) {
+            matches.push({
+              index: carrierIndex + 1,
+              coverText: carrierCleanText,
+              secretMessage: carrierResult.secretMessage,
+              hint: carrierResult.hint,
+              type: 'carrier_fallback',
+              usedStegoKey: stKey
+            });
+            carrierMatched = true;
+            break;
+          }
+        }
+        if (carrierMatched) break;
+      }
     }
 
     // 2. Try other clean messages in the chat if carrier fallback didn't match
@@ -399,11 +410,26 @@ async function _runTryStep() {
         if (i === carrierIndex) continue;
 
         const candidateCover = cleanMessages[i];
+        const candidateCoverBits = stringToBinary(candidateCover);
+
+        // Early skip if candidate cover is too short
+        if (candidateCoverBits.length < xorKeyBinary.length) {
+          continue;
+        }
+
+        // Pre-resolve stego keys for this candidate cover text
+        const resolvedStegoKeysMap = {};
+        for (const stKey of stegoKeys) {
+          const { resolvedStegoKey } = await resolveStegoKey(stKey, candidateCover);
+          resolvedStegoKeysMap[stKey] = resolvedStegoKey;
+        }
+
         let foundMatchForCover = false;
 
         for (const stKey of stegoKeys) {
+          const resolvedStegoKey = resolvedStegoKeysMap[stKey];
           for (const aesKey of aesKeys) {
-             const result = await _tryOneCover(candidateCover, xorKeyBinary, stKey, aesKey);
+            const result = await _tryOneCover(candidateCover, candidateCoverBits, xorKeyBinary, resolvedStegoKey, aesKey);
             if (result.match) {
               const isDuplicate = matches.some(m => m.secretMessage === result.secretMessage);
               if (!isDuplicate) {
@@ -580,24 +606,14 @@ async function _runTryStep() {
  * Try a single cover text candidate against the VS key.
  *
  * @param {string} candidateCover - The cover text to test.
- * @param {string} xorKeyBinary  - The XOR key as a binary string.
- * @param {string} password      - The user-supplied password.
+ * @param {string} coverBits      - The binary string representation of candidateCover.
+ * @param {string} xorKeyBinary   - The XOR key as a binary string.
+ * @param {string} resolvedStegoKey - The resolved stego key.
+ * @param {string} encryptionKey  - The user-supplied AES encryption key.
  * @returns {Promise<{ match: boolean, secretMessage?: string, hint?: string, reason?: string, details?: any, errorMsg?: string }>}
  */
-async function _tryOneCover(candidateCover, xorKeyBinary, password, encryptionKey) {
-  const coverBits = stringToBinary(candidateCover);
-
-  if (xorKeyBinary.length > coverBits.length) {
-    return {
-      match: false,
-      reason: 'too_short',
-      details: { needed: xorKeyBinary.length, available: coverBits.length }
-    };
-  }
-
+async function _tryOneCover(candidateCover, coverBits, xorKeyBinary, resolvedStegoKey, encryptionKey) {
   try {
-    const { resolvedStegoKey } = await resolveStegoKey(password, candidateCover);
-
     const positions = generatePositions(coverBits.length, xorKeyBinary.length, resolvedStegoKey);
     const recoveredBinary = recoverPayloadBits(coverBits, positions, xorKeyBinary);
     const recoveredPayload = binaryToBytes(recoveredBinary);

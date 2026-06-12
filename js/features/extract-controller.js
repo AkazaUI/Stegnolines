@@ -244,7 +244,11 @@ function applyLanguage(lang) {
   if (selectLabel) {
     const key = selectLabel.getAttribute('data-i18n');
     if (key && TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
-      selectLabel.textContent = TRANSLATIONS[lang][key];
+      if (typeof syncPlatformSelectLabel === 'function') {
+        syncPlatformSelectLabel(lang);
+      } else {
+        selectLabel.textContent = TRANSLATIONS[lang][key];
+      }
     }
   }
 

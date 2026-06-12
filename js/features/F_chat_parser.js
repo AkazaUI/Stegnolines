@@ -35,18 +35,40 @@ const CHAT_PLATFORMS = {
   // ── WhatsApp Android ────────────────────────────────
   // Format: "12/5/26, 2:30 PM – Ahmed: Message text"
   // Format: "5/12/2026, 14:30 - Ahmed: Message text"
+  // Format: "١٢/٦/٢٠٢٦, ٧:٤٦ ص - Ahmed: Message text"
+  // Format: "٧:٤٦ ص، ١٢/٦ - Ahmed: Message text"
   whatsapp_android: {
     name: 'WhatsApp (Android)',
-    regex: /^(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?)\s*([APap][Mm])?\s*[-–]\s*([^:]+):\s*(.+)/,
-    extract: (match) => ({ sender: match[4].trim(), message: match[5].trim() }),
+    regex: /^([^\n\-–]+?)\s*[-–]\s*([^:]+):\s*(.+)/,
+    extract: (match) => ({ sender: match[2].trim(), message: match[3].trim() }),
   },
 
   // ── WhatsApp iOS ────────────────────────────────────
   // Format: "[12/5/26, 2:30:00 PM] Ahmed: Message text"
+  // Format: "[٧:٤٦ ص، ١٢/٦] Ahmed: Message text"
   whatsapp_ios: {
     name: 'WhatsApp (iOS)',
-    regex: /^\[(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?)\s*([APap][Mm])?\]\s*([^:]+):\s*(.+)/,
-    extract: (match) => ({ sender: match[4].trim(), message: match[5].trim() }),
+    regex: /^\[([^\]\n]+)\]\s*([^:]+):\s*(.+)/,
+    extract: (match) => ({ sender: match[2].trim(), message: match[3].trim() }),
+  },
+
+  // ── Facebook Messenger ──────────────────────────────
+  // Format: "Ahmed\nHello my friend\n12:30 PM"
+  // Format: "Ahmed\n12:30 PM\nHello my friend"
+  facebook: {
+    name: 'Facebook Messenger',
+    regex: /^([^:\n]{1,30})\s*(?:\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?)?\s*$/,
+    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    multilineBody: true,
+  },
+
+  // ── Instagram ───────────────────────────────────────
+  // Format: "Ahmed\nHello my friend"
+  instagram: {
+    name: 'Instagram',
+    regex: /^([^:\n]{1,30})\s*(?:\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?)?\s*$/,
+    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    multilineBody: true,
   },
 
   // ── Telegram ────────────────────────────────────────
@@ -60,29 +82,56 @@ const CHAT_PLATFORMS = {
     multilineBody: true,
   },
 
-  // ── Discord ─────────────────────────────────────────
-  // Format: "Ahmed — Today at 2:30 PM\nMessage text"
-  // Format: "Ahmed — 05/12/2026 2:30 PM\nMessage text"
-  discord: {
-    name: 'Discord',
-    regex: /^(.+?)\s*[—–-]\s*(?:Today at|Yesterday at|\d{1,2}\/\d{1,2}\/\d{2,4})\s+\d{1,2}:\d{2}\s*(?:[APap][Mm])?\s*$/,
+  // ── X (Twitter) ─────────────────────────────────────
+  // Format: "Ahmed\n@ahmed_handle\nHello my friend"
+  x: {
+    name: 'X (Twitter)',
+    regex: /^([^:\n]{1,30})(?:\s+@[a-zA-Z0-9_]{1,20})?\s*$/,
     extract: (match) => ({ sender: match[1].trim(), message: '' }),
     multilineBody: true,
   },
 
-  // ── Signal ──────────────────────────────────────────
-  // Format: "Ahmed, 2:30 PM: Message text"
-  signal: {
-    name: 'Signal',
-    regex: /^([^,]+),\s+\d{1,2}:\d{2}\s*(?:[APap][Mm])?:\s*(.+)/,
-    extract: (match) => ({ sender: match[1].trim(), message: match[2].trim() }),
+  // ── TikTok ──────────────────────────────────────────
+  // Format: "Ahmed\nHello my friend"
+  tiktok: {
+    name: 'TikTok',
+    regex: /^([^:\n]{1,30})\s*(?:\d{1,2}:\d{2})?\s*$/,
+    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    multilineBody: true,
   },
 
-  // ── iMessage ────────────────────────────────────────
-  // Format: "Ahmed  2:30 PM\nMessage text"
-  imessage: {
-    name: 'iMessage',
-    regex: /^(.+?)\s{2,}\d{1,2}:\d{2}\s*(?:[APap][Mm])?\s*$/,
+  // ── YouTube ─────────────────────────────────────────
+  // Format: "Ahmed\n12:30 PM\nMessage text"
+  youtube: {
+    name: 'YouTube',
+    regex: /^([^:\n]{1,30})\s*(?:\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?)?\s*$/,
+    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    multilineBody: true,
+  },
+
+  // ── WeChat ──────────────────────────────────────────
+  // Format: "Ahmed: Message text"
+  // Format: "[12:30] Ahmed: Message text"
+  wechat: {
+    name: 'WeChat',
+    regex: /^(?:\[([^\]\n]+)\]\s*)?([^:]{1,30}):\s*(.+)/,
+    extract: (match) => ({ sender: match[2].trim(), message: match[3].trim() }),
+  },
+
+  // ── Snapchat ────────────────────────────────────────
+  // Format: "Ahmed\nHello my friend"
+  snapchat: {
+    name: 'Snapchat',
+    regex: /^([^:\n]{1,30})\s*(?:\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?)?\s*$/,
+    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    multilineBody: true,
+  },
+
+  // ── LinkedIn ────────────────────────────────────────
+  // Format: "Ahmed\n12:30 PM\nMessage text"
+  linkedin: {
+    name: 'LinkedIn',
+    regex: /^([^:\n]{1,30})\s*(?:\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?)?\s*$/,
     extract: (match) => ({ sender: match[1].trim(), message: '' }),
     multilineBody: true,
   },
@@ -170,10 +219,13 @@ function parseChat(rawText, platform) {
       // Start new message
       currentMessage = config.extract(match);
 
-    } else if (currentMessage) {
-      // Continuation line — append to current message body
+    } else {
+      // Continuation line or prefix before first match — append to current message body
       const trimmed = line.trim();
       if (trimmed) {
+        if (!currentMessage) {
+          currentMessage = { sender: '', message: '' };
+        }
         currentMessage.message += (currentMessage.message ? '\n' : '') + trimmed;
       }
     }

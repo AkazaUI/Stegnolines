@@ -715,6 +715,16 @@
         options.classList.remove('open');
       }
     });
+
+    // Dynamically inject onboarding tour CSS and JS
+    const tourLink = document.createElement('link');
+    tourLink.rel = 'stylesheet';
+    tourLink.href = `${prefix}css/components/site-tour.css`;
+    document.head.appendChild(tourLink);
+
+    const tourScript = document.createElement('script');
+    tourScript.src = `${prefix}js/shared/site-tour.js`;
+    document.body.appendChild(tourScript);
   }
 
   if (document.readyState === 'loading') {

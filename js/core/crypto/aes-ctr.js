@@ -10,7 +10,14 @@
  * @param {string} coverText     - The stego carrier text (available to both parties).
  * @returns {Promise<{ keyBytes: Uint8Array, counterBytes: Uint8Array }>}
  */
+const _aesCtrParamsCache = new Map();
+
 async function deriveAesCtrParams(encryptionKey, coverText) {
+  const cacheKey = (encryptionKey || '') + "::" + (coverText || '');
+  if (_aesCtrParamsCache.has(cacheKey)) {
+    return _aesCtrParamsCache.get(cacheKey);
+  }
+
   const encoder = typeof SHARED_TEXT_ENCODER !== 'undefined' ? SHARED_TEXT_ENCODER : new TextEncoder();
 
   // 1. Derive a unique, high-entropy 16-byte Salt from the Cover Text
@@ -43,7 +50,9 @@ async function deriveAesCtrParams(encryptionKey, coverText) {
   const keyBytes = derivedBytes.slice(0, 32);     // First 256 bits for AES-256 Key
   const counterBytes = derivedBytes.slice(32, 48); // Remaining 128 bits for Counter block
 
-  return { keyBytes, counterBytes };
+  const result = { keyBytes, counterBytes };
+  _aesCtrParamsCache.set(cacheKey, result);
+  return result;
 }
 
 /**

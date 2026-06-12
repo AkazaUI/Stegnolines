@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <link rel="icon" type="image/png" href="assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — Network Error</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+  
+  <script src="js/i18n/common.js"></script>
+  <script src="js/i18n/offline.js"></script>
+  <script src="js/i18n/toasts.js"></script>
+  <script src="js/i18n/index.js"></script>
+  <script>
+    // Merge translations for navigation, footer, offline content, and toasts
+    window.translations = mergeI18n(I18N_COMMON, I18N_OFFLINE, I18N_TOASTS);
+  </script>
+  <script src="js/shared/theme-manager.js"></script>
+</head>
+<body>
+  <script src="js/features/page-loader.js"></script>
+
+  <!-- Top Navigation Placeholder -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- ═══ Main Content ═══ -->
+  <main class="main-content">
+    <div class="offline-container">
+      <div class="offline-card">
+        <!-- Radar / Pulse visual representing network status -->
+        <div class="offline-radar">
+          <div class="offline-radar__ring"></div>
+          <div class="offline-radar__ring"></div>
+          <div class="offline-radar__ring"></div>
+          <div class="offline-radar__icon-wrapper">
+            <span class="material-symbols-outlined offline-radar__icon" id="network-visual-icon">wifi_off</span>
+          </div>
+        </div>
+
+        <h1 class="text-display-lg offline-card__title" data-i18n="offlineMainTitle">Network Error</h1>
+        <p class="offline-card__subtitle" data-i18n="offlineMainSubtitle">We couldn't connect to the network. Let's get you back online.</p>
+        
+        <div class="offline-card__desc" data-i18n="offlineErrorMsg">
+          Your connection is too slow, unstable, or completely disconnected. Please check your internet settings and try again.
+        </div>
+
+        <!-- Troubleshooting Checklist -->
+        <div class="offline-checklist">
+          <div class="offline-checklist__title">
+            <span class="material-symbols-outlined">network_check</span>
+            <span data-i18n="offlineTroubleshootTitle">Troubleshooting Checklist:</span>
+          </div>
+          <ul class="offline-checklist__list">
+            <li class="offline-checklist__item">
+              <span class="material-symbols-outlined">radio_button_checked</span>
+              <span data-i18n="offlineTroubleshoot1">Check your Wi-Fi network or mobile data switch.</span>
+            </li>
+            <li class="offline-checklist__item">
+              <span class="material-symbols-outlined">radio_button_checked</span>
+              <span data-i18n="offlineTroubleshoot2">Ensure your device is not in Airplane Mode.</span>
+            </li>
+            <li class="offline-checklist__item">
+              <span class="material-symbols-outlined">radio_button_checked</span>
+              <span data-i18n="offlineTroubleshoot3">Disconnect from any VPN or proxy that might block the connection.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="offline-card__actions">
+          <button class="btn btn--primary btn-retry" id="btn-retry-conn">
+            <span class="spinner-inline"></span>
+            <span class="material-symbols-outlined" style="font-size:18px">refresh</span>
+            <span data-i18n="btnRetryConnection">Retry Connection</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer Placeholder -->
+  <div id="footer-placeholder"></div>
+
+  <!-- ═══ Core Libraries ═══ -->
+  <script src="js/shared/ui-helpers.js"></script>
+  <script src="js/shared/template-loader.js"></script>
+
+  <!-- Connection Test Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const btnRetry = document.getElementById('btn-retry-conn');
+      const networkIcon = document.getElementById('network-visual-icon');
+
+      if (btnRetry) {
+        btnRetry.addEventListener('click', () => {
+          // Put button in loading state
+          btnRetry.classList.add('loading');
+          btnRetry.disabled = true;
+
+          // Swap text to checking status
+          const currentLang = localStorage.getItem('stegoLang') || 'en';
+          const checkingText = (window.translations[currentLang] && window.translations[currentLang]['btnTestingConnection']) || 'Checking network...';
+          const btnLabel = btnRetry.querySelector('[data-i18n="btnRetryConnection"]');
+          if (btnLabel) {
+            btnLabel.textContent = checkingText;
+          }
+
+          // Visual cue: Change icon to wifi searching
+          if (networkIcon) {
+            networkIcon.textContent = 'wifi_find';
+          }
+
+          const originalText = (window.translations[currentLang] && window.translations[currentLang]['btnRetryConnection']) || 'Retry Connection';
+
+          if (window.location.protocol === 'file:') {
+            // On file:// protocol, bypass fetch check to avoid CORS blocks
+            setTimeout(() => {
+              if (navigator.onLine) {
+                if (networkIcon) {
+                  networkIcon.textContent = 'wifi';
+                  networkIcon.style.color = '#BBD100'; // Make icon glow green
+                }
+
+                showToast('Connection restored! Redirecting you back...');
+
+                setTimeout(() => {
+                  const params = new URLSearchParams(window.location.search);
+                  const redirectUrl = params.get('redirect') ? decodeURIComponent(params.get('redirect')) : 'embed.html';
+                  window.location.href = redirectUrl;
+                }, 1800);
+              } else {
+                if (networkIcon) {
+                  networkIcon.textContent = 'wifi_off';
+                  networkIcon.style.color = ''; // Reset color
+                }
+
+                showToast('❌ Connection test failed. Please check your network and try again.');
+
+                btnRetry.classList.remove('loading');
+                btnRetry.disabled = false;
+                if (btnLabel) {
+                  btnLabel.textContent = originalText;
+                }
+              }
+            }, 1200);
+          } else {
+            // On HTTP/S protocols, do a real fetch latency check
+            const checkUrl = 'assets/brand/favicon.png?t=' + Date.now();
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+            fetch(checkUrl, {
+              method: 'HEAD',
+              cache: 'no-store',
+              signal: controller.signal
+            })
+            .then(res => {
+              clearTimeout(timeoutId);
+              
+              if (networkIcon) {
+                networkIcon.textContent = 'wifi';
+                networkIcon.style.color = '#BBD100'; // Make icon glow green
+              }
+
+              showToast('Connection restored! Redirecting you back...');
+
+              setTimeout(() => {
+                const params = new URLSearchParams(window.location.search);
+                const redirectUrl = params.get('redirect') ? decodeURIComponent(params.get('redirect')) : 'embed.html';
+                window.location.href = redirectUrl;
+              }, 1800);
+            })
+            .catch(err => {
+              clearTimeout(timeoutId);
+
+              if (networkIcon) {
+                networkIcon.textContent = 'wifi_off';
+                networkIcon.style.color = ''; // Reset color
+              }
+
+              showToast('❌ Connection test failed. Please check your network and try again.');
+
+              btnRetry.classList.remove('loading');
+              btnRetry.disabled = false;
+              if (btnLabel) {
+                btnLabel.textContent = originalText;
+              }
+            });
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

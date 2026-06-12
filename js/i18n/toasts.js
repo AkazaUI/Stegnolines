@@ -206,6 +206,20 @@ const I18N_TOASTS = {
     fr: "Élément non trouvé.",
     zh: "未找到元素。",
     la: "Elementum non inventum."
+  },
+  "Connection restored! Redirecting you back...": {
+    en: "Connection restored! Redirecting you back...",
+    ar: "تم استعادة الاتصال بنجاح! جاري إعادتك...",
+    fr: "Connexion rétablie ! Redirection en cours...",
+    zh: "连接已恢复！正在返回...",
+    la: "Connexio restituta! Redirecundus es..."
+  },
+  "Connection test failed. Please check your network and try again.": {
+    en: "Connection test failed. Please check your network and try again.",
+    ar: "تعذر الاتصال بالشبكة. يرجى التحقق وإعادة المحاولة.",
+    fr: "Échec du test de connexion. Veuillez vérifier votre réseau.",
+    zh: "连接测试失败。请检查您的网络并重试。",
+    la: "Probatio connexionis defecit. Quaeso rege retem tuam."
   }
 };
 

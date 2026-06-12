@@ -13,37 +13,70 @@ function togglePlatformSelect(e) {
   if (optionsEl) optionsEl.classList.toggle('open');
 }
 
-function selectPlatformOption(value, label) {
-  const scannerPlatform = document.getElementById('scannerPlatform');
-  if (scannerPlatform) scannerPlatform.value = value;
-  
+function syncPlatformSelectLabel(lang) {
   const labelSpan = document.getElementById('platformSelectLabel');
+  const scannerPlatform = document.getElementById('scannerPlatform');
+  if (!labelSpan || !scannerPlatform) return;
   
+  const value = scannerPlatform.value || 'auto';
+  const opt = document.querySelector(`#platformSelectOptions .custom-option[data-value="${value}"]`);
+  if (!opt) return;
+  
+  const iconWrapper = opt.querySelector('.platform-icon-wrapper');
   const translationKeys = {
     auto: "platformAuto",
     whatsapp_android: "platformWhatsAppAndroid",
     whatsapp_ios: "platformWhatsAppIos",
+    facebook: "platformFacebook",
+    instagram: "platformInstagram",
     telegram: "platformTelegram",
-    discord: "platformDiscord",
-    signal: "platformSignal",
-    imessage: "platformIMessage",
+    x: "platformX",
+    tiktok: "platformTikTok",
+    youtube: "platformYouTube",
+    wechat: "platformWeChat",
+    snapchat: "platformSnapchat",
+    linkedin: "platformLinkedIn",
     manual: "platformManual",
     generic: "platformGeneric"
   };
   
   const key = translationKeys[value];
-  if (key && typeof TRANSLATIONS_EXTRACT !== 'undefined' && labelSpan) {
+  if (key) {
     labelSpan.setAttribute('data-i18n', key);
-    const currentLang = document.documentElement.getAttribute('lang') || 'en';
-    if (TRANSLATIONS_EXTRACT[currentLang]) {
-      labelSpan.textContent = TRANSLATIONS_EXTRACT[currentLang][key] || label;
+    let nameText = "";
+    
+    // Attempt to resolve translations from extract dictionary
+    if (typeof TRANSLATIONS_EXTRACT !== 'undefined' && TRANSLATIONS_EXTRACT[lang] && TRANSLATIONS_EXTRACT[lang][key]) {
+      nameText = TRANSLATIONS_EXTRACT[lang][key];
+    } else if (typeof translations !== 'undefined' && translations[lang] && translations[lang][key]) {
+      nameText = translations[lang][key];
+    } else if (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+      nameText = TRANSLATIONS[lang][key];
     } else {
-      labelSpan.textContent = label;
+      // Fallback to option DOM text content
+      const nameSpan = opt.querySelector('[data-i18n]');
+      nameText = nameSpan ? nameSpan.textContent.trim() : value;
     }
-  } else if (labelSpan) {
-    labelSpan.removeAttribute('data-i18n');
-    labelSpan.textContent = label;
+    
+    if (iconWrapper) {
+      labelSpan.innerHTML = `
+        <span class="platform-icon-wrapper" style="${iconWrapper.getAttribute('style') || ''}">
+          ${iconWrapper.innerHTML}
+        </span>
+        <span>${nameText}</span>
+      `;
+    } else {
+      labelSpan.textContent = nameText;
+    }
   }
+}
+
+function selectPlatformOption(value, label) {
+  const scannerPlatform = document.getElementById('scannerPlatform');
+  if (scannerPlatform) scannerPlatform.value = value;
+  
+  const currentLang = localStorage.getItem('stegoLang') || document.documentElement.getAttribute('lang') || 'en';
+  syncPlatformSelectLabel(currentLang);
   
   // Update selected class
   const options = document.querySelectorAll('#platformSelectOptions .custom-option');
