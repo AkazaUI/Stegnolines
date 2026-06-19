@@ -69,6 +69,7 @@ const I18N_COMMON = {
     footerAboutTeam: "About Team",
     footerContactTeam: "Contact With Team",
     floatingGuideTooltip: "Site Guide",
+    scrollToTopTooltip: "Scroll to Top",
     navSteganalysis: "Text Steganalysis",
     navSteganalysisDesc: "Detect hidden Unicode characters in text",
     footerSteganalysis: "Text Steganalysis"
@@ -139,6 +140,7 @@ const I18N_COMMON = {
     footerAboutTeam: "حول الفريق",
     footerContactTeam: "اتصل بنا",
     floatingGuideTooltip: "إرشادات الموقع",
+    scrollToTopTooltip: "العودة للأعلى",
     navSteganalysis: "تحليل النص",
     navSteganalysisDesc: "كشف أحرف يونيكود المخفية في النص",
     footerSteganalysis: "تحليل النص"
@@ -209,6 +211,7 @@ const I18N_COMMON = {
     footerAboutTeam: "À propos de l'équipe",
     footerContactTeam: "Contacter l'équipe",
     floatingGuideTooltip: "Dux situs",
+    scrollToTopTooltip: "Retour en haut",
     navSteganalysis: "Stéganalyse de texte",
     navSteganalysisDesc: "Détecter les caractères Unicode cachés dans le texte",
     footerSteganalysis: "Stéganalyse de texte"
@@ -273,6 +276,7 @@ const I18N_COMMON = {
     footerAboutTeam: "关于团队",
     footerContactTeam: "联系团队",
     floatingGuideTooltip: "站点指南",
+    scrollToTopTooltip: "回到顶部",
     navSteganalysis: "文本隐写分析",
     navSteganalysisDesc: "检测文本中隐藏的Unicode字符",
     footerSteganalysis: "文本隐写分析"
@@ -337,6 +341,7 @@ const I18N_COMMON = {
     footerAboutTeam: "De coetu",
     footerContactTeam: "Contactus cum coetu",
     floatingGuideTooltip: "Dux situs",
+    scrollToTopTooltip: "Ad summus scroll",
     navSteganalysis: "Steganalysis Textus",
     navSteganalysisDesc: "Detegere characteres Unicode occultos in textu",
     footerSteganalysis: "Steganalysis Textus"

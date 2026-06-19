@@ -27,6 +27,19 @@
 </head>
 
 <body>
+  <!-- Global SVG definitions to avoid display:none gradient bugs -->
+  <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
+    <defs>
+      <linearGradient id="ig-grad-guard" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#feda75" />
+        <stop offset="25%" stop-color="#fa7e1e" />
+        <stop offset="50%" stop-color="#d62976" />
+        <stop offset="75%" stop-color="#962fbf" />
+        <stop offset="100%" stop-color="#4f5bd5" />
+      </linearGradient>
+    </defs>
+  </svg>
+
   <script src="js/features/page-loader.js"></script>
 
   <!-- Top Navigation Placeholder -->
@@ -738,7 +751,7 @@
 
             <!-- Image Upload Zone -->
             <div>
-              <div class="label-row" id="imgUploadHeaderRow" style="display: flex; align-items: center; width: 100%;">
+              <div class="label-row" id="imgUploadHeaderRow" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-sm); width: 100%;">
                 <div style="display: flex; align-items: center; gap: var(--space-xs);">
                   <label class="form-label text-label-md" style="margin-bottom:0" data-i18n="imgDropzoneTitle">Attach
                     Secret Image</label>
@@ -962,7 +975,7 @@
                           <span style="font-size: var(--fs-body-sm); font-weight: 600;">Click to Zoom</span>
                         </div>
                       </div>
-                      <div style="padding: var(--space-sm) var(--space-md); display: flex; flex-direction: column; gap: 4px;">
+                      <div class="img-compression-card__details">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                           <span style="font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">Format</span>
                           <span id="imgBeforeFormat" style="font-family: monospace; font-size: var(--fs-body-sm); font-weight: 600; color: var(--color-on-surface);">JPEG</span>
@@ -994,7 +1007,7 @@
                           <span style="font-size: var(--fs-body-sm); font-weight: 600;">Click to Zoom</span>
                         </div>
                       </div>
-                      <div style="padding: var(--space-sm) var(--space-md); display: flex; flex-direction: column; gap: 4px;">
+                      <div class="img-compression-card__details">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                           <span style="font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">Format</span>
                           <span id="imgAfterFormat" style="font-family: monospace; font-size: var(--fs-body-sm); font-weight: 600; color: var(--color-primary);">AVIF</span>
@@ -1009,14 +1022,18 @@
                   </div>
 
                   <!-- Compact Savings Summary Bar -->
-                  <div style="padding: 0 var(--space-md) var(--space-md); box-sizing: border-box;">
+                  <div class="img-savings-bar-wrapper">
                     <div class="img-savings-bar">
                       <div class="img-savings-flow">
-                        <span class="img-savings-label">Before</span>
-                        <span id="imgSummaryBeforeSize" class="img-savings-val img-savings-val--error">—</span>
+                        <div class="img-savings-item">
+                          <span class="img-savings-label">Before</span>
+                          <span id="imgSummaryBeforeSize" class="img-savings-val img-savings-val--error">—</span>
+                        </div>
                         <span class="material-symbols-outlined img-savings-arrow">arrow_forward</span>
-                        <span class="img-savings-label">After</span>
-                        <span id="imgSummaryAfterSize" class="img-savings-val img-savings-val--primary">—</span>
+                        <div class="img-savings-item">
+                          <span class="img-savings-label">After</span>
+                          <span id="imgSummaryAfterSize" class="img-savings-val img-savings-val--primary">—</span>
+                        </div>
                       </div>
                       <span class="img-savings-divider"></span>
                       <div class="img-savings-result">

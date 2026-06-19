@@ -53,7 +53,7 @@ function showToast(message) {
   if (lowerMsg.includes('copied')) titleKey = "copied";
   if (lowerMsg.includes('extracted')) titleKey = "extract";
   if (lowerMsg.includes('please input') || lowerMsg.includes('paste')) titleKey = "missing";
-  if (lowerMsg.includes('key')) titleKey = "key";
+  if (isError && lowerMsg.includes('key')) titleKey = "key";
 
   const dynamicTitle = (titleTranslations[titleKey] && titleTranslations[titleKey][currentLang]) || (titleTranslations[titleKey] ? titleTranslations[titleKey]["en"] : "Success");
 
@@ -406,10 +406,66 @@ function animateCounter(element, targetValue, suffix = '', duration = 1000) {
   requestAnimationFrame(update);
 }
 
+// ── SCROLL TO TOP FLOATING BUTTON ────────────────────────────
+
+/**
+ * Initialize a scroll-to-top button that appears dynamically on scroll
+ * and smooth-scrolls the window back to top. Supports dynamic i18n tooltips.
+ */
+function initScrollToTop() {
+  if (document.querySelector('.scroll-to-top-btn')) return;
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'scroll-to-top-btn';
+  btn.setAttribute('data-i18n-tooltip', 'scrollToTopTooltip');
+
+  // Set initial localized tooltip safely
+  const currentLang = localStorage.getItem('stegoLang') || 'en';
+  const dict = (typeof translations !== 'undefined') ? translations : ((typeof TRANSLATIONS !== 'undefined') ? TRANSLATIONS : null);
+  let tooltipText = 'Scroll to Top';
+  if (dict && dict[currentLang] && dict[currentLang]['scrollToTopTooltip']) {
+    tooltipText = dict[currentLang]['scrollToTopTooltip'];
+  } else if (currentLang === 'ar') {
+    tooltipText = 'العودة للأعلى';
+  }
+  btn.setAttribute('data-tooltip', tooltipText);
+  btn.setAttribute('aria-label', tooltipText);
+
+  // Material symbols arrow icon
+  const icon = document.createElement('span');
+  icon.className = 'material-symbols-outlined';
+  icon.textContent = 'arrow_upward';
+  btn.appendChild(icon);
+
+  document.body.appendChild(btn);
+
+  // Track scroll position to toggle visibility
+  const threshold = 300;
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > threshold) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+  });
+
+  // Handle smooth scroll back to top
+  btn.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+}
+
 // ── DEFENSIVE UX: AUTO-LOCK TEXTAREA MIN-HEIGHT ────────────────
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize unified tab controller
   initTabController();
+
+  // Initialize Scroll to Top button
+  initScrollToTop();
 
   setTimeout(() => {
     document.querySelectorAll('textarea').forEach(textarea => {

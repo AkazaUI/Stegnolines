@@ -899,7 +899,13 @@ function updateImgGuardValidation(projectedLength) {
   const ratio = Math.min((projectedLength / limit) * 100, 100);
   if (fill) {
     fill.style.width = `${ratio}%`;
-    fill.style.background = ratio > 100 ? 'var(--color-error)' : 'var(--color-primary)';
+    fill.style.background = ''; // Clear inline background styling
+    fill.classList.remove('warn', 'danger');
+    if (projectedLength > limit) {
+      fill.classList.add('danger');
+    } else if (projectedLength > limit * 0.8) {
+      fill.classList.add('warn');
+    }
   }
 
   const badge = document.getElementById('imgGuardPreviewBadge');
@@ -1389,64 +1395,7 @@ function initImgPlatformGuardDropdowns() {
   selectImgGuardPlatformOption('none');
 }
 
-function updateImgGuardValidation(projectedLength) {
-  const platformKey = document.getElementById('imgGuardPlatformSelect').value;
-  const placementKey = document.getElementById('imgGuardPlacementSelect').value;
-  const previewCard = document.getElementById('imgGuardPreviewCard');
-
-  if (platformKey === 'none' || placementKey === 'none' || !PLATFORM_LIMITS[platformKey]) {
-    if (previewCard) previewCard.style.display = 'none';
-    return;
-  }
-
-  if (previewCard) previewCard.style.display = 'block';
-
-  const platformData = PLATFORM_LIMITS[platformKey];
-  const placementData = platformData.placements[placementKey];
-  const limit = placementData.limit;
-  const currentLang = localStorage.getItem('stegoLang') || 'en';
-
-  // Update icon, name, placement inside preview card
-  const iconWrap = document.getElementById('imgGuardPreviewIcon');
-  if (iconWrap) iconWrap.innerHTML = platformData.icon;
-
-  const nameEl = document.getElementById('imgGuardPreviewName');
-  if (nameEl) nameEl.textContent = platformData.name[currentLang] || platformData.name['en'];
-
-  const placementEl = document.getElementById('imgGuardPreviewPlacement');
-  if (placementEl) placementEl.textContent = placementData.name[currentLang] || placementData.name['en'];
-
-  // Update metrics & progress
-  const limitText = document.getElementById('imgGuardPreviewLimitText');
-  if (limitText) limitText.textContent = `${currentLang === 'ar' ? 'الحد الاقصى' : 'Limit'}: ${limit.toLocaleString()} chars`;
-
-  const countText = document.getElementById('imgGuardPreviewCountText');
-  if (countText) countText.textContent = `${projectedLength.toLocaleString()} / ${limit.toLocaleString()} chars`;
-
-  const fill = document.getElementById('imgGuardPreviewProgressFill');
-  const ratio = Math.min((projectedLength / limit) * 100, 100);
-  if (fill) {
-    fill.style.width = `${ratio}%`;
-    fill.style.background = ratio > 100 ? 'var(--color-error)' : 'var(--color-primary)';
-  }
-
-  // Update badge status
-  const badge = document.getElementById('imgGuardPreviewBadge');
-  const badgeText = document.getElementById('imgGuardPreviewBadgeText');
-  const badgeIcon = document.getElementById('imgGuardPreviewBadgeIcon');
-
-  if (badge && badgeText && badgeIcon) {
-    if (projectedLength <= limit) {
-      badge.className = 'platform-preview-badge platform-preview-badge--safe';
-      badgeIcon.textContent = 'check_circle';
-      badgeText.textContent = currentLang === 'ar' ? 'آمن' : 'Safe';
-    } else {
-      badge.className = 'platform-preview-badge platform-preview-badge--danger';
-      badgeIcon.textContent = 'warning';
-      badgeText.textContent = currentLang === 'ar' ? 'غير متوافق' : 'Exceeded';
-    }
-  }
-}
+// Duplicate updateImgGuardValidation function removed to avoid conflict.
 
 // Bind DOM elements on load
 document.addEventListener('DOMContentLoaded', () => {
@@ -1540,16 +1489,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Custom select bindings for Image platform guard
-  const imgPlatformTrigger = document.getElementById('imgGuardPlatformTrigger');
-  if (imgPlatformTrigger) {
-    imgPlatformTrigger.addEventListener('click', toggleImgGuardPlatformSelect);
-  }
-
-  const imgPlacementTrigger = document.getElementById('imgGuardPlacementTrigger');
-  if (imgPlacementTrigger) {
-    imgPlacementTrigger.addEventListener('click', toggleImgGuardPlacementSelect);
-  }
+  // Custom select bindings for Image platform guard are handled via inline onclick attributes in HTML to prevent double toggling.
 
   // Close custom dropdowns when clicking outside for image tab
   document.addEventListener('click', function(e) {

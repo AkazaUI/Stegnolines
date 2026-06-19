@@ -276,6 +276,12 @@ function displayEmbeddingResults({ basePositions, xorKey, stegoText, cleanCover,
  */
 async function performEmbedding() {
   try {
+    // Reset previous results panel visibility and clear output
+    const resultsPanel = document.getElementById('embed-results-panel');
+    if (resultsPanel) resultsPanel.style.display = 'none';
+    const stegoTextEl = document.getElementById('stegoText');
+    if (stegoTextEl) stegoTextEl.value = '';
+
     const timeEl = document.getElementById('embedTimeTaken');
     if (timeEl) timeEl.style.display = 'none';
 
@@ -314,7 +320,11 @@ async function performEmbedding() {
 
     const hasFakeCover = fakeCoverText.trim().length > 0;
     if (hasFakeCover && fakeCoverText.length < secretMessage.length) {
-      showToast(`❌ Fake Cover size (${fakeCoverText.length} chars) is less than secret message (${secretMessage.length} chars). It must be >= secret message size.`);
+      const currentLang = localStorage.getItem('stegoLang') || 'en';
+      const errMsg = currentLang === 'ar'
+        ? `❌ خطأ: حجم الغلاف المزيف (${fakeCoverText.length} حرفاً) أقل من حجم الرسالة السرية (${secretMessage.length} حرفاً)! يجب أن يكون أكبر من أو يساوي حجم الرسالة السرية.`
+        : `❌ Error: Fake Cover size (${fakeCoverText.length} chars) is less than secret message (${secretMessage.length} chars). It must be >= secret message size.`;
+      showToast(errMsg);
       return;
     }
 

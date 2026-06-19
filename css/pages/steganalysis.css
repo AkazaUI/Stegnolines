@@ -170,18 +170,18 @@ html.light .steganalysis-cat--normalSpace {
 
 /* ── Position Chips (reused inside stego-table details) ── */
 .pos-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 48px;
-  height: 22px;
+  width: 100%;
+  height: 24px;
   box-sizing: border-box;
   text-align: center;
   background: rgba(187, 209, 0, 0.12);
   border: 1px solid rgba(187, 209, 0, 0.2);
   color: var(--color-primary);
   border-radius: var(--radius-default);
-  padding: 2px 6px;
+  padding: 2px 4px;
   font-size: 0.72rem;
   font-weight: 600;
   font-family: 'Sora', sans-serif;

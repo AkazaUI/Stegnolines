@@ -8,6 +8,7 @@
   gap: var(--space-xs);
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-full);
+  white-space: nowrap;
 }
 
 .badge .material-symbols-outlined {

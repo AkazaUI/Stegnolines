@@ -1,0 +1,88 @@
+/* ============================================================
+   STEGNOLINES UI LIBRARY — Scroll to Top Floating Button
+   ============================================================ */
+
+.scroll-to-top-btn {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-on-primary-container, #1b1d00);
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease, visibility 0.25s ease;
+  padding: 0;
+  will-change: transform, opacity, visibility;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.scroll-to-top-btn.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.scroll-to-top-btn:hover {
+  transform: scale(1.12);
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container, #1b1d00);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25), 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.scroll-to-top-btn:active {
+  transform: scale(0.95);
+}
+
+.scroll-to-top-btn .material-symbols-outlined {
+  font-size: 34px;
+  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+}
+
+/* Tooltip for the Scroll to Top Button */
+.scroll-to-top-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 56px;
+  left: 0;
+  background: rgba(10, 10, 12, 0.95);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: var(--radius-default, 8px);
+  font-size: 13px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--color-outline-variant);
+  font-family: 'Sora', 'Alexandria', sans-serif;
+  font-weight: 500;
+}
+
+[dir="rtl"] .scroll-to-top-btn::after {
+  left: auto;
+  right: 0;
+}
+
+.scroll-to-top-btn:hover::after {
+  opacity: 1;
+  visibility: visible;
+  bottom: 62px;
+}

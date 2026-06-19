@@ -200,3 +200,27 @@ html.light .sec-toast--success .sec-toast__progress {
   from { opacity: 1; transform: translateX(0); }
   to { opacity: 0; transform: translateX(24px); }
 }
+
+/* ── Mobile Responsive Toasts (Flush Alignment) ── */
+@media (max-width: 480px) {
+  #sec-toast-wrap {
+    left: 0 !important;
+    bottom: 16px !important;
+    max-width: calc(100% - 24px) !important;
+  }
+  
+  html[dir="rtl"] #sec-toast-wrap {
+    left: auto !important;
+    right: 0 !important;
+  }
+  
+  .sec-toast {
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0 !important;
+    border-left-width: 3px !important;
+  }
+  
+  html[dir="rtl"] .sec-toast {
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg) !important;
+    border-right-width: 3px !important;
+  }
+}

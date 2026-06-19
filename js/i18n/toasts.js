@@ -130,6 +130,27 @@ const I18N_TOASTS = {
     zh: "图像已成功嵌入到封面文本中！",
     la: "Imago secure implantata in textu integumenti est!"
   },
+  "Please input the cover text.": {
+    en: "Please input the cover text.",
+    ar: "الرجاء إدخال نص الغلاف.",
+    fr: "Veuillez saisir le texte de couverture.",
+    zh: "请输入封面文本。",
+    la: "Sodes textum integumenti intra."
+  },
+  "Please input the secret message.": {
+    en: "Please input the secret message.",
+    ar: "الرجاء إدخال الرسالة السرية.",
+    fr: "Veuillez saisir le message secret.",
+    zh: "请输入秘密消息。",
+    la: "Sodes nuntium secretum intra."
+  },
+  "Please input the Pre-Shared Key (Stego-Key).": {
+    en: "Please input the Pre-Shared Key (Stego-Key).",
+    ar: "الرجاء إدخال المفتاح المشترك (Stego-Key).",
+    fr: "Veuillez saisir la clé pré-partagée (Stego-Key).",
+    zh: "请输入预共享密钥 (Stego-Key)。",
+    la: "Sodes clavem prae-participatam (Stego-Key) intra."
+  },
   "Please input the stego-text.": {
     en: "Please input the stego-text.",
     ar: "الرجاء إدخال النص الإخفائي.",
@@ -220,6 +241,20 @@ const I18N_TOASTS = {
     fr: "Échec du test de connexion. Veuillez vérifier votre réseau.",
     zh: "连接测试失败。请检查您的网络并重试。",
     la: "Probatio connexionis defecit. Quaeso rege retem tuam."
+  },
+  "Key generated and embedded in the cover!": {
+    en: "Key generated and embedded in the cover!",
+    ar: "تم توليد المفتاح وتضمينه في نص الغلاف بنجاح!",
+    fr: "Clé générée et intégrée dans la couverture !",
+    zh: "密钥已生成并成功嵌入到封面中！",
+    la: "Clavis generata et implantata in integumento est!"
+  },
+  "Generated — Cover is clean + VS characters in the Fake Cover!": {
+    en: "Generated — Cover is clean + VS characters in the Fake Cover!",
+    ar: "تم التوليد — الغلاف نظيف مع وجود أحرف التحويل في الغلاف المزيف!",
+    fr: "Généré — La couverture est propre + caractères VS dans la fausse couverture !",
+    zh: "已生成 — 封面干净 + 伪装封面包含变体选择符！",
+    la: "Generatum — Integumentum purum est et characteres VS in falso integumento!"
   }
 };
 

@@ -266,14 +266,16 @@ html.light .vs-char-spot:hover {
 }
 
 .chips-container {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
   gap: 6px;
   padding: 4px;
   border: 1px solid rgba(94, 92, 96, 0.2);
   border-radius: var(--radius-default);
   background: rgba(0, 0, 0, 0.1);
   transition: var(--transition-all);
+  width: 100%;
+  box-sizing: border-box;
 }
 html.light .chips-container {
   background: var(--color-surface-container-low);
@@ -281,8 +283,8 @@ html.light .chips-container {
 }
 
 .bits-container {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20px, 1fr));
   gap: 4px;
   font-family: 'Sora', sans-serif;
   padding: 8px;
@@ -290,6 +292,8 @@ html.light .chips-container {
   border-radius: var(--radius-default);
   background: rgba(0, 0, 0, 0.1);
   transition: var(--transition-all);
+  width: 100%;
+  box-sizing: border-box;
 }
 html.light .bits-container {
   background: var(--color-surface-container-low);

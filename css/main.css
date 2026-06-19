@@ -31,6 +31,7 @@
 @import url('components/platform-guard.css');
 @import url('components/hints.css');
 @import url('components/floating-guide.css');
+@import url('components/scroll-to-top.css');
 
 
 /* ── 4. PAGE-SPECIFIC STYLE OVERRIDES ── */
