@@ -122,7 +122,7 @@ async function performExtraction() {
   const rawStegoKeyEl = document.getElementById('extractStegoKey');
   const rawStegoKey = rawStegoKeyEl ? rawStegoKeyEl.value.trim() : '';
 
-  if (!stegoText) return showToast('⚠ Please input the final message.');
+  if (!stegoText) return showToast('⚠ Please input the stego-text.');
   if (!rawStegoKey) return showToast('⚠ Please input the Pre-Shared Key (Stego-Key).');
 
   try {

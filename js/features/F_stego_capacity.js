@@ -89,7 +89,7 @@ function calculateEmbeddingCapacity(coverText, secretMessage, hint) {
  * green → yellow (>70%) → red (>90%) based on usage percentage.
  */
 function updateCapacityMeter() {
-  const coverText      = document.getElementById('embedCover').value;
+  const coverText      = document.getElementById('embedCover').value.trim();
   const secretMessage  = document.getElementById('embedSecretMessage').value;
   const hintEl         = document.getElementById('embedHint');
   const hint           = hintEl ? hintEl.value : '';

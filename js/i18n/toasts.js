@@ -172,6 +172,13 @@ const I18N_TOASTS = {
     zh: "图像提取并解密成功！",
     la: "Imago feliciter extracta et decrypta est!"
   },
+  "Message extracted successfully!": {
+    en: "Message extracted successfully!",
+    ar: "تم استخراج الرسالة بنجاح!",
+    fr: "Message extrait avec succès !",
+    zh: "消息提取成功！",
+    la: "Nuntius feliciter extractus est!"
+  },
   "Please paste the chat first.": {
     en: "Please paste the chat first.",
     ar: "الرجاء لصق سجل المحادثة أولاً.",

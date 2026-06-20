@@ -223,8 +223,8 @@
           <span class="material-symbols-outlined" style="margin-inline-start: auto;">expand_more</span>
         </button>
         <div class="top-nav__mobile-dropdown-items" id="mobile-embed-items">
-          <a class="top-nav__link" href="${prefix}embed.html#text" data-tab="text">Text Embed</a>
-          <a class="top-nav__link" href="${prefix}embed.html#image" data-tab="image">Image Embed</a>
+          <a class="top-nav__link" href="${prefix}embed.html#text" data-tab="text" data-i18n="emTabText">Text Embed</a>
+          <a class="top-nav__link" href="${prefix}embed.html#image" data-tab="image" data-i18n="emTabImage">Image Embed</a>
         </div>
 
         <button class="top-nav__link" id="mobile-extract-toggle" aria-expanded="false" type="button" style="border:none; background:none; width:100%; cursor:pointer; display:flex; align-items:center; margin-top:12px;">
@@ -233,10 +233,10 @@
           <span class="material-symbols-outlined" style="margin-inline-start: auto;">expand_more</span>
         </button>
         <div class="top-nav__mobile-dropdown-items" id="mobile-extract-items">
-          <a class="top-nav__link" href="${prefix}extract.html#standard" data-tab="standard">Standard Extract</a>
-          <a class="top-nav__link" href="${prefix}extract.html#scanner" data-tab="scanner">Scanner</a>
-          <a class="top-nav__link" href="${prefix}extract.html#hints" data-tab="hints">Hints</a>
-          <a class="top-nav__link" href="${prefix}extract.html#image" data-tab="image">Image Extract</a>
+          <a class="top-nav__link" href="${prefix}extract.html#standard" data-tab="standard" data-i18n="exTabStandard">Standard Extract</a>
+          <a class="top-nav__link" href="${prefix}extract.html#scanner" data-tab="scanner" data-i18n="exTabScanner">Scanner</a>
+          <a class="top-nav__link" href="${prefix}extract.html#hints" data-tab="hints" data-i18n="exTabHints">Hints</a>
+          <a class="top-nav__link" href="${prefix}extract.html#image" data-tab="image" data-i18n="exTabImage">Image Extract</a>
         </div>
 
         <a class="top-nav__link" href="${prefix}steganalysis.html" style="margin-top:12px; display:flex; align-items:center;">

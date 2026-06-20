@@ -80,7 +80,10 @@ const I18N_EXTRACT = {
     badgeBrotliActive: "Brotli Active",
     badgeBrotliBypassed: "Brotli Bypassed",
     badgeCompressed: "AVIF WASM",
-    btnAddKey: "Add Key"
+    btnAddKey: "Add Key",
+    extractResultsTitle: "Extraction Results",
+    extractSuccessTitle: "Secret Extracted Successfully!",
+    extractSuccessSubtitle: "The hidden payload has been recovered and decrypted. Your secret message is below."
   },
   ar: {
     exMainHeaderTitle: "واجهة الاستخراج",
@@ -159,7 +162,10 @@ const I18N_EXTRACT = {
     badgeBrotliActive: "Brotli نشط",
     badgeBrotliBypassed: "Brotli مستبعد",
     badgeCompressed: "مضغوط AVIF",
-    btnAddKey: "إضافة مفتاح"
+    btnAddKey: "إضافة مفتاح",
+    extractResultsTitle: "نتائج عملية الاستخراج",
+    extractSuccessTitle: "تم استخراج السر بنجاح!",
+    extractSuccessSubtitle: "تم استرداد الحمولة المخفية وفك تشفيرها بنجاح. رسالتك السرية تظهر أدناه."
   },
   fr: {
     exMainHeaderTitle: "Interface d'extraction",
@@ -229,7 +235,19 @@ const I18N_EXTRACT = {
     imgExFileInfo: "Informations sur le fichier",
     imgExFileName: "Nom du fichier",
     imgExFileSize: "Taille du fichier",
-    imgExFileType: "Type de fichier"
+    imgExFileType: "Type de fichier",
+    metricExtractTime: "Durée de l'extraction",
+    metricScanTime: "Durée du scan",
+    metricDecompressTime: "Durée de décompression",
+    badgeOptimal: "Optimisé",
+    badgeResult: "Succès",
+    badgeBrotliActive: "Brotli Actif",
+    badgeBrotliBypassed: "Brotli Bypassé",
+    badgeCompressed: "AVIF WASM",
+    btnAddKey: "Ajouter la clé",
+    extractResultsTitle: "Résultats de l'extraction",
+    extractSuccessTitle: "Secret extrait avec succès !",
+    extractSuccessSubtitle: "La charge utile cachée a été récupérée et déchiffrée. Votre message secret est ci-dessous."
   },
   zh: {
     exMainHeaderTitle: "提取界面",
@@ -299,7 +317,19 @@ const I18N_EXTRACT = {
     imgExFileInfo: "文件信息",
     imgExFileName: "文件名",
     imgExFileSize: "文件大小",
-    imgExFileType: "文件类型"
+    imgExFileType: "文件类型",
+    metricExtractTime: "提取时长",
+    metricScanTime: "扫描时长",
+    metricDecompressTime: "解压时长",
+    badgeOptimal: "已优化",
+    badgeResult: "成功",
+    badgeBrotliActive: "Brotli 已启用",
+    badgeBrotliBypassed: "Brotli 已绕过",
+    badgeCompressed: "AVIF WASM 压缩",
+    btnAddKey: "添加密钥",
+    extractResultsTitle: "提取结果",
+    extractSuccessTitle: "秘密消息提取成功！",
+    extractSuccessSubtitle: "隐藏的有效载荷已被恢复并解密。您的秘密消息如下。"
   },
   la: {
     exMainHeaderTitle: "Forma extractionis",
@@ -369,6 +399,18 @@ const I18N_EXTRACT = {
     imgExFileInfo: "Informatio fili",
     imgExFileName: "Nomen fili",
     imgExFileSize: "Magnitudo fili",
-    imgExFileType: "Typus fili"
+    imgExFileType: "Typus fili",
+    metricExtractTime: "Duratio extractionis",
+    metricScanTime: "Duratio lustrationis",
+    metricDecompressTime: "Duratio decompressionis",
+    badgeOptimal: "Optimisatum",
+    badgeResult: "Successus",
+    badgeBrotliActive: "Brotli Activus",
+    badgeBrotliBypassed: "Brotli Bypassus",
+    badgeCompressed: "AVIF WASM",
+    btnAddKey: "Adde clavem",
+    extractResultsTitle: "Resultata extractionis",
+    extractSuccessTitle: "Secretum feliciter extractum est!",
+    extractSuccessSubtitle: "Onus occultum receptum et decryptum est. Nuntius secretus tuus infra est."
   }
 };

@@ -826,7 +826,7 @@ async function handleImgFileSelect(file) {
 
 function updateImgCapacityMeter() {
   if (!$imgCoverText) return;
-  const coverText = $imgCoverText.value || '';
+  const coverText = ($imgCoverText.value || '').trim();
   const carriers = getImgCoverCarriers(coverText);
   const totalCapacity = carriers.length * IMG_BYTES_PER_CHAR;
 
@@ -936,7 +936,8 @@ async function performImageEmbedding() {
   const compressCardEl = document.getElementById('imgCompressTimeCard');
   if (compressCardEl) compressCardEl.style.display = 'none';
 
-  const coverText = $imgCoverText.value || '';
+  const coverText = ($imgCoverText.value || '').trim();
+  if ($imgCoverText) $imgCoverText.value = coverText;
   const stegoKey = $imgKeyInput.value.trim();
 
   if (!coverText) {
