@@ -1056,6 +1056,13 @@ function applyLanguage(lang) {
     }
   });
 
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if (TRANSLATIONS && TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+      el.setAttribute('title', TRANSLATIONS[lang][key]);
+    }
+  });
+
   document.querySelectorAll('[data-i18n-tooltip]').forEach(el => {
     const key = el.getAttribute('data-i18n-tooltip');
     if (TRANSLATIONS && TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {

@@ -9,6 +9,14 @@
   border-bottom: 1px solid var(--color-outline-variant);
   padding-bottom: 0;
   position: relative;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabs-nav::-webkit-scrollbar {
+  display: none;
 }
 
 /* Hide default bottom bar from active buttons when sliding indicator is active */
@@ -39,6 +47,8 @@
   position: relative;
   transition: var(--transition-colors);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .tab-btn::after {
@@ -76,4 +86,10 @@
 
 .tab-panel.hidden {
   display: none;
+}
+
+@media (max-width: 600px) {
+  .tab-btn {
+    padding: var(--space-sm) 12px;
+  }
 }

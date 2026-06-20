@@ -138,6 +138,13 @@ function applyLanguageUI(lang) {
         }
       });
 
+      document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (dict[lang][key]) {
+          el.setAttribute('title', dict[lang][key]);
+        }
+      });
+
       document.querySelectorAll('[data-i18n-tooltip]').forEach(el => {
         const key = el.getAttribute('data-i18n-tooltip');
         if (dict[lang][key]) {

@@ -994,6 +994,14 @@ html.dark .top-nav__brand-logo--dark { display: block; }
   margin-bottom: var(--space-lg);
   border-bottom: 1px solid var(--color-outline-variant);
   padding-bottom: 0;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabs-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-btn {
@@ -1008,6 +1016,8 @@ html.dark .top-nav__brand-logo--dark { display: block; }
   position: relative;
   transition: var(--transition-colors);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .tab-btn::after {
@@ -1041,6 +1051,12 @@ html.dark .top-nav__brand-logo--dark { display: block; }
 
 .tab-panel.hidden {
   display: none;
+}
+
+@media (max-width: 600px) {
+  .tab-btn {
+    padding: var(--space-sm) 12px;
+  }
 }
 
 /* ?? Scanner Action Buttons ?? */

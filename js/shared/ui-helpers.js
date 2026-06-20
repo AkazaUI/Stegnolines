@@ -123,10 +123,8 @@ function initTabController() {
     // Helper to position the sliding indicator
     function syncIndicator(activeBtn) {
       if (!indicator || !activeBtn) return;
-      const navRect = tabsNav.getBoundingClientRect();
-      const btnRect = activeBtn.getBoundingClientRect();
-      const left = btnRect.left - navRect.left;
-      const width = btnRect.width;
+      const left = activeBtn.offsetLeft;
+      const width = activeBtn.offsetWidth;
       indicator.style.left = `${left}px`;
       indicator.style.width = `${width}px`;
     }

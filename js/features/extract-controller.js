@@ -231,6 +231,14 @@ function applyLanguage(lang) {
     }
   });
 
+  // Translate title attributes
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+      el.setAttribute('title', TRANSLATIONS[lang][key]);
+    }
+  });
+
   // Translate tooltips
   document.querySelectorAll('[data-i18n-tooltip]').forEach(el => {
     const key = el.getAttribute('data-i18n-tooltip');
