@@ -1136,7 +1136,8 @@
   function handleNextClick() {
     if (isOnboardingWelcome) {
       const pathname = window.location.pathname.toLowerCase();
-      const pageName = pathname.split('/').pop().replace('.html', '');
+      const pageFilename = pathname.split('/').pop().replace('.html', '');
+      const pageName = (pageFilename === "index" || pageFilename === "") ? "embed" : pageFilename;
       const hasActiveTour = (pageName === "embed" || pageName === "extract" || pageName === "steganalysis" || pageName === "details");
       if (hasActiveTour) {
         startTour();
@@ -1279,7 +1280,8 @@
 
   function startTour() {
     const pathname = window.location.pathname.toLowerCase();
-    const pageName = pathname.split('/').pop().replace('.html', '');
+    const pageFilename = pathname.split('/').pop().replace('.html', '');
+    const pageName = (pageFilename === "index" || pageFilename === "") ? "embed" : pageFilename;
     let tourKey = null;
 
     if (pageName === "embed") {
@@ -1385,7 +1387,8 @@
     
     // Choose description based on whether there's a tour for this page
     const pathname = window.location.pathname.toLowerCase();
-    const pageName = pathname.split('/').pop().replace('.html', '');
+    const pageFilename = pathname.split('/').pop().replace('.html', '');
+    const pageName = (pageFilename === "index" || pageFilename === "") ? "embed" : pageFilename;
     const hasActiveTour = (pageName === "embed" || pageName === "extract" || pageName === "steganalysis" || pageName === "details");
     bodyEl.textContent = hasActiveTour ? TOUR_I18N[lang].welcomeDesc : TOUR_I18N[lang].welcomeHelpDesc;
     

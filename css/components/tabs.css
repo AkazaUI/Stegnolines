@@ -93,3 +93,25 @@
     padding: var(--space-sm) 12px;
   }
 }
+
+@media (max-width: 500px) {
+  .tabs-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: visible;
+  }
+  
+  .tab-btn {
+    flex: 1 1 0%;
+    min-width: 0;
+    padding: var(--space-sm) 4px;
+    font-size: 0.75rem;
+    white-space: normal;
+    word-wrap: break-word;
+    text-align: center;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

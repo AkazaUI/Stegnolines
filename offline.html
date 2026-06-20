@@ -126,7 +126,7 @@
 
                 setTimeout(() => {
                   const params = new URLSearchParams(window.location.search);
-                  const redirectUrl = params.get('redirect') ? decodeURIComponent(params.get('redirect')) : 'embed.html';
+                  const redirectUrl = params.get('redirect') ? decodeURIComponent(params.get('redirect')) : 'index.html';
                   window.location.href = redirectUrl;
                 }, 1800);
               } else {
@@ -167,7 +167,7 @@
 
               setTimeout(() => {
                 const params = new URLSearchParams(window.location.search);
-                const redirectUrl = params.get('redirect') ? decodeURIComponent(params.get('redirect')) : 'embed.html';
+                const redirectUrl = params.get('redirect') ? decodeURIComponent(params.get('redirect')) : 'index.html';
                 window.location.href = redirectUrl;
               }, 1800);
             })

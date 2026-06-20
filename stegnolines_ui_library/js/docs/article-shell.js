@@ -12,7 +12,7 @@ const pages = [
   { file: 'getting-started/overview.html', title: 'Overview', section: 'Getting started', prev: null, next: 'architecture.html',
     body: `<p>STEGNOLINES is a text steganography platform for hiding secret messages inside cover text with zero perceptible overhead when viewed in chat applications.</p>
 <h2>What you can do</h2>
-<ul><li>Embed secrets into cover messages from the <a href="../../embed.html">Embed</a> interface.</li><li>Extract hidden payloads from stego text via <a href="../../extract.html">Extract</a>.</li><li>Scan exported chat logs for candidate carriers.</li></ul>
+<ul><li>Embed secrets into cover messages from the <a href="../../index.html">Embed</a> interface.</li><li>Extract hidden payloads from stego text via <a href="../../extract.html">Extract</a>.</li><li>Scan exported chat logs for candidate carriers.</li></ul>
 <h2>Documentation map</h2>
 <p>Use the <a href="../../documentation.html">Documentation Index</a> to browse all topics, or the left sidebar on any article page.</p>` },
   { file: 'getting-started/architecture.html', title: 'Architecture', section: 'Getting started',
@@ -33,7 +33,7 @@ const pages = [
     body: `<h2>UI surfaces</h2><ul><li><strong>Embed</strong> — hide secrets in cover text.</li><li><strong>Extract</strong> — recover secrets from stego text.</li><li><strong>Documentation</strong> — this guide.</li></ul>
 <h2>JavaScript modules</h2><ul><li><code>js/stage3_hide/</code> — core embed/extract pipeline.</li><li><code>js/features/</code> — chat parsing, hints, capacity, analysis.</li><li><code>js/shared/</code> — codecs and utilities.</li></ul>` },
   { file: 'user-guide/embedding.html', title: 'Embedding messages', section: 'User guide',
-    body: `<p>Open <a href="../../embed.html">Embed</a>, paste cover text, enter your secret, set a pre-shared key, and optionally configure a hint. The capacity bar shows how much of the cover is used.</p>
+    body: `<p>Open <a href="../../index.html">Embed</a>, paste cover text, enter your secret, set a pre-shared key, and optionally configure a hint. The capacity bar shows how much of the cover is used.</p>
 <h2>Steps</h2><ol><li>Enter or paste cover text.</li><li>Enter the secret message.</li><li>Set a strong pre-shared secret.</li><li>Click embed and copy the stego output.</li></ol>` },
   { file: 'user-guide/extraction.html', title: 'Extracting messages', section: 'User guide',
     body: `<p>Open <a href="../../extract.html">Extract</a>, paste stego text, provide the same pre-shared secret and hint used during embedding, then run extraction.</p>
@@ -54,7 +54,7 @@ const pages = [
     body: `<p>Advanced settings on the embed page expose optional parameters such as custom salt. Document each flag here as you stabilize the API.</p>` },
   { file: 'development/project-structure.html', title: 'Project structure', section: 'Development',
     body: `<pre style="padding:var(--space-md);background:var(--color-surface-container);border-radius:var(--radius-lg);overflow:auto;font-size:var(--fs-body-sm);">stegnolines_ui_library/
-  embed.html  extract.html  documentation.html
+  index.html  extract.html  documentation.html
   docs/         js/           styles.css
   documentation.css</pre>` },
   { file: 'development/writing-docs.html', title: 'Writing documentation', section: 'Development',
@@ -83,7 +83,7 @@ function shell(meta) {
         <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="../../White-Logo-T.png" alt="STEGNOLINES"/>
       </a>
       <nav class="top-nav__links" id="desktop-nav">
-        <a class="top-nav__link" href="../../embed.html"><span class="material-symbols-outlined">lock</span><span class="text-label-md">Embed</span></a>
+        <a class="top-nav__link" href="../../index.html"><span class="material-symbols-outlined">lock</span><span class="text-label-md">Embed</span></a>
         <a class="top-nav__link" href="../../extract.html"><span class="material-symbols-outlined">lock_open</span><span class="text-label-md">Extract</span></a>
         <a class="top-nav__link" href="#"><span class="material-symbols-outlined">tune</span><span class="text-label-md">Preferences</span></a>
         <a class="top-nav__link top-nav__link--active" href="../../documentation.html" id="nav-docs"><span class="material-symbols-outlined">menu_book</span><span class="text-label-md">Documentation</span></a>
@@ -98,7 +98,7 @@ function shell(meta) {
     </div>
   </nav>
   <div class="top-nav__mobile-menu" id="mobile-menu">
-    <a class="top-nav__link" href="../../embed.html">Embed</a>
+    <a class="top-nav__link" href="../../index.html">Embed</a>
     <a class="top-nav__link" href="../../extract.html">Extract</a>
     <a class="top-nav__link top-nav__link--active" href="../../documentation.html">Documentation</a>
   </div>
@@ -156,8 +156,8 @@ function shell(meta) {
         <div class="main-footer__col">
           <div class="main-footer__col-title" data-i18n="footerColEmbed">Embed</div>
           <ul class="main-footer__col-links">
-            <li><a href="../../embed.html#text" class="main-footer__link" data-i18n="footerEmbedText">Text Steganography</a></li>
-            <li><a href="../../embed.html#image" class="main-footer__link" data-i18n="footerEmbedImage">Image Steganography</a></li>
+            <li><a href="../../index.html#text" class="main-footer__link" data-i18n="footerEmbedText">Text Steganography</a></li>
+            <li><a href="../../index.html#image" class="main-footer__link" data-i18n="footerEmbedImage">Image Steganography</a></li>
           </ul>
         </div>
 

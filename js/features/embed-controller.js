@@ -2,7 +2,7 @@
 // JavaScript Features — Embedding UI Controller
 // ══════════════════════════════════════════════════════════════
 //
-// Hooks DOM events for embed.html, processes user inputs, invokes
+// Hooks DOM events for index.html, processes user inputs, invokes
 // composeStego from the core business logic, and renders output results.
 //
 // Dependencies:

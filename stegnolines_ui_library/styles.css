@@ -875,7 +875,7 @@ html.dark .top-nav__brand-logo--dark { display: block; }
 
 .main-footer {
   margin-top: var(--space-xl);
-  padding: var(--space-xl) var(--space-margin-mobile) var(--space-lg);
+  padding: var(--space-xl) var(--space-margin-mobile) 88px; /* Increased bottom padding on mobile to clear floating buttons */
   background: var(--color-surface-container-lowest);
   border-top: 1px solid var(--color-outline-variant);
   color: var(--color-on-surface-variant);
@@ -917,16 +917,15 @@ html.dark .top-nav__brand-logo--dark { display: block; }
 }
 
 .main-footer__cols-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-lg);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-xl) var(--space-md);
   flex-grow: 1;
 }
 @media (min-width: 768px) {
   .main-footer__cols-group {
-    flex-direction: row;
-    justify-content: flex-end;
-    gap: var(--space-2xl);
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-xl) var(--space-lg);
   }
 }
 
@@ -934,7 +933,6 @@ html.dark .top-nav__brand-logo--dark { display: block; }
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  min-width: 150px;
 }
 
 .main-footer__col-title {
@@ -947,6 +945,8 @@ html.dark .top-nav__brand-logo--dark { display: block; }
   border-bottom: 2px solid var(--color-outline-variant);
   padding-bottom: var(--space-xs);
   margin-bottom: var(--space-sm);
+  width: 100%;
+  max-width: 100%;
 }
 
 .main-footer__col-links {
@@ -963,10 +963,15 @@ html.dark .top-nav__brand-logo--dark { display: block; }
   text-decoration: none;
   font-family: var(--font-label);
   font-size: var(--fs-label-md);
-  transition: var(--transition-colors);
+  transition: var(--transition-colors), transform 0.2s ease;
+  display: inline-block;
 }
 .main-footer__link:hover {
   color: var(--color-primary);
+  transform: translateX(4px);
+}
+html[dir="rtl"] .main-footer__link:hover {
+  transform: translateX(-4px);
 }
 
 .main-footer__bottom {
@@ -1056,6 +1061,28 @@ html.dark .top-nav__brand-logo--dark { display: block; }
 @media (max-width: 600px) {
   .tab-btn {
     padding: var(--space-sm) 12px;
+  }
+}
+
+@media (max-width: 500px) {
+  .tabs-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: visible;
+  }
+  
+  .tab-btn {
+    flex: 1 1 0%;
+    min-width: 0;
+    padding: var(--space-sm) 4px;
+    font-size: 0.75rem;
+    white-space: normal;
+    word-wrap: break-word;
+    text-align: center;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 

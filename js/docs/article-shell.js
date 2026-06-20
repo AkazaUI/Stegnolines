@@ -236,7 +236,7 @@ $$\text{VS\_CodePoint}(B) = \begin{cases}
 <h2>System Directory Layout</h2>
 <pre style="padding:var(--space-md);background:var(--color-surface-container);border-radius:var(--radius-lg);overflow:auto;font-size:var(--fs-body-sm);">
 Embding-Algo/
-  ├── embed.html              # Dynamic Embedding Interface
+  ├── index.html              # Dynamic Embedding Interface
   ├── extract.html            # Dynamic Extraction Interface
   ├── documentation.html      # Documentation Index
   ├── docs/                   # Compiled HTML Documentation Pages
@@ -321,7 +321,7 @@ function shell(meta) {
     <div class="top-nav__inner">
 
       <!-- Brand -->
-      <a class="top-nav__brand" href="../../embed.html" id="brand-link">
+      <a class="top-nav__brand" href="../../index.html" id="brand-link">
         <img class="top-nav__brand-logo top-nav__brand-logo--light" src="../../assets/brand/logo-dark.png" alt="STEGNOLINES"/>
         <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="../../assets/brand/logo-light.png" alt="STEGNOLINES"/>
       </a>
@@ -335,7 +335,7 @@ function shell(meta) {
             <span class="material-symbols-outlined top-nav__dropdown-chevron">expand_more</span>
           </button>
           <div class="top-nav__dropdown-panel" id="embed-dropdown-panel">
-            <a class="top-nav__dropdown-item" href="../../embed.html#text" data-tab="text">
+            <a class="top-nav__dropdown-item" href="../../index.html#text" data-tab="text">
               <div class="top-nav__dropdown-item-icon">
                 <span class="material-symbols-outlined">description</span>
               </div>
@@ -344,7 +344,7 @@ function shell(meta) {
                 <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownTextDesc">Conceal secret text inside cover text</span>
               </div>
             </a>
-            <a class="top-nav__dropdown-item" href="../../embed.html#image" data-tab="image">
+            <a class="top-nav__dropdown-item" href="../../index.html#image" data-tab="image">
               <div class="top-nav__dropdown-item-icon">
                 <span class="material-symbols-outlined">image</span>
               </div>
@@ -431,8 +431,8 @@ function shell(meta) {
       <span class="material-symbols-outlined" style="margin-left: auto;">expand_more</span>
     </button>
     <div class="top-nav__mobile-dropdown-items" id="mobile-embed-items" style="display:none; padding-left: 20px;">
-      <a class="top-nav__link" href="../../embed.html#text" data-tab="text" data-i18n="emTabText">Text Embed</a>
-      <a class="top-nav__link" href="../../embed.html#image" data-tab="image" data-i18n="emTabImage">Image Embed</a>
+      <a class="top-nav__link" href="../../index.html#text" data-tab="text" data-i18n="emTabText">Text Embed</a>
+      <a class="top-nav__link" href="../../index.html#image" data-tab="image" data-i18n="emTabImage">Image Embed</a>
     </div>
 
     <button class="top-nav__link" id="mobile-extract-toggle" type="button" style="border:none; background:none; width:100%; text-align:left; cursor:pointer; display:flex; align-items:center; margin-top:12px;">
@@ -524,8 +524,8 @@ function shell(meta) {
         <div class="main-footer__col">
           <div class="main-footer__col-title" data-i18n="footerColEmbed">Embed</div>
           <ul class="main-footer__col-links">
-            <li><a href="../../embed.html#text" class="main-footer__link" data-i18n="footerEmbedText">Text Steganography</a></li>
-            <li><a href="../../embed.html#image" class="main-footer__link" data-i18n="footerEmbedImage">Image Steganography</a></li>
+            <li><a href="../../index.html#text" class="main-footer__link" data-i18n="footerEmbedText">Text Steganography</a></li>
+            <li><a href="../../index.html#image" class="main-footer__link" data-i18n="footerEmbedImage">Image Steganography</a></li>
           </ul>
         </div>
 
