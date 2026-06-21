@@ -876,7 +876,7 @@ function updateVisualMetrics() {
   }
   updateStrengthBars(assessStrength(presharedInput.value));
   const keyCounterEl = document.getElementById('preshared-counter');
-  if (keyCounterEl) keyCounterEl.textContent = `${presharedInput.value.length} chars`;
+  if (keyCounterEl) keyCounterEl.textContent = `${presharedInput.value.length} ${getCharsLabel()}`;
 
   const hintLen = hintInput.value.length;
   const hintCounterEl = document.getElementById('embedHintCounter');

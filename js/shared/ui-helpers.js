@@ -477,3 +477,15 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('hashchange', selectTabFromHash);
 });
 
+/**
+ * Retrieve the translated label for "chars" from the active translations dictionary.
+ * Fallback to English "chars" if not found or translation is missing.
+ * 
+ * @returns {string}
+ */
+function getCharsLabel() {
+  const dict = (typeof window.translations !== 'undefined') ? window.translations : ((typeof translations !== 'undefined') ? translations : null);
+  const lang = localStorage.getItem('stegoLang') || 'en';
+  return (dict && dict[lang] && dict[lang].charsLabel) ? dict[lang].charsLabel : 'chars';
+}
+

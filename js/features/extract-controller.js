@@ -23,7 +23,7 @@ function updateMetrics() {
   if (!exPresharedInput) return;
   const keyLen = exPresharedInput.value ? exPresharedInput.value.length : 0;
   const counterEl = document.getElementById('ex-preshared-counter');
-  if (counterEl) counterEl.textContent = `${keyLen} chars`;
+  if (counterEl) counterEl.textContent = `${keyLen} ${getCharsLabel()}`;
 }
 
 /* ── Copy action ── */

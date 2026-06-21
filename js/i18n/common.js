@@ -72,7 +72,11 @@ const I18N_COMMON = {
     scrollToTopTooltip: "Scroll to Top",
     navSteganalysis: "Text Steganalysis",
     navSteganalysisDesc: "Detect hidden Unicode characters in text",
-    footerSteganalysis: "Text Steganalysis"
+    footerSteganalysis: "Text Steganalysis",
+    githubRepoTooltip: "GitHub Repository",
+    charsLabel: "chars",
+    labelBitsUnit: "bits",
+    labelCharsUnit: "chars"
   },
   ar: {
     navEmbed: "التضمين",
@@ -143,7 +147,11 @@ const I18N_COMMON = {
     scrollToTopTooltip: "العودة للأعلى",
     navSteganalysis: "تحليل النص",
     navSteganalysisDesc: "كشف أحرف يونيكود المخفية في النص",
-    footerSteganalysis: "تحليل النص"
+    footerSteganalysis: "تحليل النص",
+    githubRepoTooltip: "مستودع المشروع على GitHub",
+    charsLabel: "حرف",
+    labelBitsUnit: "بت",
+    labelCharsUnit: "حرف"
   },
   fr: {
     navEmbed: "Intégrer",
@@ -214,7 +222,11 @@ const I18N_COMMON = {
     scrollToTopTooltip: "Retour en haut",
     navSteganalysis: "Stéganalyse de texte",
     navSteganalysisDesc: "Détecter les caractères Unicode cachés dans le texte",
-    footerSteganalysis: "Stéganalyse de texte"
+    footerSteganalysis: "Stéganalyse de texte",
+    githubRepoTooltip: "Dépôt GitHub",
+    charsLabel: "caractères",
+    labelBitsUnit: "bits",
+    labelCharsUnit: "caractères"
   },
   zh: {
     navEmbed: "嵌入",
@@ -279,7 +291,11 @@ const I18N_COMMON = {
     scrollToTopTooltip: "回到顶部",
     navSteganalysis: "文本隐写分析",
     navSteganalysisDesc: "检测文本中隐藏的Unicode字符",
-    footerSteganalysis: "文本隐写分析"
+    footerSteganalysis: "文本隐写分析",
+    githubRepoTooltip: "GitHub 仓库",
+    charsLabel: "字符",
+    labelBitsUnit: "比特",
+    labelCharsUnit: "字符"
   },
   la: {
     navEmbed: "Implantare",
@@ -344,6 +360,10 @@ const I18N_COMMON = {
     scrollToTopTooltip: "Ad summus scroll",
     navSteganalysis: "Steganalysis Textus",
     navSteganalysisDesc: "Detegere characteres Unicode occultos in textu",
-    footerSteganalysis: "Steganalysis Textus"
+    footerSteganalysis: "Steganalysis Textus",
+    githubRepoTooltip: "GitHub Repositorium",
+    charsLabel: "characteres",
+    labelBitsUnit: "bits",
+    labelCharsUnit: "characteres"
   }
 };

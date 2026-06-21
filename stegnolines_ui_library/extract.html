@@ -238,7 +238,7 @@
               <span class="badge badge--encrypted text-label-md">
                 <span class="material-symbols-outlined">key</span> AES
               </span>
-              <span class="text-label-md" id="ex-preshared-counter" style="margin-left: auto; color: var(--color-on-surface-variant);">0 chars</span>
+              <span class="text-label-md" id="ex-preshared-counter" style="margin-inline-start: auto; color: var(--color-on-surface-variant);">0 chars</span>
             </div>
             <div class="input-eye-wrap">
               <input class="form-input" id="ex-preshared-input" type="password" placeholder="Encryption key (must match the sender's key)..."/>
@@ -548,7 +548,8 @@
       const keyLen = exPresharedInput.value ? exPresharedInput.value.length : 0;
       const counterEl = document.getElementById('ex-preshared-counter');
       if (counterEl) {
-        counterEl.textContent = `${keyLen} chars`;
+        const lang = localStorage.getItem('stegoLang') || 'en';
+        counterEl.textContent = `${keyLen} ${lang === 'ar' ? 'حرف' : 'chars'}`;
       }
     }
 

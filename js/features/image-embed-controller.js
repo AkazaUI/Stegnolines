@@ -890,10 +890,11 @@ function updateImgGuardValidation(projectedLength) {
   if (placementEl) placementEl.textContent = placementData.name[currentLang] || placementData.name['en'];
 
   const limitText = document.getElementById('imgGuardPreviewLimitText');
-  if (limitText) limitText.textContent = `${currentLang === 'ar' ? 'الحد الاقصى' : 'Limit'}: ${limit.toLocaleString()} chars`;
+  const labelChars = currentLang === 'ar' ? 'حرف' : 'chars';
+  if (limitText) limitText.textContent = `${currentLang === 'ar' ? 'الحد الاقصى' : 'Limit'}: ${limit.toLocaleString()} ${labelChars}`;
 
   const countText = document.getElementById('imgGuardPreviewCountText');
-  if (countText) countText.textContent = `${projectedLength.toLocaleString()} / ${limit.toLocaleString()} chars`;
+  if (countText) countText.textContent = `${projectedLength.toLocaleString()} / ${limit.toLocaleString()} ${labelChars}`;
 
   const fill = document.getElementById('imgGuardPreviewProgressFill');
   const ratio = Math.min((projectedLength / limit) * 100, 100);
@@ -1431,7 +1432,7 @@ document.addEventListener('DOMContentLoaded', () => {
     $imgKeyInput.addEventListener('input', () => {
       const counterEl = document.getElementById('img-key-counter');
       if (counterEl) {
-        counterEl.textContent = `${$imgKeyInput.value.length} chars`;
+        counterEl.textContent = `${$imgKeyInput.value.length} ${getCharsLabel()}`;
       }
     });
   }

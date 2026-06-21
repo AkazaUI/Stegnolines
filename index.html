@@ -206,16 +206,16 @@
             <div class="capacity-stats-grid">
               <span class="text-body-sm" style="color:var(--color-on-surface-variant)"><span
                   data-i18n="labelCoverBits">Cover: </span><span class="font-semibold"
-                  style="color:var(--color-primary)" id="mCoverLen">0</span> bits</span>
+                  style="color:var(--color-primary)" id="mCoverLen">0</span> <span data-i18n="labelBitsUnit">bits</span></span>
               <span class="text-body-sm" style="color:var(--color-on-surface-variant)"><span
                   data-i18n="labelMaxChars">Capacity: </span><span class="font-semibold"
-                  style="color:var(--color-primary)" id="mMaxChars">0</span> chars</span>
+                  style="color:var(--color-primary)" id="mMaxChars">0</span> <span data-i18n="labelCharsUnit">chars</span></span>
               <span class="text-body-sm" style="color:var(--color-on-surface-variant)"><span
                   data-i18n="labelMsgBits">Msg: </span><span class="font-semibold" style="color:var(--color-primary)"
-                  id="mMsgBits">0</span> bits</span>
+                  id="mMsgBits">0</span> <span data-i18n="labelBitsUnit">bits</span></span>
               <span class="text-body-sm" style="color:var(--color-on-surface-variant)"><span
                   data-i18n="labelUsageBits">Usage: </span><span class="font-semibold"
-                  style="color:var(--color-primary)" id="mUsage">0 / 0</span> bits</span>
+                  style="color:var(--color-primary)" id="mUsage">0 / 0</span> <span data-i18n="labelBitsUnit">bits</span></span>
             </div>
           </div>
 
@@ -231,7 +231,7 @@
                   <span class="material-symbols-outlined">key</span> StegoKey
                 </span>
                 <span class="text-label-md" id="preshared-counter"
-                  style="margin-left: auto; color: var(--color-on-surface-variant);">0 chars</span>
+                  style="margin-inline-start: auto; color: var(--color-on-surface-variant);">0 chars</span>
               </div>
               <div class="input-eye-wrap">
                 <input class="form-input" id="embedStegoKey" type="password" data-i18n-placeholder="placeholderStegoKey"
@@ -303,7 +303,7 @@
                     placeholder="Extraction clue for the receiver..." oninput="updateCapacityMeter()" />
                   <div class="hint-counter-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
                     <span class="text-body-sm hint-error-text" id="embedHintError" style="color: var(--color-error); font-weight: 500; display: none;"></span>
-                    <span class="text-body-sm" id="embedHintCounter" style="color: var(--color-on-surface-variant); margin-left: auto;">0/60</span>
+                    <span class="text-body-sm" id="embedHintCounter" style="color: var(--color-on-surface-variant); margin-inline-start: auto;">0/60</span>
                   </div>
                 </div>
 
@@ -846,7 +846,7 @@
                   <span class="material-symbols-outlined">key</span> CTR Key
                 </span>
                 <span class="text-label-md" id="img-key-counter"
-                  style="margin-left: auto; color: var(--color-on-surface-variant);">0 chars</span>
+                  style="margin-inline-start: auto; color: var(--color-on-surface-variant);">0 chars</span>
               </div>
               <div class="input-eye-wrap">
                 <input class="form-input" id="imgEmbedKey" type="password" data-i18n-placeholder="imgPlaceholderAesKey"
