@@ -35,18 +35,30 @@ async function composeStego(coverText, secretMessage, hint, stegoKey, encryption
   // 2. Step 1: Build payload bytes
   const payloadBytes = buildPayload(secretMessage, hint);
 
-  // 3. Step 0: Compress payload via Brotli
+  // 3. Step 0: Compress payload via Brotli (with safe fallback)
   const startTimeBrotli = performance.now();
-  const compressedBytes = doStreamCompress(payloadBytes);
-  const brotliDurationMs = performance.now() - startTimeBrotli;
+  let compressedBytes = payloadBytes;
+  let brotliDurationMs = 0;
+  let compressed = false;
+  try {
+    if (typeof doStreamCompress === 'function') {
+      const result = doStreamCompress(payloadBytes);
+      brotliDurationMs = performance.now() - startTimeBrotli;
+      if (result && result.length > 0 && result.length < payloadBytes.length) {
+        compressedBytes = result;
+        compressed = true;
+      }
+    }
+  } catch (err) {
+    console.warn("Brotli compression fallback:", err);
+    compressed = false;
+  }
 
   let finalPayload;
-  let compressed = false;
-  if (compressedBytes.length < payloadBytes.length) {
+  if (compressed) {
     finalPayload = new Uint8Array(1 + compressedBytes.length);
     finalPayload[0] = 0xFE;
     finalPayload.set(compressedBytes, 1);
-    compressed = true;
   } else {
     finalPayload = payloadBytes;
   }
