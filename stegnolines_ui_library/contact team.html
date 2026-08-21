@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — Contact Team</title>
+  <meta name="description" content="Get in touch with the Stegnolines development and security team."/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .page-header-wrapper {
+      text-align: center;
+      margin-bottom: var(--space-xxl);
+      padding: var(--space-xl) 0;
+    }
+    .contact-info-card {
+      background: var(--color-surface-container-low);
+      border: 1px solid var(--color-outline-variant);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      transition: all 0.3s ease;
+    }
+    .contact-info-card:hover {
+      background: var(--color-surface-container);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card);
+      border-color: var(--color-outline);
+    }
+    .contact-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-md);
+    }
+    .icon-primary { background: rgba(187,209,0,0.1); color: var(--color-primary); }
+    .icon-warning { background: rgba(234,179,8,0.1); color: #EAB308; }
+    .icon-tertiary{ background: rgba(0,255,255,0.05); color: var(--color-tertiary); }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ Top Navigation ═══ -->
+  <nav class="top-nav" id="top-nav">
+    <div class="top-nav__inner">
+      <a class="top-nav__brand" href="index.html" id="brand-link">
+        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="Dark-Logo-T.png" alt="STEGNOLINES"/>
+        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="White-Logo-T.png" alt="STEGNOLINES"/>
+      </a>
+      <nav class="top-nav__links" id="desktop-nav">
+        <a class="top-nav__link" href="index.html" id="nav-embed">
+          <span class="material-symbols-outlined">lock</span>
+          <span class="text-label-md">Embed</span>
+        </a>
+        <a class="top-nav__link" href="extract.html" id="nav-extract">
+          <span class="material-symbols-outlined">lock_open</span>
+          <span class="text-label-md">Extract</span>
+        </a>
+        <a class="top-nav__link" href="#" id="nav-preferences">
+          <span class="material-symbols-outlined">tune</span>
+          <span class="text-label-md">Preferences</span>
+        </a>
+        <a class="top-nav__link" href="documentation.html" id="nav-docs">
+          <span class="material-symbols-outlined">menu_book</span>
+          <span class="text-label-md">Documentation</span>
+        </a>
+      </nav>
+      <div class="top-nav__actions">
+        <label class="toggle" title="Toggle dark mode" style="margin-right: var(--space-xs);">
+          <input type="checkbox" class="toggle__input" id="toggle-dark-mode"/>
+          <div class="toggle__track"></div>
+        </label>
+        <button class="icon-btn" id="top-nav-settings" aria-label="Settings" title="Settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+        <button class="icon-btn" id="top-nav-notifications" aria-label="Notifications" title="Notifications">
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <div class="top-nav__user">
+          <div class="top-nav__avatar">
+            <span class="material-symbols-outlined">person</span>
+          </div>
+        </div>
+        <button class="top-nav__hamburger" id="hamburger-btn" aria-label="Open menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="top-nav__mobile-menu" id="mobile-menu">
+    <a class="top-nav__link" href="index.html">
+      <span class="material-symbols-outlined">lock</span>
+      <span class="text-label-md">Embed</span>
+    </a>
+    <a class="top-nav__link" href="extract.html">
+      <span class="material-symbols-outlined">lock_open</span>
+      <span class="text-label-md">Extract</span>
+    </a>
+    <a class="top-nav__link" href="#">
+      <span class="material-symbols-outlined">tune</span>
+      <span class="text-label-md">Preferences</span>
+    </a>
+    <a class="top-nav__link" href="documentation.html">
+      <span class="material-symbols-outlined">menu_book</span>
+      <span class="text-label-md">Documentation</span>
+    </a>
+  </div>
+
+  <!-- ═══ Main Content ═══ -->
+  <main class="main-content">
+    
+    <!-- Hero Section -->
+    <div class="page-header-wrapper">
+      <h1 class="text-display-lg" style="color: var(--color-primary); margin-bottom: var(--space-sm);">Get in Touch</h1>
+      <p class="text-body-lg" style="color: var(--color-on-surface-variant); max-width: 600px; margin: 0 auto;">
+        Have questions about our zero-overhead steganography? Found a security vulnerability? Or just want to collaborate? We'd love to hear from you.
+      </p>
+    </div>
+
+    <!-- Contact Container -->
+    <div style="max-width: 800px; margin: 0 auto; margin-bottom: var(--space-xxl);">
+      
+      <!-- Main Contact Card -->
+      <div class="card" style="box-shadow: var(--shadow-card);">
+        <h2 class="text-headline-md" style="margin-bottom: var(--space-sm);">Send a Message</h2>
+        <p class="text-body-sm" style="color: var(--color-on-surface-variant); margin-bottom: var(--space-lg);">
+          Fill out the form below and our team will get back to you within 24-48 hours.
+        </p>
+
+        <form id="contactForm" class="stack-md" novalidate onsubmit="handleContactSubmit(event)">
+          
+          <div class="grid-2col-md">
+            <div>
+              <label class="form-label text-label-md" for="contactName">Full Name</label>
+              <input class="form-input" id="contactName" type="text" placeholder="e.g. Abdullah Al-Fahad" required />
+            </div>
+            <div>
+              <label class="form-label text-label-md" for="contactEmail">Email Address</label>
+              <input class="form-input" id="contactEmail" type="email" placeholder="name@domain.com" required />
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label text-label-md" for="contactSubject">Topic / Subject</label>
+            <input class="form-input" id="contactSubject" type="text" placeholder="e.g. Technical Support, General Feedback..." required />
+          </div>
+
+          <div>
+            <label class="form-label text-label-md" for="contactMessage">Message</label>
+            <textarea class="form-textarea" id="contactMessage" rows="6" placeholder="How can we help you?" required></textarea>
+          </div>
+
+          <button type="submit" class="btn btn--primary" style="width: 100%; justify-content: center; margin-top: var(--space-sm);">
+            <span class="material-symbols-outlined">send</span> Send Message
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div style="border-top: 1px solid var(--color-outline-variant); margin-top: var(--space-xl); padding-top: var(--space-lg);"></div>
+
+        <!-- Contact Information (Bottom, Side-by-Side) -->
+        <div class="grid-2col-md" style="gap: var(--space-lg); align-items: start;">
+          
+          <div class="contact-info-card" style="box-shadow: none; margin: 0;">
+            <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-xs);">
+              <div class="contact-icon-wrap icon-primary" style="margin-bottom: 0;">
+                <span class="material-symbols-outlined" style="font-size: 24px;">mail</span>
+              </div>
+              <h3 class="text-headline-sm">Email Us</h3>
+            </div>
+            <p class="text-body-sm" style="color: var(--color-on-surface-variant); margin-bottom: var(--space-md); padding-left: 64px;">
+              For general inquiries and support.
+            </p>
+            <div style="padding-left: 64px;">
+              <a href="mailto:support@stegnolines.local" style="color: var(--color-primary); text-decoration: none; font-weight: 600; font-size: var(--fs-body-md);">support@stegnolines.local</a>
+            </div>
+          </div>
+
+          <div class="contact-info-card" style="box-shadow: none; margin: 0;">
+            <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-xs);">
+              <div class="contact-icon-wrap icon-tertiary" style="margin-bottom: 0;">
+                <span class="material-symbols-outlined" style="font-size: 24px;">location_on</span>
+              </div>
+              <h3 class="text-headline-sm">Location</h3>
+            </div>
+            <p class="text-body-sm" style="color: var(--color-on-surface-variant); padding-left: 64px; line-height: 1.6;">
+              Kingdom of Saudi Arabia<br>
+              Cybersecurity Department
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+    
+    <!-- Fixed Security-Log Toast container -->
+    <div id="sec-toast-wrap"></div>
+
+  </main>
+
+  <!-- ═══ Footer ═══ -->
+  <footer class="main-footer">
+    <div class="main-footer__inner">
+      <div class="main-footer__brand">
+        <div class="main-footer__title">STEGNOLINES</div>
+        <p class="text-body-sm" style="max-width: 300px;">
+          Advanced Zero-Overhead Contextual Steganography and Cryptography for secure transmission.
+        </p>
+      </div>
+      
+      <div class="main-footer__links-group">
+        <ul class="main-footer__links">
+          <li><a href="index.html" class="main-footer__link">Embed</a></li>
+          <li><a href="extract.html" class="main-footer__link">Extract</a></li>
+          <li><a href="documentation.html" class="main-footer__link">Documentation</a></li>
+          <li><a href="about%20us.html" class="main-footer__link">About Us</a></li>
+          <li><a href="contact%20team.html" class="main-footer__link">Contact Team</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="main-footer__bottom">
+      <span>&copy; 2026 STEGNOLINES. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <!-- ═══ Scripts ═══ -->
+  <script>
+    // Dark mode toggle
+    document.getElementById('toggle-dark-mode').addEventListener('change', function () {
+      document.documentElement.classList.toggle('dark',  this.checked);
+      document.documentElement.classList.toggle('light', !this.checked);
+    });
+
+    // Hamburger
+    document.getElementById('hamburger-btn').addEventListener('click', () => {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('is-open');
+      const icon = document.querySelector('#hamburger-btn .material-symbols-outlined');
+      icon.textContent = menu.classList.contains('is-open') ? 'close' : 'menu';
+    });
+
+    // Toast functionality for the contact form
+    // Now handled globally by js/utils.js
+
+    function handleContactSubmit(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('contactName').value.trim();
+      const email = document.getElementById('contactEmail').value.trim();
+      const subject = document.getElementById('contactSubject').value.trim();
+      const message = document.getElementById('contactMessage').value.trim();
+
+      // Form validation matching the main website's error format
+      if (!name || !email || !subject || !message) {
+        showToast('error', 'Missing fields', 'Please fill in all the required fields before submitting.');
+        return;
+      }
+
+      // Simulated success API response
+      showToast('success', 'Message Sent Successfully!', 'Thank you! We have received your message and will get back to you soon.');
+      document.getElementById('contactForm').reset();
+    }
+  </script>
+  <script src="js/utils.js"></script>
+</body>
+</html>

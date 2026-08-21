@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — Extraction Interface</title>
+  <meta name="description" content="Text-based steganography extraction interface. Reveal the hidden secret message from stego-text securely."/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <!-- zxcvbn password strength estimator (Dropbox) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    /* ── Textarea 50/50 row (stego + extracted output) ── */
+    .textarea-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-gutter);
+    }
+    @media (min-width: 768px) {
+      .textarea-row { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── Output and Hint uneven grid ── */
+    .output-hint-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-gutter);
+    }
+    @media (min-width: 768px) {
+      .output-hint-grid { grid-template-columns: 3fr 1fr; }
+    }
+
+    /* ── Label row helper ── */
+    .label-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-xs);
+    }
+
+    /* ── 4-segment cumulative strength bars ── */
+    .strength-bars-4 { display: flex; gap: var(--space-xs); height: 8px; }
+    .strength-bar-4  { flex: 1; border-radius: var(--radius-full); background: var(--color-surface-variant); transition: background 0.3s ease; }
+    #ex-sb-1.active { background: #c5e06a; }
+    #ex-sb-2.active { background: #8db81e; }
+    #ex-sb-3.active { background: #5f8a00; }
+    #ex-sb-4.active { background: #3a5c00; }
+
+    /* ── Eye-icon password toggle wrapper ── */
+    .input-eye-wrap { position: relative; display: flex; align-items: center; }
+    .input-eye-wrap .form-input { padding-right: 2.5rem; width: 100%; }
+    .eye-toggle-btn {
+      position: absolute; right: var(--space-sm);
+      background: none; border: none; cursor: pointer; padding: 0;
+      color: var(--color-on-surface-variant);
+      display: flex; align-items: center;
+      transition: var(--transition-colors);
+    }
+    .eye-toggle-btn:hover { color: var(--color-primary); }
+    .eye-toggle-btn .material-symbols-outlined { font-size: 20px; }
+
+    /* ── Fixed Security-Log Toast ── */
+    #sec-toast-wrap {
+      position: fixed;
+      bottom: var(--space-lg);
+      left: var(--space-lg);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      max-width: 380px;
+      pointer-events: none;
+    }
+    .sec-toast {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: #111;
+      border: 1px solid #333;
+      border-left: 3px solid #7DA300;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      pointer-events: auto;
+      opacity: 0;
+      transform: translateX(-24px);
+      animation: toastIn 0.35s ease forwards;
+    }
+    .sec-toast--error   { border-left-color: #B3261E; }
+    .sec-toast--success { border-left-color: #7DA300; }
+    .sec-toast .sec-toast__icon { color: #7DA300; flex-shrink: 0; font-size: 18px; margin-top: 2px; }
+    .sec-toast--error .sec-toast__icon { color: #B3261E; }
+    .sec-toast__title { color: #eee; font-weight: 600; font-size: 0.8125rem; }
+    .sec-toast__msg   { color: #aaa; font-family: monospace; font-size: 0.75rem; margin-top: 2px; }
+    .sec-toast.fading { animation: toastOut 0.5s ease forwards; }
+    @keyframes toastIn  { from { opacity:0; transform:translateX(-24px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes toastOut { from { opacity:1; } to   { opacity:0; transform:translateX(-24px); } }
+
+    /* ── Full-width stacked config inputs ── */
+    .config-stack { display: flex; flex-direction: column; gap: var(--space-lg); }
+
+    /* ── Extracted output readonly tint ── */
+    #extracted-output {
+      background: var(--color-surface-container-low);
+      color: var(--color-on-surface);
+      cursor: default;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ Top Navigation ═══ -->
+  <nav class="top-nav" id="top-nav">
+    <div class="top-nav__inner">
+
+      <!-- Brand -->
+      <a class="top-nav__brand" href="index.html" id="brand-link">
+        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="Dark-Logo-T.png" alt="STEGNOLINES"/>
+        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="White-Logo-T.png" alt="STEGNOLINES"/>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="top-nav__links" id="desktop-nav">
+        <a class="top-nav__link" href="index.html" id="nav-embed">
+          <span class="material-symbols-outlined">lock</span>
+          <span class="text-label-md">Embed</span>
+        </a>
+        <a class="top-nav__link" href="extract.html" id="nav-extract">
+          <span class="material-symbols-outlined">lock_open</span>
+          <span class="text-label-md">Extract</span>
+        </a>
+        <a class="top-nav__link" href="#" id="nav-preferences">
+          <span class="material-symbols-outlined">tune</span>
+          <span class="text-label-md">Preferences</span>
+        </a>
+        <a class="top-nav__link" href="documentation.html" id="nav-docs">
+          <span class="material-symbols-outlined">menu_book</span>
+          <span class="text-label-md">Documentation</span>
+        </a>
+      </nav>
+
+      <!-- Right Actions -->
+      <div class="top-nav__actions">
+        <!-- Dark Mode Toggle -->
+        <label class="toggle" title="Toggle dark mode" style="margin-right: var(--space-xs);">
+          <input type="checkbox" class="toggle__input" id="toggle-dark-mode"/>
+          <div class="toggle__track"></div>
+        </label>
+        
+        <button class="icon-btn" id="top-nav-settings" aria-label="Settings" title="Settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+        <button class="icon-btn" id="top-nav-notifications" aria-label="Notifications" title="Notifications">
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <div class="top-nav__user">
+          <div class="top-nav__avatar">
+            <span class="material-symbols-outlined">person</span>
+          </div>
+        </div>
+        <button class="top-nav__hamburger" id="hamburger-btn" aria-label="Open menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="top-nav__mobile-menu" id="mobile-menu">
+    <a class="top-nav__link" href="index.html">
+      <span class="material-symbols-outlined">lock</span>
+      <span class="text-label-md">Embed</span>
+    </a>
+    <a class="top-nav__link" href="extract.html">
+      <span class="material-symbols-outlined">lock_open</span>
+      <span class="text-label-md">Extract</span>
+    </a>
+    <a class="top-nav__link" href="#">
+      <span class="material-symbols-outlined">tune</span>
+      <span class="text-label-md">Preferences</span>
+    </a>
+    <a class="top-nav__link" href="documentation.html">
+      <span class="material-symbols-outlined">menu_book</span>
+      <span class="text-label-md">Documentation</span>
+    </a>
+  </div>
+
+  <!-- ═══ Main Content ═══ -->
+  <main class="main-content">
+
+    <header class="main-header">
+      <h1 class="text-display-lg">Extraction Interface</h1>
+      <p class="text-body-lg">Reveal the hidden secret message from stego-text using the correct key and parameters.</p>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="tabs-nav" id="extract-tabs">
+      <button class="tab-btn active" data-tab="standard" title="Decrypt with key & params">Standard Extract</button>
+      <button class="tab-btn" data-tab="scanner" title="Scan chat history for secrets">Scanner</button>
+      <button class="tab-btn" data-tab="hints" title="View stego hints log">Hints</button>
+    </nav>
+
+    <!-- Tab Content: Standard Extract -->
+    <div class="tab-panel" id="tab-standard">
+      <section class="card" id="extract-panel">
+      <h2 class="text-headline-md card__title">Extraction Workflow</h2>
+
+      <div class="stack-xl">
+
+        <!-- 1. FULL-WIDTH TEXTAREA: Stego-Text -->
+        <!-- Stego-Text Input -->
+        <div>
+          <div class="label-row">
+            <label class="form-label text-label-md" for="stego-input" style="margin-bottom:0">Stego-Text</label>
+            <span class="badge badge--encrypted text-label-md">
+              <span class="material-symbols-outlined">lock_open</span> Carrier
+            </span>
+          </div>
+          <textarea
+            class="form-textarea"
+            id="stego-input"
+            rows="9"
+            placeholder="Paste the stego-text here — the cover text that contains the hidden secret message..."
+          ></textarea>
+        </div>
+
+        <!-- 2. (Removed Stats Bar) -->
+
+        <!-- 3. CONFIGURATION INPUTS (full-width stacked) -->
+        <div class="config-stack">
+
+          <!-- Pre-Shared Key -->
+          <div>
+            <div class="label-row">
+              <label class="form-label text-label-md" for="ex-preshared-input" style="margin-bottom:0">Pre-Shared Key</label>
+              <span class="badge badge--encrypted text-label-md">
+                <span class="material-symbols-outlined">key</span> AES
+              </span>
+              <span class="text-label-md" id="ex-preshared-counter" style="margin-inline-start: auto; color: var(--color-on-surface-variant);">0 chars</span>
+            </div>
+            <div class="input-eye-wrap">
+              <input class="form-input" id="ex-preshared-input" type="password" placeholder="Encryption key (must match the sender's key)..."/>
+              <button class="eye-toggle-btn" id="ex-eye-toggle-btn" type="button" aria-label="Toggle key visibility">
+                <span class="material-symbols-outlined" id="ex-eye-icon">visibility</span>
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /config-stack -->
+
+        <div class="btn-group">
+          <button class="btn btn--primary" id="extract-btn">
+            <span class="material-symbols-outlined" style="font-size:18px">lock_open</span>
+            Extract Data
+          </button>
+        </div>
+
+        <!-- 5. EXTRACTED SECRET (bottom of panel) -->
+        <div id="output-section" style="display:none;">
+          <div class="divider-t">
+            <div class="output-hint-grid">
+              <!-- Left: Extracted Secret -->
+              <div>
+                <div class="label-row" style="margin-bottom:var(--space-sm)">
+                  <label class="form-label text-label-md" for="extracted-output" style="margin-bottom:0">Extracted Secret</label>
+                  <span class="badge badge--draft text-label-md">
+                    <span class="material-symbols-outlined">output</span> Result
+                  </span>
+                </div>
+                <textarea
+                  class="form-textarea"
+                  id="extracted-output"
+                  rows="9"
+                  readonly
+                  placeholder="The recovered secret message will appear here after you click 'Extract Data'..."
+                ></textarea>
+              </div>
+
+              <!-- Right: New Hint -->
+              <div>
+                <div class="label-row" style="margin-bottom:var(--space-sm)">
+                  <label class="form-label text-label-md" for="ex-new-hint-input" style="margin-bottom:0">Next / New Hint</label>
+                  <span class="badge badge--draft text-label-md">
+                    <span class="material-symbols-outlined">lightbulb</span> Hint
+                  </span>
+                </div>
+                <textarea
+                  class="form-textarea"
+                  id="ex-new-hint-input"
+                  rows="9"
+                  readonly
+                  placeholder="Add a new hint here if you plan to re-embed the extracted text..."
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Output action buttons -->
+            <div class="btn-group" style="margin-top:var(--space-md); justify-content:flex-start">
+              <button class="btn btn--secondary" id="ex-copy-btn">
+                <span class="material-symbols-outlined" style="font-size:18px">content_copy</span>
+                Copy Result
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /stack-xl -->
+      </section><!-- /extract-panel -->
+    </div><!-- /tab-standard -->
+
+    <!-- Tab Content: Scanner -->
+    <div class="tab-panel hidden" id="tab-scanner">
+      <section class="card" id="scanner-panel">
+        <h2 class="text-headline-md card__title">Chat Scanner</h2>
+        
+        <div class="stack-xl">
+          <div class="grid-2col-md">
+            <!-- 1. Password -->
+            <div>
+              <div class="label-row">
+                <label class="form-label text-label-md" for="scannerPassword" style="margin-bottom:0">Pre-Shared Key (Stego-Key)</label>
+                <span class="badge badge--encrypted text-label-md">
+                  <span class="material-symbols-outlined">key</span> AES
+                </span>
+              </div>
+              <div class="input-eye-wrap">
+                <input class="form-input" id="scannerPassword" type="password" placeholder="Enter key (leave empty if none was used)..."/>
+                <button class="eye-toggle-btn" id="scanner-eye-toggle-btn" type="button" aria-label="Toggle key visibility">
+                  <span class="material-symbols-outlined" id="scanner-eye-icon">visibility</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. Platform (Custom Dropdown) -->
+            <div>
+              <div class="label-row">
+                <label class="form-label text-label-md" style="margin-bottom:0">Platform</label>
+                <span class="badge badge--draft text-label-md">
+                  <span class="material-symbols-outlined">forum</span> Chat App
+                </span>
+              </div>
+              <div class="custom-select-wrapper" id="platformSelectWrapper">
+                <!-- Hidden input that the JS actually reads -->
+                <input type="hidden" id="scannerPlatform" value="auto">
+                <div class="custom-select-trigger form-select scanner-select" onclick="togglePlatformSelect(event)">
+                  <span id="platformSelectLabel">🔍 Auto Detect</span>
+                  <span class="material-symbols-outlined select-icon">expand_more</span>
+                </div>
+                <div class="custom-select-options" id="platformSelectOptions">
+                  <div class="custom-option selected" data-value="auto" onclick="selectPlatformOption('auto', '🔍 Auto Detect')">🔍 Auto Detect</div>
+                  <div class="custom-option" data-value="whatsapp_android" onclick="selectPlatformOption('whatsapp_android', 'WhatsApp (Android)')">WhatsApp (Android)</div>
+                  <div class="custom-option" data-value="whatsapp_ios" onclick="selectPlatformOption('whatsapp_ios', 'WhatsApp (iOS)')">WhatsApp (iOS)</div>
+                  <div class="custom-option" data-value="telegram" onclick="selectPlatformOption('telegram', 'Telegram')">Telegram</div>
+                  <div class="custom-option" data-value="discord" onclick="selectPlatformOption('discord', 'Discord')">Discord</div>
+                  <div class="custom-option" data-value="signal" onclick="selectPlatformOption('signal', 'Signal')">Signal</div>
+                  <div class="custom-option" data-value="imessage" onclick="selectPlatformOption('imessage', 'iMessage')">iMessage</div>
+                  <div class="custom-option" data-value="generic" onclick="selectPlatformOption('generic', '📝 Plain Text (One message per line)')">📝 Plain Text (One message per line)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Chat Input -->
+          <div>
+            <div class="label-row">
+              <label class="form-label text-label-md" for="scannerChatInput" style="margin-bottom:0">Chat History</label>
+            </div>
+            <textarea
+              class="form-textarea"
+              id="scannerChatInput"
+              rows="8"
+              placeholder="Paste the full chat history here — from any platform (WhatsApp, Telegram, Discord...)&#10;Or paste each message on a new line..."
+            ></textarea>
+          </div>
+
+          <!-- 4. Action Buttons -->
+          <div class="scanner-actions-wrapper">
+            <button id="btn-scanner-one-click" class="scanner-action-btn scanner-action-primary" onclick="scannerOneClick()">
+              <span class="scanner-action-icon">🚀</span>
+              <span class="scanner-action-content">
+                <span class="scanner-action-title">Scan &amp; Extract</span>
+                <span class="scanner-action-desc">Filter + Extract + Test in one click</span>
+              </span>
+            </button>
+            <button id="btn-scanner-verify" class="scanner-action-btn scanner-action-secondary" onclick="scannerVerifyFilter()">
+              <span class="scanner-action-icon">🔍</span>
+              <span class="scanner-action-content">
+                <span class="scanner-action-title">Verify Filter</span>
+                <span class="scanner-action-desc">Review filtered messages &amp; VS chars</span>
+              </span>
+            </button>
+          </div>
+
+          <!-- 5. Progress Indicator (Hidden by default) -->
+          <div id="scannerProgressBar" style="display:none; flex-direction:column; gap:var(--space-sm);" class="stack-sm">
+            <div class="label-row" style="justify-content:space-between">
+              <span class="text-label-md" id="scannerProgressLabel" style="font-weight:600; color:var(--color-primary);">Processing...</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="scannerProgressFill" style="width:0%"></div></div>
+            <div style="display:flex; justify-content:space-between; font-size:var(--text-body-sm); color:var(--color-on-surface-variant);">
+              <span id="progStep1" class="scanner-prog-step">① Filter</span>
+              <span id="progStep2" class="scanner-prog-step">② Extract</span>
+              <span id="progStep3" class="scanner-prog-step">③ Test</span>
+            </div>
+          </div>
+
+          <!-- 6. Results Sections -->
+          <div class="stack-md" id="scanner-results-container">
+            
+            <!-- Step 1 Results (Filter) -->
+            <div class="accordion" id="scannerStep1Card" style="display:none;">
+              <button class="accordion__trigger scanner-result-toggle" type="button" onclick="toggleScannerResult('scannerStep1Body')">
+                <span class="text-body-md accordion__trigger-text">Filtered Messages <span id="scannerStep1Count" style="color:var(--color-on-surface-variant); margin-left:8px; font-size:var(--text-body-sm);"></span></span>
+                <span class="material-symbols-outlined scanner-chevron transition-transform">expand_more</span>
+              </button>
+              <div class="accordion__body" id="scannerStep1Body" style="display:none; padding:var(--space-md);">
+                <div id="scannerFilteredList"></div>
+              </div>
+            </div>
+
+            <!-- Step 2 Results (Extract VS) -->
+            <div class="accordion" id="scannerStep2Card" style="display:none;">
+              <button class="accordion__trigger scanner-result-toggle" type="button" onclick="toggleScannerResult('scannerStep2Body')">
+                <span class="text-body-md accordion__trigger-text">Extraction Results — VS Characters <span id="scannerStep2Count" style="color:var(--color-on-surface-variant); margin-left:8px; font-size:var(--text-body-sm);"></span></span>
+                <span class="material-symbols-outlined scanner-chevron transition-transform">expand_more</span>
+              </button>
+              <div class="accordion__body" id="scannerStep2Body" style="display:none; padding:var(--space-md);">
+                <div id="scannerExtractedList"></div>
+              </div>
+            </div>
+
+            <!-- Step 3 Results (Try Extraction) -->
+            <div class="accordion accordion--open" id="scannerStep3Card" style="display:none;">
+              <button class="accordion__trigger" type="button" style="cursor:default;">
+                <span class="text-body-md accordion__trigger-text">Trial Results</span>
+              </button>
+              <div class="accordion__body" id="scannerStep3Body" style="padding:var(--space-md);">
+                <div id="scannerTryResults"></div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+    <!-- Tab Content: Hints -->
+    <div class="tab-panel hidden" id="tab-hints">
+      <section class="card" id="hints-panel">
+        <h2 class="text-headline-md card__title">Stego Hints Log</h2>
+        <p class="text-body-sm" style="color:var(--color-on-surface-variant); margin-bottom:var(--space-xl);">
+          Track the contextual steganography hints you have sent and received.
+        </p>
+
+        <div class="stack-xl">
+          
+          <!-- Latest Active Hint -->
+          <div id="latestHintCard" class="card" style="display:none; border: 1px solid rgba(253, 224, 71, 0.3); background: rgba(253, 224, 71, 0.02);">
+            <div class="label-row" style="margin-bottom: var(--space-md);">
+              <label class="form-label text-label-md" style="color: #fde047; margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span class="material-symbols-outlined" style="font-size: 18px;">bolt</span> Latest Active Hint
+              </label>
+            </div>
+            <div id="latestHintContent" style="display: flex; align-items: center; gap: var(--space-md);"></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-lg);">
+            <!-- Received Hints Log -->
+            <div class="card" style="border: 1px solid rgba(96, 165, 250, 0.2); background: rgba(96, 165, 250, 0.02);">
+              <div class="label-row" style="margin-bottom: var(--space-md);">
+                <label class="form-label text-label-md" style="color: #60a5fa; margin: 0; display: flex; align-items: center; gap: 8px;">
+                  <span class="material-symbols-outlined" style="font-size: 18px;">call_received</span> Received Hints
+                </label>
+              </div>
+              <div id="hintsReceivedContainer"></div>
+            </div>
+
+            <!-- Sent Hints Log -->
+            <div class="card" style="border: 1px solid rgba(74, 222, 128, 0.2); background: rgba(74, 222, 128, 0.02);">
+              <div class="label-row" style="margin-bottom: var(--space-md);">
+                <label class="form-label text-label-md" style="color: #4ade80; margin: 0; display: flex; align-items: center; gap: 8px;">
+                  <span class="material-symbols-outlined" style="font-size: 18px;">call_made</span> Sent Hints
+                </label>
+              </div>
+              <div id="hintsSentContainer"></div>
+            </div>
+          </div>
+
+          <!-- Clear Button -->
+          <div style="text-align: center; margin-top: var(--space-lg);">
+            <button id="btnClearHints" class="btn btn--danger" onclick="clearHintsLog()" style="display:none;">
+              <span class="material-symbols-outlined">delete</span> Clear All Hints
+            </button>
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <!-- ═══ Footer ═══ -->
+  <footer class="main-footer">
+    <div class="main-footer__inner">
+      <div class="main-footer__brand">
+        <div class="main-footer__title">STEGNOLINES</div>
+        <p class="text-body-sm" style="max-width: 300px;">
+          Advanced Zero-Overhead Contextual Steganography and Cryptography for secure transmission.
+        </p>
+      </div>
+      
+      <div class="main-footer__links-group">
+        <ul class="main-footer__links">
+          <li><a href="index.html" class="main-footer__link">Embed</a></li>
+          <li><a href="extract.html" class="main-footer__link">Extract</a></li>
+          <li><a href="documentation.html" class="main-footer__link">Documentation</a></li>
+          <li><a href="about us.html" class="main-footer__link">About Us</a></li>
+          <li><a href="contact team.html" class="main-footer__link">Contact Team</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="main-footer__bottom">
+      <span>&copy; 2026 STEGNOLINES. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <!-- Fixed Security-Log Toast container -->
+  <div id="sec-toast-wrap"></div>
+
+  <!-- ═══ Scripts ═══ -->
+  <script>
+    /* ── DOM refs ── */
+    const stegoInput       = document.getElementById('stego-input');
+    const exPresharedInput = document.getElementById('ex-preshared-input');
+    const exCopyBtn        = document.getElementById('ex-copy-btn');
+    const extractedOutput  = document.getElementById('extracted-output');
+    const extractBtn       = document.getElementById('extract-btn');
+    const secToastWrap     = document.getElementById('sec-toast-wrap');
+
+    /* ── Security-Log Toast ── */
+    // Now handled globally by js/utils.js
+
+    /* ── Live metrics update ── */
+    function updateMetrics() {
+      const keyLen = exPresharedInput.value ? exPresharedInput.value.length : 0;
+      const counterEl = document.getElementById('ex-preshared-counter');
+      if (counterEl) {
+        const lang = localStorage.getItem('stegoLang') || 'en';
+        counterEl.textContent = `${keyLen} ${lang === 'ar' ? 'حرف' : 'chars'}`;
+      }
+    }
+
+    /* ── Extract action ── */
+    function extractData() {
+      const stego = stegoInput.value.trim();
+      const key   = exPresharedInput.value;
+
+      if (!stego) {
+        showToast('error', 'Missing stego-text', 'Paste the carrier stego-text to extract from.');
+        return;
+      }
+      if (!key) {
+        showToast('error', 'Missing key', 'A Pre-Shared Key is required to decrypt the payload.');
+        return;
+      }
+
+      // Placeholder extraction logic (replace with real algorithm)
+      const keyHash = btoa(key).slice(0, 18);
+      const output  =
+        `--- STEGNOLINES EXTRACTED OUTPUT ---\n\n` +
+        `Source stego-text: ${stego.length} chars\n` +
+        `Key hash verified: ${keyHash}...\n\n` +
+        `[Extracted payload will appear here after algorithm integration]\n\n` +
+        `--- END OF EXTRACTION ---`;
+
+      extractedOutput.value = output;
+      showToast('success', 'Extraction complete', 'Secret payload recovered. Copy the result to use it.');
+
+      // Show output section and auto-scroll
+      const outSec = document.getElementById('output-section');
+      outSec.style.display = 'block';
+      setTimeout(() => {
+        outSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+
+    /* ── Copy action ── */
+    async function copyResult() {
+      const text = extractedOutput.value;
+      if (!text) { showToast('error', 'Nothing to copy', 'Run extraction first to generate output.'); return; }
+      try { await navigator.clipboard.writeText(text); }
+      catch { extractedOutput.select(); document.execCommand('copy'); }
+      showToast('success', 'Copied to clipboard', 'Extracted payload is ready.');
+    }
+
+    /* ── Eye toggle ── */
+    document.getElementById('ex-eye-toggle-btn').addEventListener('click', () => {
+      const isHidden = exPresharedInput.type === 'password';
+      exPresharedInput.type = isHidden ? 'text' : 'password';
+      document.getElementById('ex-eye-icon').textContent = isHidden ? 'visibility_off' : 'visibility';
+    });
+
+    /* ── Event listeners ── */
+    stegoInput.addEventListener('input', updateMetrics);
+    exPresharedInput.addEventListener('input', updateMetrics);
+    extractBtn.addEventListener('click', () => { updateMetrics(); extractData(); });
+    exCopyBtn.addEventListener('click', copyResult);
+
+    // Dark mode toggle
+    document.getElementById('toggle-dark-mode').addEventListener('change', function () {
+      document.documentElement.classList.toggle('dark',  this.checked);
+      document.documentElement.classList.toggle('light', !this.checked);
+    });
+
+    // Hamburger
+    document.getElementById('hamburger-btn').addEventListener('click', () => {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('is-open');
+      const icon = document.querySelector('#hamburger-btn .material-symbols-outlined');
+      icon.textContent = menu.classList.contains('is-open') ? 'close' : 'menu';
+    });
+
+    // Mark Extract tab as active in navbar
+    document.getElementById('nav-extract').style.background = 'var(--color-surface-container-high)';
+    document.getElementById('nav-extract').style.color      = 'var(--color-on-surface)';
+
+    /* ── Scanner UI Logic ── */
+    const scannerPasswordInput = document.getElementById('scannerPassword');
+    
+    // Scanner Eye Toggle
+    document.getElementById('scanner-eye-toggle-btn').addEventListener('click', () => {
+      const isHidden = scannerPasswordInput.type === 'password';
+      scannerPasswordInput.type = isHidden ? 'text' : 'password';
+      document.getElementById('scanner-eye-icon').textContent = isHidden ? 'visibility_off' : 'visibility';
+    });
+
+    // Auto-populate stego-text if forwarded from Embed page
+    const forwarded = localStorage.getItem('stegoTextPayload');
+    if (forwarded) {
+      stegoInput.value = forwarded;
+      localStorage.removeItem('stegoTextPayload');
+    }
+
+    // Tab switching logic
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-tab');
+
+        // Update buttons
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Update panels
+        tabPanels.forEach(panel => {
+          if (panel.id === `tab-${targetTab}`) {
+            panel.classList.remove('hidden');
+          } else {
+            panel.classList.add('hidden');
+          }
+        });
+
+        if (targetTab === 'hints' && typeof renderHintsLog === 'function') {
+          renderHintsLog();
+        }
+      });
+    });
+
+    // Init
+    updateMetrics();
+  </script>
+
+  <!-- ═══ Scripts ═══ -->
+  <script src="js/shared/text_codec.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/stage3_hide/step1_payload.js"></script>
+  <script src="js/stage3_hide/step2_prng.js"></script>
+  <script src="js/stage3_hide/step3_xor.js"></script>
+  <script src="js/stage3_hide/step4_vs_codec.js"></script>
+  <script src="js/stage3_hide/step5_stego_object.js"></script>
+  <script src="js/features/F_stego_capacity.js"></script>
+  <script src="js/features/F_stego_hint.js"></script>
+  <script src="js/features/F_stego_analysis.js"></script>
+  <script src="js/features/F_chat_parser.js"></script>
+  <script src="js/features/F_chat_scanner.js"></script>
+  <script src="js/stage3_hide/embedding.js"></script>
+  <script src="js/stage3_hide/extraction.js"></script>
+  <!-- Custom Dropdown JS -->
+  <script defer>
+    function togglePlatformSelect(e) {
+      e.stopPropagation();
+      document.getElementById('platformSelectOptions').classList.toggle('open');
+    }
+
+    function selectPlatformOption(value, label) {
+      document.getElementById('scannerPlatform').value = value;
+      document.getElementById('platformSelectLabel').textContent = label;
+      
+      // Update selected class
+      const options = document.querySelectorAll('#platformSelectOptions .custom-option');
+      options.forEach(opt => {
+        if (opt.getAttribute('data-value') === value) opt.classList.add('selected');
+        else opt.classList.remove('selected');
+      });
+      
+      document.getElementById('platformSelectOptions').classList.remove('open');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      const wrapper = document.getElementById('platformSelectWrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        document.getElementById('platformSelectOptions').classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

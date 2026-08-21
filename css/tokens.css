@@ -1,0 +1,221 @@
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+@font-face {
+  font-family: 'Thmanyah Sans';
+  src: url('https://framerusercontent.com/assets/x6EBzvXf1Fi35XhsRoHxePDVo.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Thmanyah Sans';
+  src: url('https://framerusercontent.com/assets/Lh8puxCFq405qBv7dKpg9NsHZNk.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Thmanyah Sans';
+  src: url('https://framerusercontent.com/assets/oE98mOPE28KTzUeptOLRIaqW1I.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Thmanyah Sans';
+  src: url('https://framerusercontent.com/assets/LZvgFRUsP7pGWYj3tKxMUrKuhSY.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Thmanyah Sans';
+  src: url('https://framerusercontent.com/assets/ulQLGTktcl2Qq4AmD6RuVgELZKg.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── DESIGN TOKENS ── */
+:root {
+  /* —— Brand Colors (Shared) —— */
+  --color-primary:             #BBD100;
+  --color-secondary:           #7DA300;
+  --color-tertiary:            #5F7420;
+  --color-error:               #B3261E;
+  --color-error-container:     #F9DEDC;
+  --color-on-error-container:  #410E0B;
+  --color-primary-container:   #E8F5A1;
+  --color-on-primary-container:#1B1D00;
+  --color-secondary-container: #D6E8A0;
+  --color-surface-variant-shared: #E0E0D4;
+
+  /* —— Light Mode Colors (Default) —— */
+  --color-background:              #F3F3E7;
+  --color-on-surface:              #222023;
+  --color-surface:                 #F3F3E7;
+  --color-surface-container:       #EBEBE0;
+  --color-surface-container-low:   #F0F0E4;
+  --color-surface-container-lowest:#FFFFFF;
+  --color-surface-container-high:  #E5E5DA;
+  --color-surface-variant:         #E0E0D4;
+  --color-outline:                 #7A7A6E;
+  --color-outline-variant:         #D1D1C2;
+  --color-on-surface-variant:      #4B4B44;
+
+  /* —— Page Loader Overlay variables —— */
+  --loader-bg-overlay:             rgba(243, 243, 231, 0.45);
+  --loader-logo-filter:            drop-shadow(0 0 10px rgba(0, 0, 0, 0.05));
+
+  /* —— Dark Mode Colors —— */
+  --dark-background:              #222023;
+  --dark-on-surface:              #FFFFFF;
+  --dark-surface:                 #222023;
+  --dark-surface-container:       #2C2A2E;
+  --dark-surface-container-low:   #222023;
+  --dark-surface-container-lowest:#2C2A2E;
+  --dark-surface-container-high:  #363438;
+  --dark-surface-variant:         #3E3C40;
+  --dark-outline:                 #5E5C60;
+  --dark-outline-variant:         #3E3C40;
+  --dark-on-surface-variant:      #B0B0B0;
+  --dark-primary-container:       #4A5300;
+  --dark-on-primary-container:    #E8F5A1;
+  --dark-error-container:         #601410;
+  --dark-on-error-container:      #F9DEDC;
+  --dark-secondary-container:     #3D5200;
+
+  /* —— Font Families —— */
+  --font-primary:    'Sora', sans-serif;
+  --font-body:       'Sora', sans-serif;
+  --font-headline:   'Sora', sans-serif;
+  --font-display:    'Sora', sans-serif;
+  --font-label:      'Sora', sans-serif;
+
+  /* —— Font Sizes —— */
+  --fs-display-lg:   2.25rem;
+  --fs-headline-lg:  1.5rem;
+  --fs-headline-md:  1.25rem;
+  --fs-body-lg:      1.0625rem;
+  --fs-body-md:      0.875rem;
+  --fs-body-sm:      0.8125rem;
+  --fs-label-md:     0.8125rem;
+
+  /* —— Border Radius —— */
+  --radius-default:  0.25rem;
+  --radius-lg:       0.5rem;
+  --radius-xl:       0.75rem;
+  --radius-full:     9999px;
+
+  /* —— Spacing —— */
+  --space-base:      4px;
+  --space-xs:        4px;
+  --space-sm:        8px;
+  --space-md:        16px;
+  --space-lg:        24px;
+  --space-xl:        32px;
+  --space-2xl:       48px;
+  --space-3xl:       64px;
+  --space-gutter:    24px;
+  --space-margin-mobile:  16px;
+  --space-margin-desktop: 40px;
+
+  /* —— Shadows —— */
+  --shadow-sm:   0 1px 2px rgba(0,0,0,0.05);
+  --shadow-card: 0 4px 12px rgba(95,116,32,0.08);
+
+  /* —— Transitions —— */
+  --transition-colors: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  --transition-all:    all 0.2s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --color-background:              var(--dark-background);
+    --color-on-surface:              var(--dark-on-surface);
+    --color-surface:                 var(--dark-surface);
+    --color-surface-container:       var(--dark-surface-container);
+    --color-surface-container-low:   var(--dark-surface-container-low);
+    --color-surface-container-lowest:var(--dark-surface-container-lowest);
+    --color-surface-container-high:  var(--dark-surface-container-high);
+    --color-surface-variant:         var(--dark-surface-variant);
+    --color-outline:                 var(--dark-outline);
+    --color-outline-variant:         var(--dark-outline-variant);
+    --color-on-surface-variant:      var(--dark-on-surface-variant);
+    --color-primary-container:       var(--dark-primary-container);
+    --color-on-primary-container:    var(--dark-on-primary-container);
+    --color-error-container:         var(--dark-error-container);
+    --color-on-error-container:      var(--dark-on-error-container);
+    --color-secondary-container:     var(--dark-secondary-container);
+    
+    --loader-bg-overlay:             rgba(14, 14, 18, 0.55);
+    --loader-logo-filter:            drop-shadow(0 0 15px rgba(255, 255, 255, 0.05));
+  }
+}
+
+html.dark {
+  --color-background:              var(--dark-background);
+  --color-on-surface:              var(--dark-on-surface);
+  --color-surface:                 var(--dark-surface);
+  --color-surface-container:       var(--dark-surface-container);
+  --color-surface-container-low:   var(--dark-surface-container-low);
+  --color-surface-container-lowest:var(--dark-surface-container-lowest);
+  --color-surface-container-high:  var(--dark-surface-container-high);
+  --color-surface-variant:         var(--dark-surface-variant);
+  --color-outline:                 var(--dark-outline);
+  --color-outline-variant:         var(--dark-outline-variant);
+  --color-on-surface-variant:      var(--dark-on-surface-variant);
+  --color-primary-container:       var(--dark-primary-container);
+  --color-on-primary-container:    var(--dark-on-primary-container);
+  --color-error-container:         var(--dark-error-container);
+  --color-on-error-container:      var(--dark-on-error-container);
+  --color-secondary-container:     var(--dark-secondary-container);
+  
+  --loader-bg-overlay:             rgba(14, 14, 18, 0.55);
+  --loader-logo-filter:            drop-shadow(0 0 15px rgba(255, 255, 255, 0.05));
+}
+
+html[lang="ar"] {
+  --font-primary:    'Thmanyah Sans', sans-serif;
+  --font-body:       'Thmanyah Sans', sans-serif;
+  --font-headline:   'Thmanyah Sans', sans-serif;
+  --font-display:    'Thmanyah Sans', sans-serif;
+  --font-label:      'Thmanyah Sans', sans-serif;
+}
+
+html[lang="ar"][data-arabic-font="alexandria"] {
+  --font-primary:    'Alexandria', sans-serif;
+  --font-body:       'Alexandria', sans-serif;
+  --font-headline:   'Alexandria', sans-serif;
+  --font-display:    'Alexandria', sans-serif;
+  --font-label:      'Alexandria', sans-serif;
+}
+
+html[lang="zh"] {
+  --font-primary:    'Noto Sans SC', sans-serif;
+  --font-body:       'Noto Sans SC', sans-serif;
+  --font-headline:   'Noto Sans SC', sans-serif;
+  --font-display:    'Noto Sans SC', sans-serif;
+  --font-label:      'Noto Sans SC', sans-serif;
+}
+
+html[lang="fr"] {
+  --font-primary:    'Plus Jakarta Sans', sans-serif;
+  --font-body:       'Plus Jakarta Sans', sans-serif;
+  --font-headline:   'Plus Jakarta Sans', sans-serif;
+  --font-display:    'Plus Jakarta Sans', sans-serif;
+  --font-label:      'Plus Jakarta Sans', sans-serif;
+}
+
+html[lang="la"] {
+  --font-primary:    'Inter', sans-serif;
+  --font-body:       'Inter', sans-serif;
+  --font-headline:   'Inter', sans-serif;
+  --font-display:    'Inter', sans-serif;
+  --font-label:      'Inter', sans-serif;
+}
+
+::selection { background-color: var(--color-secondary); color: #ffffff; }
+::-moz-selection { background-color: var(--color-secondary); color: #ffffff; }

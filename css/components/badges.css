@@ -1,0 +1,40 @@
+/* ============================================================
+   STEGNOLINES UI LIBRARY — Badges / Chips Component
+   ============================================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.badge .material-symbols-outlined {
+  font-size: 14px;
+}
+
+.badge--encrypted {
+  background: rgba(125, 163, 0, 0.1);
+  color: var(--color-secondary);
+  border: 1px solid rgba(125, 163, 0, 0.2);
+}
+
+.badge--success {
+  background: rgba(187, 209, 0, 0.1);
+  color: var(--color-secondary);
+  border: 1px solid rgba(187, 209, 0, 0.2);
+}
+
+.badge--draft {
+  background: var(--color-surface-variant);
+  color: var(--color-on-surface-variant);
+  border: 1px solid var(--color-outline-variant);
+}
+
+.badge--danger {
+  background: rgba(179, 38, 30, 0.1);
+  color: var(--color-error);
+  border: 1px solid rgba(179, 38, 30, 0.2);
+}

@@ -1,0 +1,179 @@
+/* ============================================================
+   STEGNOLINES UI LIBRARY — Profile & Stat Cards Component
+   ============================================================ */
+
+/* ── Profile Card ── */
+.profile-card {
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+}
+.profile-card__avatar {
+  width: 96px; height: 96px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-container);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: var(--space-md);
+  border: 2px solid rgba(125,163,0,0.2);
+}
+.profile-card__avatar .material-symbols-outlined {
+  font-size: 2.25rem; color: var(--color-tertiary);
+}
+.profile-card__name { color: var(--color-on-surface); margin-bottom: var(--space-xs); }
+.profile-card__role { color: var(--color-secondary); font-weight: 600; margin-bottom: var(--space-md); }
+.profile-card__bio  { color: var(--color-on-surface-variant); margin-bottom: var(--space-xl); }
+.profile-card__links {
+  display: flex; gap: var(--space-md);
+  border-top: 1px solid var(--color-outline-variant);
+  padding-top: var(--space-md); width: 100%; justify-content: center;
+}
+.profile-card__links a {
+  color: var(--color-tertiary);
+  transition: var(--transition-colors);
+  text-decoration: none;
+}
+.profile-card__links a:hover { color: var(--color-primary); }
+
+/* ── Stat Card ── */
+.stat-card {
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: var(--transition-all);
+}
+.stat-card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  transform: translateY(-4px);
+}
+.stat-card__header {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--color-outline-variant);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.stat-card__header-left {
+  display: flex; align-items: center; gap: var(--space-sm);
+}
+.stat-card__header-left .material-symbols-outlined { color: var(--color-primary); }
+.stat-card__header-left span:last-child {
+  font-weight: 600; color: var(--color-on-surface);
+}
+.stat-card__header-right .material-symbols-outlined {
+  color: var(--color-on-surface-variant); font-size: 1rem;
+}
+.stat-card__body {
+  padding: var(--space-lg); flex: 1;
+}
+.stat-card__value {
+  color: var(--color-primary);
+  margin-bottom: var(--space-xs);
+}
+.stat-card__desc {
+  color: var(--color-on-surface-variant);
+}
+.stat-card__footer {
+  padding: var(--space-md);
+  background: var(--color-surface-container-lowest);
+  border-top: 1px solid var(--color-outline-variant);
+}
+.stat-card__action {
+  width: 100%; padding: var(--space-sm);
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  border: none; border-radius: var(--radius-lg);
+  font-family: var(--font-label); font-size: var(--fs-label-md);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+.stat-card__action:hover {
+  background: var(--color-primary); color: #1B1D00;
+}
+
+/* ── Metric Card (Compact Stat Card) ── */
+.metric-card {
+  background: rgba(44, 42, 46, 0.5);
+  border: 1px solid rgba(94, 92, 96, 0.3);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-all);
+  flex: 1;
+}
+html.light .metric-card {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(95, 116, 32, 0.12);
+}
+.metric-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 16px rgba(187, 209, 0, 0.1);
+}
+html.light .metric-card:hover {
+  border-color: var(--color-tertiary);
+  box-shadow: 0 4px 16px rgba(125, 163, 0, 0.15);
+}
+.metric-card__label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--color-on-surface-variant);
+  opacity: 0.75;
+  text-transform: uppercase;
+}
+.metric-card__value {
+  font-family: 'Sora', sans-serif;
+  font-size: var(--fs-headline-md);
+  font-weight: 700;
+  color: var(--color-on-surface);
+}
+.metric-card__badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  align-self: flex-start;
+  margin-top: 4px;
+}
+.metric-card__badge--primary {
+  background: rgba(187, 209, 0, 0.1);
+  color: var(--color-primary);
+}
+html.light .metric-card__badge--primary {
+  background: rgba(95, 116, 32, 0.08);
+  color: var(--color-tertiary);
+}
+.metric-card__badge--amber {
+  background: rgba(230, 168, 23, 0.1);
+  color: #E6A817;
+}
+html.light .metric-card__badge--amber {
+  background: rgba(168, 112, 0, 0.08);
+  color: #A87000;
+}
+
+/* Grid container to arrange metric cards side-by-side */
+.metric-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .metric-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    max-width: 100%;
+  }
+}
+

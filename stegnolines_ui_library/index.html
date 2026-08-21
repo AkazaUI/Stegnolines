@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — Embedding Interface</title>
+  <meta name="description" content="Text-based steganography embedding interface. Hide secret messages inside cover text securely."/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <!-- zxcvbn password strength estimator (Dropbox) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    /* ── Multi-state capacity bar colours ── */
+    .progress-fill--safe     { background: #7DA300; }
+    .progress-fill--warning  { background: #E6A817; }
+    .progress-fill--critical { background: #B3261E; }
+
+    /* ── Textarea 50/50 row ── */
+    .textarea-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-gutter);
+    }
+    @media (min-width: 768px) {
+      .textarea-row { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── Share buttons row ── */
+    .share-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      align-items: center;
+      margin-top: var(--space-lg);
+    }
+    .share-row__label {
+      font-family: var(--font-label);
+      font-size: var(--fs-label-md);
+      font-weight: 600;
+      color: var(--color-on-surface-variant);
+      margin-right: var(--space-xs);
+    }
+    .btn--share {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      font-family: var(--font-label);
+      font-size: var(--fs-body-md);
+      font-weight: 600;
+      color: var(--color-on-surface);
+      background: var(--color-surface-container);
+      border: 1px solid var(--color-outline-variant);
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: var(--transition-all);
+      text-decoration: none;
+    }
+    .btn--share:hover {
+      background: var(--color-surface-container-high);
+      border-color: var(--color-outline);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .btn--share svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    /* ── Label row helper ── */
+    .label-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      margin-bottom: var(--space-xs);
+    }
+
+    /* ── 4-segment cumulative strength bars ── */
+    .strength-bars-4 { display: flex; gap: var(--space-xs); height: 8px; }
+    .strength-bar-4  { flex: 1; border-radius: var(--radius-full); background: var(--color-surface-variant); transition: background 0.3s ease; }
+    /* Each segment has its own permanent color — only shown when active */
+    #sb-1.active { background: #c5e06a; }  /* Pale green  — Weak        */
+    #sb-2.active { background: #8db81e; }  /* Medium green — Fair       */
+    #sb-3.active { background: #5f8a00; }  /* Dark green  — Strong      */
+    #sb-4.active { background: #3a5c00; }  /* Darkest green — Very Strong */
+
+    /* ── Eye-icon password toggle wrapper ── */
+    .input-eye-wrap { position: relative; display: flex; align-items: center; }
+    .input-eye-wrap .form-input { padding-right: 2.5rem; width: 100%; }
+    .eye-toggle-btn {
+      position: absolute; right: var(--space-sm);
+      background: none; border: none; cursor: pointer; padding: 0;
+      color: var(--color-on-surface-variant);
+      display: flex; align-items: center;
+      transition: var(--transition-colors);
+    }
+    .eye-toggle-btn:hover { color: var(--color-primary); }
+    .eye-toggle-btn .material-symbols-outlined { font-size: 20px; }
+
+    /* ── Advanced Settings ── */
+    .advanced-settings-details {
+      background: var(--color-surface-container);
+      border: 1px solid var(--color-outline-variant);
+      border-radius: var(--radius-default);
+      overflow: hidden;
+      margin-top: var(--space-sm);
+      transition: box-shadow 0.3s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s ease;
+    }
+    .advanced-settings-details[open] {
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(187, 209, 0, 0.25);
+      border-color: var(--color-primary);
+    }
+    .advanced-settings-summary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-family: var(--font-label);
+      font-size: var(--fs-label-md);
+      font-weight: 600;
+      color: var(--color-on-surface-variant);
+      user-select: none;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+    .advanced-settings-summary:hover {
+      background: var(--color-surface-container-high);
+      color: var(--color-on-surface);
+    }
+    .advanced-settings-summary::marker { display: none; }
+    .advanced-settings-summary::-webkit-details-marker { display: none; }
+    
+    /* Cog-wheel rotation and color transition */
+    .advanced-settings-summary .material-symbols-outlined:first-of-type {
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.25s ease;
+    }
+    .advanced-settings-details[open] .advanced-settings-summary .material-symbols-outlined:first-of-type {
+      transform: rotate(90deg);
+      color: var(--color-primary);
+    }
+
+    .advanced-settings-summary .expand-icon {
+      transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), color 0.25s ease;
+    }
+    .advanced-settings-details[open] .expand-icon {
+      transform: rotate(180deg);
+      color: var(--color-primary);
+    }
+    .advanced-settings-content {
+      padding: 16px;
+      border-top: 1px solid var(--color-outline-variant);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    @keyframes slideFadeDown {
+      0% {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.985);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .advanced-settings-details[open] .advanced-settings-content {
+      animation: slideFadeDown 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+
+    /* ── Full-width stacked config inputs ── */
+    .config-stack { display: flex; flex-direction: column; gap: var(--space-lg); }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ Top Navigation ═══ -->
+  <nav class="top-nav" id="top-nav">
+    <div class="top-nav__inner">
+
+      <!-- Brand -->
+      <a class="top-nav__brand" href="index.html" id="brand-link">
+        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="Dark-Logo-T.png" alt="STEGNOLINES"/>
+        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="White-Logo-T.png" alt="STEGNOLINES"/>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="top-nav__links" id="desktop-nav">
+        <a class="top-nav__link" href="index.html" id="nav-embed">
+          <span class="material-symbols-outlined">lock</span>
+          <span class="text-label-md">Embed</span>
+        </a>
+        <a class="top-nav__link" href="extract.html" id="nav-extract">
+          <span class="material-symbols-outlined">lock_open</span>
+          <span class="text-label-md">Extract</span>
+        </a>
+        <a class="top-nav__link" href="#" id="nav-preferences">
+          <span class="material-symbols-outlined">tune</span>
+          <span class="text-label-md">Preferences</span>
+        </a>
+        <a class="top-nav__link" href="documentation.html" id="nav-docs">
+          <span class="material-symbols-outlined">menu_book</span>
+          <span class="text-label-md">Documentation</span>
+        </a>
+      </nav>
+
+      <!-- Right Actions -->
+      <div class="top-nav__actions">
+        <!-- Dark Mode Toggle -->
+        <label class="toggle" title="Toggle dark mode" style="margin-right: var(--space-xs);">
+          <input type="checkbox" class="toggle__input" id="toggle-dark-mode"/>
+          <div class="toggle__track"></div>
+        </label>
+        
+        <button class="icon-btn" id="top-nav-settings" aria-label="Settings" title="Settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+        <button class="icon-btn" id="top-nav-notifications" aria-label="Notifications" title="Notifications">
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <div class="top-nav__user">
+          <div class="top-nav__avatar">
+            <span class="material-symbols-outlined">person</span>
+          </div>
+        </div>
+        <button class="top-nav__hamburger" id="hamburger-btn" aria-label="Open menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="top-nav__mobile-menu" id="mobile-menu">
+    <a class="top-nav__link" href="index.html">
+      <span class="material-symbols-outlined">lock</span>
+      <span class="text-label-md">Embed</span>
+    </a>
+    <a class="top-nav__link" href="extract.html">
+      <span class="material-symbols-outlined">lock_open</span>
+      <span class="text-label-md">Extract</span>
+    </a>
+    <a class="top-nav__link" href="#">
+      <span class="material-symbols-outlined">tune</span>
+      <span class="text-label-md">Preferences</span>
+    </a>
+    <a class="top-nav__link" href="documentation.html">
+      <span class="material-symbols-outlined">menu_book</span>
+      <span class="text-label-md">Documentation</span>
+    </a>
+  </div>
+
+  <!-- ═══ Main Content ═══ -->
+  <main class="main-content">
+
+    <header class="main-header">
+      <h1 class="text-display-lg">Embedding Interface</h1>
+      <p class="text-body-lg">Conceal a secret message inside cover text using text-based steganography.</p>
+    </header>
+
+    <!-- Status alert -->
+    <div id="status-alert" style="display:none; margin-bottom:var(--space-lg)"></div>
+
+    <!-- ══════════════════════════════════════════
+         UNIFIED SINGLE CARD — top-to-bottom flow
+         ══════════════════════════════════════════ -->
+    <section class="card" id="embed-panel">
+      <h2 class="text-headline-md card__title">Embedding Workflow</h2>
+
+      <div class="stack-xl">
+
+        <!-- 1. TEXTAREA ROW: Cover (left) + Secret (right) -->
+        <div class="textarea-row">
+
+          <!-- Cover Input -->
+          <div>
+            <div class="label-row">
+              <label class="form-label text-label-md" for="cover-input" style="margin-bottom:0">Cover Text</label>
+              <span class="badge badge--draft text-label-md">
+                <span class="material-symbols-outlined">article</span> Medium
+              </span>
+            </div>
+            <textarea
+              class="form-textarea"
+              id="cover-input"
+              rows="9"
+              placeholder="Paste your cover text here. The longer and more natural the text, the greater the embedding capacity..."
+            ></textarea>
+          </div>
+
+          <!-- Secret Input -->
+          <div>
+            <div class="label-row">
+              <label class="form-label text-label-md" for="secret-input" style="margin-bottom:0">Secret Message</label>
+              <span class="badge badge--encrypted text-label-md">
+                <span class="material-symbols-outlined">lock</span> Payload
+              </span>
+            </div>
+            <textarea
+              class="form-textarea"
+              id="secret-input"
+              rows="9"
+              style="background-color: var(--color-surface-container-low);"
+              placeholder="Type the secret message you want to hide inside the cover text..."
+            ></textarea>
+          </div>
+
+        </div><!-- /textarea-row -->
+
+        <!-- 2. COVER CAPACITY BAR (full-width, multi-state) -->
+        <div id="capacity-block">
+          <div class="progress-meta text-body-sm">
+            <span>
+              Cover Capacity —
+              <span id="cover-used-label">0 / 0 chars used</span>
+            </span>
+            <span id="cover-pct-label" class="font-semibold" style="color:var(--color-on-surface)">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill progress-fill--safe" id="cover-progress-fill" style="width:0%; transition: width 0.3s ease, background-color 0.3s ease"></div>
+          </div>
+          <p class="text-body-sm" style="color:var(--color-on-surface-variant); margin-top:var(--space-xs)">
+            Available hidden capacity:
+            <span class="font-semibold" style="color:var(--color-primary)" id="cover-capacity-value">0 chars</span>
+            &nbsp;·&nbsp; Secret size:
+            <span class="font-semibold" style="color:var(--color-primary)" id="secret-length-value">0 chars</span>
+            &nbsp;·&nbsp; Status:
+            <span class="font-bold" id="capacity-status-label">—</span>
+          </p>
+        </div>
+
+        <!-- 3. CONFIGURATION INPUTS (full-width stacked) -->
+        <div class="config-stack">
+
+          <!-- Pre-Shared Key -->
+          <div>
+            <div class="label-row">
+              <label class="form-label text-label-md" for="preshared-input" style="margin-bottom:0">Pre-Shared Key</label>
+              <span class="badge badge--encrypted text-label-md">
+                <span class="material-symbols-outlined">key</span> AES
+              </span>
+              <span class="text-label-md" id="preshared-counter" style="margin-inline-start: auto; color: var(--color-on-surface-variant);">0 chars</span>
+            </div>
+            <div class="input-eye-wrap">
+              <input class="form-input" id="preshared-input" type="password" placeholder="Encryption key..."/>
+              <button class="eye-toggle-btn" id="eye-toggle-btn" type="button" aria-label="Toggle key visibility">
+                <span class="material-symbols-outlined" id="eye-icon">visibility</span>
+              </button>
+            </div>
+            <div style="margin-top:var(--space-sm)">
+              <div class="strength-bars-4" id="strength-bars">
+                <div class="strength-bar-4" id="sb-1"></div>
+                <div class="strength-bar-4" id="sb-2"></div>
+                <div class="strength-bar-4" id="sb-3"></div>
+                <div class="strength-bar-4" id="sb-4"></div>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-top:var(--space-xs);">
+                <p class="text-label-md" style="color:var(--color-on-surface-variant)">
+                  Key strength: <span class="font-bold" style="color:var(--color-primary)" id="strength-label">None</span>
+                </p>
+                <span class="tooltip-trigger" style="font-size:0">
+                  <span class="material-symbols-outlined" style="font-size:16px; color:var(--color-on-surface-variant); cursor:help">help_outline</span>
+                  <span class="tooltip-bubble text-body-sm">Level 1 (Weak): 1–7 chars · Level 2 (Fair): 8–11 chars · Level 3 (Strong): 12–15 chars with numbers/symbols · Level 4 (Very Strong): 16+ chars, mixed</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Advanced Settings (Hint & Salt) -->
+          <details class="advanced-settings-details">
+            <summary class="advanced-settings-summary">
+              <span class="material-symbols-outlined" style="font-size:18px">settings</span>
+              Advanced Settings
+              <span class="material-symbols-outlined expand-icon" style="font-size:18px; margin-left:auto">expand_more</span>
+            </summary>
+            <div class="advanced-settings-content">
+              <!-- Hint (Optional) -->
+              <div>
+                <div class="label-row">
+                  <label class="form-label text-label-md" for="hint-input" style="margin-bottom:0">Hint</label>
+                  <span class="badge badge--draft text-label-md">Optional</span>
+                </div>
+                <input class="form-input" id="hint-input" type="text" placeholder="Extraction clue for the receiver..."/>
+              </div>
+
+              <!-- Custom Salt (Optional) -->
+              <div>
+                <div class="label-row">
+                  <label class="form-label text-label-md" for="custom-salt-input" style="margin-bottom:0">Custom Salt</label>
+                  <span class="badge badge--draft text-label-md">Optional</span>
+                </div>
+                <input class="form-input" id="custom-salt-input" type="text" placeholder="Extra entropy parameter..."/>
+                <p class="text-body-sm" style="color:var(--color-on-surface-variant); margin-top:var(--space-xs)">
+                  Appended to the key derivation for additional randomness.
+                </p>
+              </div>
+            </div>
+          </details>
+
+        </div><!-- /config-stack -->
+
+        <!-- 4. ACTION BUTTONS -->
+        <div class="btn-group">
+          <button class="btn btn--primary" id="embedding-btn">
+            <span class="material-symbols-outlined" style="font-size:18px">visibility_off</span>
+            Hide Data
+          </button>
+        </div>
+
+        <!-- 5. OUTPUT MATRIX (Steganographic Output — bottom of panel) -->
+        <div id="output-section" style="display:none;">
+          <div class="divider-t">
+            <div class="label-row" style="margin-bottom:var(--space-sm)">
+              <label class="form-label text-label-md" for="result-output" style="margin-bottom:0">Output Matrix</label>
+              <span class="badge badge--draft text-label-md">
+                <span class="material-symbols-outlined">output</span> Steganographic Output
+              </span>
+            </div>
+            <textarea
+              class="form-textarea"
+              id="result-output"
+              rows="10"
+              readonly
+              placeholder="The stego-text result will appear here after you click 'Hide Data'..."
+            ></textarea>
+
+            <!-- Output action buttons -->
+            <div class="btn-group" style="margin-top:var(--space-md); justify-content:flex-end">
+              <button class="btn btn--secondary" id="copy-message-btn">
+                <span class="material-symbols-outlined" style="font-size:18px">content_copy</span>
+                Copy to Clipboard
+              </button>
+              <button class="btn btn--ghost" id="send-to-extract-btn">
+                <span class="material-symbols-outlined" style="font-size:18px">send</span>
+                Send to Extraction Page
+              </button>
+            </div>
+
+            <!-- Extraction Hint preview -->
+            <p class="text-body-sm" style="color:var(--color-on-surface-variant); margin-top:var(--space-sm)">
+              Extraction Hint preview:
+              <span class="font-semibold" style="color:var(--color-on-surface)" id="hint-preview-value">No hint provided.</span>
+            </p>
+
+            <!-- Social share buttons -->
+            <div class="share-row">
+              <span class="share-row__label">Share Output:</span>
+
+              <button class="btn--share" id="share-whatsapp" title="Send to WhatsApp">
+                <svg viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                WhatsApp
+              </button>
+
+              <button class="btn--share" id="share-facebook" title="Send to Facebook">
+                <svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                Facebook
+              </button>
+
+              <button class="btn--share" id="share-instagram" title="Copy for Instagram">
+                <svg viewBox="0 0 24 24"><defs><linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#feda75"/><stop offset="25%" stop-color="#fa7e1e"/><stop offset="50%" stop-color="#d62976"/><stop offset="75%" stop-color="#962fbf"/><stop offset="100%" stop-color="#4f5bd5"/></linearGradient></defs><path fill="url(#ig-grad)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                Instagram
+              </button>
+
+              <button class="btn--share" id="share-x" title="Send to X">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                X
+              </button>
+
+              <button class="btn--share" id="share-snapchat" title="Send to Snapchat">
+                <svg viewBox="0 0 24 24" fill="#FFFFFF" stroke="#000" stroke-width="1.5"><path d="M11.996 0C8.956 0 6.643 2.123 6.643 5.485c0 1.04.28 2.08 1.04 3.09-.133.045-.292.083-.483.116-1.312.215-2.585.166-3.568-.414-.146-.086-.336-.02-.455.123a.355.355 0 0 0-.022.316c.866 1.83 2.483 2.766 4.316 3.324.234.072.484.143.766.208-.109.352-.3 1.055-.86 1.701C6.273 15.226 4.545 15.83 2.65 15.86c-.208.003-.385.176-.366.384.015.15.114.283.253.337 2.22 1.107 4.546 1.666 7.15 1.666s4.93-.56 7.15-1.666c.139-.054.238-.186.253-.337.019-.208-.158-.381-.366-.384-1.895-.03-3.623-.634-4.728-1.911-.56-.646-.751-1.349-.86-1.701.282-.065.532-.136.766-.208 1.833-.558 3.45-1.494 4.316-3.324a.355.355 0 0 0-.022-.316c-.119-.143-.309-.209-.455-.123-.983.58-2.256.629-3.568.414-.191-.033-.35-.071-.483-.116.76-1.01 1.04-2.05 1.04-3.09C17.35 2.123 15.036 0 11.996 0z"/></svg>
+                Snapchat
+              </button>
+
+              <button class="btn--share" id="share-messenger" title="Send to Messenger">
+                <svg viewBox="0 0 24 24" fill="#00B2FF"><path d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.469 8.654V24l4.088-2.242c1.092.3 2.246.464 3.443.464 6.627 0 12-4.974 12-11.111C24 4.974 18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26 6.559-6.962 3.13 3.26 5.888-3.26-6.559 6.962z"/></svg>
+                Messenger
+              </button>
+
+              <button class="btn--share" id="share-telegram" title="Send to Telegram">
+                <svg viewBox="0 0 24 24" fill="#26A5E4"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                Telegram
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+    <!-- Fixed Security-Log Toast container (outside card) -->
+    <div id="sec-toast-wrap"></div>
+
+      </div><!-- /stack-xl -->
+    </section><!-- /embed-panel -->
+
+  </main>
+
+  <!-- ═══ Footer ═══ -->
+  <footer class="main-footer">
+    <div class="main-footer__inner">
+      <div class="main-footer__brand">
+        <div class="main-footer__title">STEGNOLINES</div>
+        <p class="text-body-sm" style="max-width: 300px;">
+          Advanced Zero-Overhead Contextual Steganography and Cryptography for secure transmission.
+        </p>
+      </div>
+      
+      <div class="main-footer__links-group">
+        <ul class="main-footer__links">
+          <li><a href="index.html" class="main-footer__link">Embed</a></li>
+          <li><a href="extract.html" class="main-footer__link">Extract</a></li>
+          <li><a href="documentation.html" class="main-footer__link">Documentation</a></li>
+          <li><a href="about us.html" class="main-footer__link">About Us</a></li>
+          <li><a href="contact team.html" class="main-footer__link">Contact Team</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="main-footer__bottom">
+      <span>&copy; 2026 STEGNOLINES. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <!-- ═══ Scripts ═══ -->
+  <script>
+    /* ── DOM refs ── */
+    const coverInput        = document.getElementById('cover-input');
+    const secretInput       = document.getElementById('secret-input');
+    const hintInput         = document.getElementById('hint-input');
+    const presharedInput    = document.getElementById('preshared-input');
+    const customSaltInput   = document.getElementById('custom-salt-input');
+    const resultOutput      = document.getElementById('result-output');
+    const embeddingBtn      = document.getElementById('embedding-btn');
+    const sendToExtractBtn  = document.getElementById('send-to-extract-btn');
+    const copyMessageBtn   = document.getElementById('copy-message-btn');
+    const statusAlert      = document.getElementById('status-alert');
+    // (toast-area removed — using sec-toast-wrap)
+
+    // Capacity bar
+    const coverUsedLabel    = document.getElementById('cover-used-label');
+    const coverPctLabel     = document.getElementById('cover-pct-label');
+    const coverProgressFill = document.getElementById('cover-progress-fill');
+    const coverCapacityVal  = document.getElementById('cover-capacity-value');
+    const secretLengthVal   = document.getElementById('secret-length-value');
+    const capacityStatusLbl = document.getElementById('capacity-status-label');
+
+    // Password strength
+    const strengthBars  = [
+      document.getElementById('sb-1'),
+      document.getElementById('sb-2'),
+      document.getElementById('sb-3'),
+      document.getElementById('sb-4'),
+    ];
+    const strengthLabel  = document.getElementById('strength-label');
+    const secToastWrap   = document.getElementById('sec-toast-wrap');
+
+    // Hint preview
+    const hintPreviewVal = document.getElementById('hint-preview-value');
+
+    /* ── Constants ── */
+    const COVER_CAPACITY_RATIO = 0.45;
+
+    /* ── Helpers ── */
+    function calcCoverCapacity(coverLen) {
+      return Math.floor(coverLen * COVER_CAPACITY_RATIO);
+    }
+
+    // zxcvbn labels — score 0 (too guessable) → 4 (very unguessable)
+    // We shift: empty → level 0 (None), zxcvbn score 0 → 1 (Weak), …, 3 → 4 (Very Strong)
+    const STRENGTH_LABELS = ['None', 'Too Weak', 'Weak', 'Good', 'Very Strong'];
+
+    function assessStrength(value) {
+      if (!value || value.length === 0) return 0;
+      // zxcvbn returns { score: 0..4, ... }
+      const result = zxcvbn(value);
+      // Shift score up by 1, clamp to max 4 so labels array stays in-bounds
+      return Math.min(result.score + 1, 4);  // range: 1–4 (maps to seg 1–4)
+    }
+
+    // Cumulative: each segment keeps its own color permanently when active
+    function updateStrengthBars(level) {
+      strengthBars.forEach((bar, i) => {
+        if (i < level) {
+          bar.classList.add('active');
+        } else {
+          bar.classList.remove('active');
+        }
+      });
+      strengthLabel.textContent = STRENGTH_LABELS[level];
+    }
+
+    /* ── Eye-icon toggle ── */
+    document.getElementById('eye-toggle-btn').addEventListener('click', () => {
+      const input   = document.getElementById('preshared-input');
+      const icon    = document.getElementById('eye-icon');
+      const isHidden = input.type === 'password';
+      input.type    = isHidden ? 'text' : 'password';
+      icon.textContent = isHidden ? 'visibility_off' : 'visibility';
+    });
+
+    /* ── Security-Log Toast ── */
+    // Now handled globally by js/utils.js
+
+    /* ── Multi-state capacity bar ── */
+    function getCapacityState(pct) {
+      if (pct >= 90) return { cls: 'progress-fill--critical', label: 'Critical', labelColor: 'var(--color-error)' };
+      if (pct >= 65) return { cls: 'progress-fill--warning',  label: 'Warning',  labelColor: '#E6A817' };
+      return            { cls: 'progress-fill--safe',         label: 'Safe',     labelColor: 'var(--color-secondary)' };
+    }
+
+    /* ── Live update ── */
+    function updateMetrics() {
+      const coverLen  = coverInput.value.length;
+      const secretLen = secretInput.value.length;
+      const capacity  = calcCoverCapacity(coverLen);
+      const usedPct   = capacity > 0 ? Math.min(100, Math.round((secretLen / capacity) * 100)) : 0;
+
+      // Cover capacity bar
+      const state = getCapacityState(usedPct);
+      coverUsedLabel.textContent     = `${secretLen} / ${capacity} chars used`;
+      coverPctLabel.textContent      = `${usedPct}%`;
+      coverProgressFill.style.width  = `${usedPct}%`;
+      coverProgressFill.className    = `progress-fill ${state.cls}`;
+      coverCapacityVal.textContent   = `${capacity} chars`;
+      secretLengthVal.textContent    = `${secretLen} chars`;
+      capacityStatusLbl.textContent  = state.label;
+      capacityStatusLbl.style.color  = state.labelColor;
+
+      // Password strength
+      const level = assessStrength(presharedInput.value);
+      updateStrengthBars(level);
+
+      const keyLen = presharedInput.value ? presharedInput.value.length : 0;
+      const keyCounterEl = document.getElementById('preshared-counter');
+      if (keyCounterEl) {
+        const lang = localStorage.getItem('stegoLang') || 'en';
+        keyCounterEl.textContent = `${keyLen} ${lang === 'ar' ? 'حرف' : 'chars'}`;
+      }
+
+      // Hint preview
+      hintPreviewVal.textContent = hintInput.value.trim() || 'No hint provided.';
+    }
+
+    /* ── Embed action ── */
+    function embedData() {
+      const cover  = coverInput.value.trim();
+      const secret = secretInput.value.trim();
+      const hint   = hintInput.value.trim();
+      const key    = presharedInput.value;
+      const salt   = customSaltInput.value.trim();
+
+      if (!cover || !secret) {
+        showToast('error', 'Missing fields', 'Both Cover Text and Secret Message are required.');
+        return;
+      }
+      if (!key) {
+        showToast('error', 'Missing key', 'A Pre-Shared Key is required to secure the payload.');
+        return;
+      }
+
+      const capacity = calcCoverCapacity(cover.length);
+      const keyHash  = btoa(key + (salt || '')).slice(0, 18);
+      const output   =
+        `--- STEGNOLINES EMBEDDED OUTPUT ---\n\n` +
+        `Cover Text:\n${cover}\n\n` +
+        `[Embedded Payload: ${secret.length} chars | Capacity: ${capacity} chars]\n` +
+        `Hint: ${hint || '[none]'}\n` +
+        `Salt: ${salt || '[none]'}\n` +
+        `Key Hash: ${keyHash}...\n\n` +
+        `--- END OF STEGO-TEXT ---`;
+
+      resultOutput.value = output;
+      showToast('success', 'Data hidden successfully!', 'Payload embedded. Copy the output matrix to share.');
+
+      // Show output section and auto-scroll
+      const outSec = document.getElementById('output-section');
+      outSec.style.display = 'block';
+      setTimeout(() => {
+        outSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+
+    async function copyToClipboard() {
+      const text = resultOutput.value;
+      if (!text) { showToast('error', 'Nothing to copy', 'Run Hide Data first to generate output.'); return; }
+      try { await navigator.clipboard.writeText(text); }
+      catch { resultOutput.select(); document.execCommand('copy'); }
+      showToast('success', 'Copied to clipboard', 'Stego-text ready for secure transmission.');
+    }
+
+    /* ── Social sharing ── */
+    function getShareText() {
+      const text = resultOutput.value;
+      if (!text) {
+        showToast('error', 'Nothing to share', 'Run embedding first to generate output.');
+        return null;
+      }
+      return text;
+    }
+
+    document.getElementById('share-whatsapp').addEventListener('click', () => {
+      const text = getShareText();
+      if (text) window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    });
+
+    document.getElementById('share-facebook').addEventListener('click', () => {
+      const text = getShareText();
+      if (text) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('success', 'Copied for Facebook', 'Text copied. Paste it into your Facebook post.');
+          window.open('https://www.facebook.com/', '_blank');
+        });
+      }
+    });
+
+    document.getElementById('share-instagram').addEventListener('click', () => {
+      const text = getShareText();
+      if (text) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('success', 'Copied for Instagram', 'Text copied. Paste it into your Instagram DM or story.');
+        });
+      }
+    });
+
+    document.getElementById('share-x').addEventListener('click', () => {
+      const text = getShareText();
+      if (text) window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+    });
+
+    document.getElementById('share-snapchat').addEventListener('click', () => {
+      const text = getShareText();
+      if (text) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('success', 'Copied for Snapchat', 'Text copied. Paste it into Snapchat.');
+        });
+      }
+    });
+
+    document.getElementById('share-messenger').addEventListener('click', () => {
+      const text = getShareText();
+      if (text) window.open(`fb-messenger://share/?link=${encodeURIComponent(text)}`, '_blank');
+    });
+
+    document.getElementById('share-telegram').addEventListener('click', () => {
+      const text = getShareText();
+      if (text) window.open(`https://t.me/share/url?url=${encodeURIComponent(text)}`, '_blank');
+    });
+
+    /* ── Send to Extraction Page ── */
+    function sendToExtract() {
+      const text = resultOutput.value;
+      if (!text) {
+        showToast('error', 'Nothing to send', 'Run Hide Data first to generate stego-text output.');
+        return;
+      }
+      localStorage.setItem('stegoTextPayload', text);
+      showToast('success', 'Forwarding payload', 'Redirecting to Extraction Page...');
+      setTimeout(() => { window.location.href = 'extract.html'; }, 600);
+    }
+
+    /* ── Event listeners ── */
+    coverInput.addEventListener('input', updateMetrics);
+    secretInput.addEventListener('input', updateMetrics);
+    hintInput.addEventListener('input', updateMetrics);
+    presharedInput.addEventListener('input', updateMetrics);
+    customSaltInput.addEventListener('input', updateMetrics);
+    embeddingBtn.addEventListener('click', () => { updateMetrics(); embedData(); });
+    copyMessageBtn.addEventListener('click', copyToClipboard);
+    sendToExtractBtn.addEventListener('click', sendToExtract);
+
+    // Dark mode toggle
+    document.getElementById('toggle-dark-mode').addEventListener('change', function () {
+      document.documentElement.classList.toggle('dark',  this.checked);
+      document.documentElement.classList.toggle('light', !this.checked);
+    });
+
+    // Hamburger
+    document.getElementById('hamburger-btn').addEventListener('click', () => {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('is-open');
+      const icon = document.querySelector('#hamburger-btn .material-symbols-outlined');
+      icon.textContent = menu.classList.contains('is-open') ? 'close' : 'menu';
+    });
+
+    // Smooth scroll and focus on Advanced Settings when opened
+    const advancedDetails = document.querySelector('.advanced-settings-details');
+    if (advancedDetails) {
+      advancedDetails.addEventListener('toggle', function () {
+        if (this.open) {
+          setTimeout(() => {
+            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 150);
+        }
+      });
+    }
+
+    // Init
+    updateMetrics();
+  </script>
+  <script src="js/utils.js"></script>
+</body>
+</html>

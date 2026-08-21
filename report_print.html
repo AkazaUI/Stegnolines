@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تقرير التحليل المعماري والترقية الهيكلية لنظام الإخفاء الإستيجانوغرافي</title>
+  
+  <!-- استيراد نظام التنسيق الموحد للمشروع New_styles.css -->
+  <link rel="stylesheet" href="New_styles.css">
+  
+  <!-- خطوط إضافية متوافقة -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- مكتبة MathJax للمعادلات الرياضية -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        ignoreHtmlClass: 'tex2jax_ignore',
+        processHtmlClass: 'tex2jax_process'
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
+  <!-- مكتبة Mermaid للمخططات الهيكلية -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        securityLevel: 'loose',
+        fontFamily: 'Alexandria, Sora, sans-serif',
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true,
+          curve: 'basis'
+        }
+      });
+    });
+  </script>
+
+  <style>
+    /* =========================================================
+       تنسيقات التقرير المستندة حصرياً على متغيرات New_styles.css (tokens.css)
+       ========================================================= */
+
+    body {
+      font-family: var(--font-primary), 'Alexandria', sans-serif;
+      color: var(--color-on-surface);
+      background-color: var(--color-background);
+      line-height: 1.6;
+      font-size: var(--fs-body-lg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* الشريط العلوي الشاشي */
+    .action-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--dark-surface-container);
+      color: var(--dark-on-surface);
+      padding: var(--space-md) var(--space-gutter);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-card);
+      border-bottom: 1px solid var(--dark-outline-variant);
+    }
+    .action-bar h2 {
+      font-size: var(--fs-headline-md);
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+    .print-tip {
+      font-size: var(--fs-body-sm);
+      color: var(--dark-on-surface-variant);
+      margin-top: 2px;
+    }
+    .btn-print {
+      background: var(--color-primary);
+      color: var(--color-on-primary-container);
+      border: none;
+      padding: var(--space-sm) var(--space-lg);
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: var(--fs-label-md);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      transition: var(--transition-all);
+    }
+    .btn-print:hover {
+      background: var(--color-secondary);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* حاوية الورقة A4 */
+    .document-container {
+      max-width: 210mm;
+      margin: var(--space-xl) auto;
+      background: var(--color-surface-container-lowest);
+      padding: var(--space-xl) var(--space-lg);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      border: 1px solid var(--color-outline-variant);
+    }
+
+    /* رأس التقرير */
+    .doc-header {
+      border-bottom: 3px solid var(--color-tertiary);
+      padding-bottom: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+    .doc-title {
+      font-size: var(--fs-display-lg);
+      font-weight: 800;
+      color: var(--color-tertiary);
+      line-height: 1.35;
+      margin-bottom: var(--space-sm);
+    }
+    .doc-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      font-size: var(--fs-body-sm);
+      color: var(--color-on-surface-variant);
+      background: var(--color-surface-container-low);
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-lg);
+      border-right: 4px solid var(--color-secondary);
+    }
+    .doc-meta span strong {
+      color: var(--color-on-surface);
+    }
+
+    /* عناوين الأقسام الرئيسية */
+    .section-title {
+      font-size: var(--fs-headline-lg);
+      font-weight: 800;
+      color: var(--color-tertiary);
+      margin-top: var(--space-xl);
+      margin-bottom: var(--space-md);
+      padding-bottom: var(--space-xs);
+      border-bottom: 2px solid var(--color-outline-variant);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .section-number {
+      background: var(--color-tertiary);
+      color: #ffffff;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--fs-body-md);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .subsection-title {
+      font-size: var(--fs-headline-md);
+      font-weight: 700;
+      color: var(--color-secondary);
+      margin-top: var(--space-md);
+      margin-bottom: var(--space-sm);
+    }
+
+    p {
+      margin-bottom: var(--space-md);
+      text-align: justify;
+      color: var(--color-on-surface);
+    }
+
+    /* تمييز الآليتين القديمة والجديدة */
+    .pipeline-box {
+      background: var(--color-surface-container-low);
+      border: 1px solid var(--color-outline-variant);
+      border-radius: var(--radius-xl);
+      padding: var(--space-md);
+      margin: var(--space-md) 0;
+    }
+    .pipeline-item {
+      margin-bottom: var(--space-md);
+    }
+    .pipeline-item:last-child {
+      margin-bottom: 0;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: var(--radius-default);
+      font-weight: 700;
+      font-size: var(--fs-body-sm);
+      margin-bottom: var(--space-xs);
+    }
+    .badge-legacy {
+      background: var(--color-error-container);
+      color: var(--color-on-error-container);
+      border: 1px solid var(--color-error);
+    }
+    .badge-modern {
+      background: var(--color-primary-container);
+      color: var(--color-on-primary-container);
+      border: 1px solid var(--color-secondary);
+    }
+
+    /* الجداول والمعادلات */
+    .formula-block {
+      direction: ltr;
+      background: var(--color-surface-container);
+      border-left: 4px solid var(--color-secondary);
+      padding: var(--space-sm) var(--space-md);
+      margin: var(--space-sm) 0;
+      border-radius: var(--radius-lg);
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .stego-table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0;
+      background-color: var(--color-surface-container-lowest);
+      border: 1px solid var(--color-outline-variant);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      margin: var(--space-md) 0;
+      box-shadow: var(--shadow-sm);
+    }
+    .stego-table th, .stego-table td {
+      border-bottom: 1px solid var(--color-outline-variant);
+      border-left: 1px solid var(--color-outline-variant);
+      padding: var(--space-sm) var(--space-md);
+      text-align: right;
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      font-size: var(--fs-body-md);
+    }
+    .stego-table th:last-child, .stego-table td:last-child {
+      border-left: none;
+    }
+    .stego-table th {
+      background-color: var(--color-surface-container-high);
+      color: var(--color-on-surface);
+      font-weight: 700;
+    }
+    .stego-table tr:nth-child(even) td {
+      background-color: var(--color-surface-container-low);
+    }
+    .pros {
+      color: var(--color-tertiary);
+      font-weight: 700;
+    }
+    .cons {
+      color: var(--color-error);
+      font-weight: 700;
+    }
+    .tech-tag {
+      font-family: 'Fira Code', monospace;
+      font-size: var(--fs-body-sm);
+      background: var(--color-surface-container);
+      padding: 1px 6px;
+      border-radius: var(--radius-default);
+      color: var(--color-on-surface);
+      direction: ltr;
+      display: inline-block;
+    }
+
+    /* حاويات الرسم التوضيحي (Mermaid Boxes) */
+    .mermaid-container {
+      background: var(--color-surface-container-lowest);
+      border: 1px solid var(--color-outline-variant);
+      border-radius: var(--radius-xl);
+      padding: var(--space-md);
+      margin: var(--space-md) 0;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+    .mermaid svg {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+
+    /* أمثلة الاستخدام العملية */
+    .use-case-card {
+      background: var(--color-surface-container-low);
+      border-right: 4px solid var(--color-tertiary);
+      border-top: 1px solid var(--color-outline-variant);
+      border-bottom: 1px solid var(--color-outline-variant);
+      border-left: 1px solid var(--color-outline-variant);
+      padding: var(--space-md);
+      border-radius: var(--radius-lg);
+      margin: var(--space-md) 0;
+    }
+    .use-case-card h4 {
+      color: var(--color-tertiary);
+      font-size: var(--fs-body-lg);
+      margin-bottom: var(--space-xs);
+    }
+
+    /* الاستنتاج والخلاصة */
+    .summary-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    .summary-list li {
+      position: relative;
+      padding-right: var(--space-lg);
+      margin-bottom: var(--space-sm);
+    }
+    .summary-list li::before {
+      content: "✓";
+      position: absolute;
+      right: 0;
+      top: 0;
+      color: var(--color-tertiary);
+      font-weight: 800;
+    }
+
+    /* =========================================================
+       تعديلات الطباعة الصارمة والمدغمة لمنع الفراغات المتكررة وتعديل عدد الصفحات
+       ========================================================= */
+    @page {
+      size: A4 portrait;
+      margin: 12mm 12mm 12mm 12mm;
+    }
+
+    @media print {
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 9.2pt !important;
+        line-height: 1.38 !important;
+        width: 100% !important;
+      }
+
+      *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      .action-bar {
+        display: none !important;
+      }
+
+      .document-container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+      }
+
+      .doc-header {
+        padding-bottom: 8px !important;
+        margin-bottom: 12px !important;
+        border-bottom-width: 2px !important;
+      }
+      .doc-title {
+        font-size: 13.5pt !important;
+        margin-bottom: 6px !important;
+      }
+      .doc-meta {
+        padding: 4px 10px !important;
+        font-size: 8.5pt !important;
+        gap: 12px !important;
+      }
+
+      h1, h2, h3, h4, .section-title, .subsection-title {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+
+      .section-title {
+        margin-top: 10px !important;
+        margin-bottom: 6px !important;
+        padding-bottom: 3px !important;
+        font-size: 11pt !important;
+      }
+
+      .section-number {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 9.5pt !important;
+      }
+
+      .subsection-title {
+        margin-top: 8px !important;
+        margin-bottom: 4px !important;
+        font-size: 9.8pt !important;
+      }
+
+      p {
+        margin-bottom: 6px !important;
+      }
+
+      .pipeline-box {
+        padding: 6px 10px !important;
+        margin: 6px 0 !important;
+        border-radius: 6px !important;
+      }
+      .pipeline-item {
+        margin-bottom: 6px !important;
+      }
+
+      .badge {
+        padding: 1px 6px !important;
+        font-size: 8pt !important;
+        margin-bottom: 3px !important;
+      }
+
+      .formula-block {
+        padding: 3px 6px !important;
+        margin: 4px 0 !important;
+        font-size: 8.5pt !important;
+      }
+
+      .table-container {
+        margin: 8px 0 !important;
+      }
+
+      .stego-table {
+        margin: 6px 0 !important;
+        border-radius: 6px !important;
+      }
+
+      th, td {
+        padding: 4px 6px !important;
+        font-size: 8.2pt !important;
+        line-height: 1.3 !important;
+      }
+
+      .tech-tag {
+        font-size: 7.8pt !important;
+        padding: 0 4px !important;
+      }
+
+      .use-case-card {
+        padding: 6px 10px !important;
+        margin: 6px 0 !important;
+        border-radius: 6px !important;
+      }
+      .use-case-card h4 {
+        font-size: 9.2pt !important;
+        margin-bottom: 3px !important;
+      }
+
+      .mermaid-container {
+        padding: 4px 6px !important;
+        margin: 6px 0 !important;
+        border-radius: 6px !important;
+      }
+      .mermaid svg {
+        max-height: 135px !important;
+        width: auto !important;
+      }
+
+      .summary-list li {
+        margin-bottom: 4px !important;
+        padding-right: 18px !important;
+      }
+
+      /* السماح بالانقسام المرن دون كسر مفاجئ يخلف صفحات فارغة */
+      .section-block {
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+        margin-bottom: 8px !important;
+      }
+
+      .pipeline-box,
+      .use-case-card,
+      .mermaid-container {
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+
+      tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      table {
+        width: 100% !important;
+        table-layout: fixed !important;
+        page-break-inside: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- شريط إجراءات الشاشة -->
+  <div class="action-bar">
+    <div>
+      <h2>معاينة التقرير الجاهز للطباعة (Print Preview)</h2>
+      <div class="print-tip">لإخفاء المسار والتاريخ، قم بإلغاء تحديد خيار "Headers and footers / رؤوس الصفحات وتذييلاتها" من إعدادات الطباعة.</div>
+    </div>
+    <button class="btn-print" onclick="window.print()">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"></path>
+        <path d="M6 14h12v8H6z"></path>
+      </svg>
+      طباعة التقرير / تصدير PDF
+    </button>
+  </div>
+
+  <!-- مستند A4 الأساسي -->
+  <div class="document-container">
+
+    <!-- غلاف/رأس التقرير -->
+    <header class="doc-header">
+      <h1 class="doc-title">تقرير التحليل المعماري والترقية الهيكلية لنظام الإخفاء الإستيجانوغرافي (Text Steganography System)</h1>
+      <div class="doc-meta">
+        <span><strong>نوع الوثيقة:</strong> تقرير معماري تشفيري ممتد</span>
+        <span><strong>مجال النظام:</strong> إخفاء البيانات الهيكلية بالنصوص (Structural Text Steganography)</span>
+        <span><strong>المعيار الأمني:</strong> CSPRNG / AES-256 / PBKDF2</span>
+      </div>
+    </header>
+
+    <!-- القسم الأول -->
+    <section class="section-block">
+      <h2 class="section-title">
+        <span class="section-number">1</span>
+        مقارنة شمولية: الآلية القديمة مقابل الآلية الجديدة
+      </h2>
+      <p>
+        يمثل هذا التقرير تحليلاً فنياً معمارياً لمراحل الترقية الهيكلية لنظام الإخفاء الهيكلي في النصوص (Structural Text Steganography)، والتي انتقلت بالنظام من بيئة غير تشفيرية محدودة الأداء إلى بنية أمنية عالية الرصانة تعتمد المعايير التشفيرية الدولية وتوفر أداءً متفوقاً.
+      </p>
+
+      <h3 class="subsection-title">وصف التدفق المعماري للآليتين</h3>
+      
+      <div class="pipeline-box">
+        <div class="pipeline-item">
+          <span class="badge badge-legacy">الآلية القديمة (Legacy Pipeline)</span>
+          <p>
+            تعتمد على خوارزمية <strong>DJB2</strong> لضغط كلمة المرور إلى بذرة بحجم 32-بت، تليها خوارزمية <strong>Mulberry32</strong> كمولد أرقام شبه عشوائية عادية، ثم اقتطاع الأرقام عبر دالة باقي القسمة (<code>Modulo %</code>) واختيار المواضع عبر تخصيص مصفوفة كاملة في الذاكرة بحجم النص الغلاف بحسب تعقيد <strong>$O(N)$</strong>.
+          </p>
+          <div class="formula-block">
+            $$\text{StegoKey} \xrightarrow{\text{DJB2 (32-bit)}} \text{Seed} \xrightarrow{\text{Mulberry32 PRNG}} \text{Modulo (\%)} \xrightarrow{O(N) \text{ Array Shuffle}} \text{Positions}$$
+          </div>
+        </div>
+
+        <div class="pipeline-item" style="margin-top: 10px;">
+          <span class="badge badge-modern">الآلية الجديدة (Modern CSPRNG Pipeline)</span>
+          <p>
+            تعتمد على خوارزمية <strong>PBKDF2-HMAC-SHA256</strong> لاشتقاق مفتاح تشفيري بعمق 256-بت، يُغذي محرك <strong>AES-256-CTR</strong> كمولد أرقام عشوائية آمن تشفيرياً (CSPRNG)، وتُنقى الأرقام باستخدام تقنية <strong>Unbiased Rejection Sampling</strong> لإلغاء أي انحياز إحصائي، وصولاً إلى تطبيق الشفل الكسول <strong>$O(K)$ Lazy Swap Shuffle</strong> عبر جدول التعيين الكسول <code>Map</code>.
+          </p>
+          <div class="formula-block">
+            $$\text{StegoKey + Salt} \xrightarrow{\text{PBKDF2 (256-bit)}} \text{CryptoKey} \xrightarrow{\text{AES-256-CTR CSPRNG}} \text{Rejection Sampling} \xrightarrow{O(K) \text{ Lazy Swap}} \text{Positions}$$
+          </div>
+        </div>
+      </div>
+
+      <h3 class="subsection-title">جدول المقارنة الشامل للمزايا والعيوب (Pros & Cons)</h3>
+      
+      <div class="table-container">
+        <table class="stego-table">
+          <thead>
+            <tr>
+              <th style="width: 22%;">محور المقارنة</th>
+              <th style="width: 39%;">الآلية القديمة (Legacy Mechanism)</th>
+              <th style="width: 39%;">الآلية الجديدة (Modern Mechanism)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>حجم مساحة المفاتيح (Key Space)</strong></td>
+              <td><span class="cons">ضعيف جداً (<span class="tech-tag">DJB2 Hash</span>):</span> يقتصر النطاق على 4.29 مليار بذرة فقط ($2^{32}$)، مما يسهل كسرها في ثوانٍ.</td>
+              <td><span class="pros">فائق القوة (<span class="tech-tag">PBKDF2 SHA-256</span>):</span> توفر $1.15 \times 10^{77}$ احتمالاً ($2^{256}$)، مما يجعل التخمين غير ممكن حسابياً.</td>
+            </tr>
+            <tr>
+              <td><strong>المقاومة ضد التخمين (Brute-Force)</strong></td>
+              <td><span class="cons">منخفضة للغاية (<span class="tech-tag">DJB2 Fast Hash</span>):</span> سرعة الهاش الكبيرة تُمكن أجهزة المعالجة كـ GPU من تجربة مليارات البذور.</td>
+              <td><span class="pros">عالية ومحصنة (<span class="tech-tag">100,000 Iterations</span>):</span> تقنية إبطاء المفتاح بـ 100,000 دورة تعطل أي محاولات تخمين مكثفة.</td>
+            </tr>
+            <tr>
+              <td><strong>التنبؤ بالعشوائية (Unpredictability)</strong></td>
+              <td><span class="cons">قابل للتنبؤ (<span class="tech-tag">Mulberry32 PRNG</span>):</span> معرفة قيمتين متتاليتين تمكن المخترق من كشف جميع المواقع السابقة واللاحقة.</td>
+              <td><span class="pros">غير قابل للتنبؤ (<span class="tech-tag">AES-256-CTR CSPRNG</span>):</span> معيار تشفيري آمن يمنع استنتاج أي رقم من الأرقام السابقة أو التالية.</td>
+            </tr>
+            <tr>
+              <td><strong>البصمة الإحصائية (Steganalysis)</strong></td>
+              <td><span class="cons">مكشوفة إحصائياً (<span class="tech-tag">Modulo Bias %</span>):</span> انحياز باقي القسمة (Modulo Bias) يترك أثراً تفاضلياً تكشفه اختبارات $\chi^2$.</td>
+              <td><span class="pros">غير قابلة للكشف (<span class="tech-tag">Rejection Sampling</span>):</span> عزل الانحياز تماماً يضمن توزيعاً عشوائياً متجانساً ومخفياً بنسبة 100%.</td>
+            </tr>
+            <tr>
+              <td><strong>استهلاك الذاكرة (RAM Footprint)</strong></td>
+              <td><span class="cons">مرتفع جدًا $O(N)$ (<span class="tech-tag">Full Array Allocation</span>):</span> يتطلب تخصيص مصفوفة بكل بتات الغلاف مما قد يسبب انهيار الذاكرة.</td>
+              <td><span class="pros">خفيف جداً $O(K)$ (<span class="tech-tag">Lazy Swap Map</span>):</span> تقتصر الذاكرة على حجم بتات الرسالة السرية فقط دون التأثر بحجم الغلاف.</td>
+            </tr>
+            <tr>
+              <td><strong>الحماية ضد حجب الخدمة (DoS)</strong></td>
+              <td><span class="cons">ضعيفة (<span class="tech-tag">O(N) Full Array Shuffle</span>):</span> النصوص الضخمة تسبب تجميد النظام أو انهيار المتصفح بسبب استنزاف الموارد.</td>
+              <td><span class="pros">محصنة (<span class="tech-tag">O(K) Lazy Evaluation</span>):</span> معالجة كسولة سريعة ومستقلة تماماً عن حجم نص الغلاف الناقل.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- القسم الثاني -->
+    <section class="section-block">
+      <h2 class="section-title">
+        <span class="section-number">2</span>
+        التحسين الأول: اشتقاق المفتاح التشفيري (PBKDF2-HMAC-SHA256)
+      </h2>
+      
+      <h3 class="subsection-title">الشرح النظري والمفاهيمي العميق</h3>
+      <p>
+        في الأنظمة الأمنية، تُعد كلمات المرور التي يدخلها البشر مصدراً للانتروبيا الضئيلة (Low Entropy) لكونها مائلة لسهولة التذكر. تقوم خوارزمية <strong>PBKDF2</strong> (Password-Based Key Derivation Function 2) بمعالجة هذه المشكلة عبر تقنية تمديد المفتاح (Key Stretching).
+      </p>
+      <p>
+        تجمع الخوارزمية بين كلمة السر ونص الملح (Salt) التشفيري، ثم تُمررها عبر دالة المصادقة التشفيرية <strong>HMAC-SHA256</strong> ضمن سلسلة تكرارات مكثفة تبلغ <strong>100,000 دورة</strong>. تعمل هذه التكرارات الحسابية على تحويل كلمة المرور البسيطة إلى مفتاح تشفيري خالص بعمق <strong>256 بت</strong>. هذا التصميم يرفع التكلفة الحسابية على مقتحمي الأنظمة، حيث تصبح عملية تجربة كلمة سر واحدة مكلفة جداً زمنياً، مما يبطل مفعول بطاقات الرسوميات المخصصة لكسر الحماية (GPU Acceleration) وجداول البحث المسبق (Rainbow Tables).
+      </p>
+
+      <div class="use-case-card">
+        <h4>مثال عملي تطبيقي (Use Case)</h4>
+        <p>قام موظف بإرسال مستند مخفي باستخدام كلمة مرور بسيطة مثل <code>Company2026</code>.</p>
+        <p><strong>في النظام القديم:</strong> يقوم المهاجم باعتراض الرسالة وتشغيل برنامج كسر الهاش الذي يختبر الـ 4.29 مليار بذرة محتملة لـ DJB2 خلال <strong>أقل من ثانيتين</strong> بكارت شاشة عادي، ويكتشف مواضع التشفير فوراً.</p>
+        <p><strong>في النظام الجديد:</strong> يحاول برنامج الكسر تجربة المفاتيح، ولكن بسبب وجود 100,000 دورة PBKDF2 لكل محاولة، تنخفض قدرة كارت الشاشة من مليارات المحاولات في الثانية إلى مئات المحاولات فقط، مما يجعل التخمين يستغرق <strong>آلاف السنين</strong> عملياً.</p>
+      </div>
+
+      <div class="mermaid-container">
+        <div class="mermaid">
+flowchart TD
+    A["كلمة السر (StegoKey)"] --> C["دالة PBKDF2 Engine"]
+    B["نص الملح (Domain Salt)"] --> C
+    D["عدد التكرارات: 100,000 دورة"] --> C
+    C --> E["دالة HMAC-SHA256"]
+    E --> F["مفتاح تشفيري آمن (256-bit Key)"]
+        </div>
+      </div>
+    </section>
+
+    <!-- القسم الثالث -->
+    <section class="section-block">
+      <h2 class="section-title">
+        <span class="section-number">3</span>
+        التحسين الثاني: محرك الأرقام العشوائية التشفيري (AES-256-CTR CSPRNG)
+      </h2>
+      
+      <h3 class="subsection-title">الشرح النظري والمفاهيمي العميق</h3>
+      <p>
+        تختلف مولدات الأرقام العشوائية التشفيرية (CSPRNG) عن المولدات التقليدية (PRNG) في قدرتها على توفير خاصيتين أمنيتين أساسيتين: <strong>عدم إمكانية التنبؤ بالرقم التالي (Next-Bit Unpredictability)</strong>، و<strong>المقاومة ضد تسريب الحالة (State Compromise Extension Resistance)</strong>.
+      </p>
+      <p>
+        يعتمد هذا التحسين على تشغيل خوارزمية التشفير التكعيبي <strong>AES-256</strong> في نمط العداد (<strong>Counter Mode - CTR</strong>). بدلاً من الاعتماد على معادلة حسابية بسيطة تتغير فيها الحالة ميكانيكياً، يقذم المحرك بتشفير عداد رقمي متزايد ($0, 1, 2, 3 \dots$) مستخدماً المفتاح المشتق ذو الـ 256 بت. يُنتج هذا التشفير تدفقاً متواصلاً من البايتات العشوائية ذات التوزيع المتجانس والمستحيلة الاستنتاج رياضياً، حيث يضمن عدم قدرة أي مراقب على التنبؤ بالأرقام التالية حتى لو علِم بالأرقام السابقة.
+      </p>
+
+      <div class="use-case-card">
+        <h4>مثال عملي تطبيقي (Use Case)</h4>
+        <p>في سيناريو تحليل الرسائل المشبوهة، استطاع محلل سيبراني اكتشاف أول موقعين تم فيهما إخفاء بتات البيانات داخل النص.</p>
+        <p><strong>في النظام القديم:</strong> قام المحلل بتغذية القيمتين لمولد <code>Mulberry32</code> وبواسطة معادلة رياضية عكسية بسيطة تمكن من <strong>حساب الحالة الداخلية للمولد</strong> واستخراج باقي الأماكن بالكامل وقراءة باقي الرسالة.</p>
+        <p><strong>في النظام الجديد:</strong> رغم معرفة المحلل للموقعين الأول والثاني، فإن الأرقام مخرجة بواسطة تشفير AES-256، وبالتالي يستحيل عليه عكس التشفير لاستنتاج باقي مواضع الشفل المتبقية.</p>
+      </div>
+
+      <div class="mermaid-container">
+        <div class="mermaid">
+flowchart LR
+    A["المفتاح المشتق (256-bit Key)"] --> D["محرك تشفير AES-256"]
+    B["كتلة العداد (Counter Block++)"] --> D
+    D --> E["سيل بايتات تشفيري (Ciphertext Block Stream)"]
+    E --> F["تدفق أرقام عشوائية آمن (CSPRNG Stream)"]
+        </div>
+      </div>
+    </section>
+
+    <!-- القسم الرابع -->
+    <section class="section-block">
+      <h2 class="section-title">
+        <span class="section-number">4</span>
+        التحسين الثالث: السحب العشوائي المرفوض لإلغاء الانحياز (Unbiased Rejection Sampling)
+      </h2>
+      
+      <h3 class="subsection-title">الشرح النظري والمفاهيمي العميق</h3>
+      <p>
+        عند محاولة تقليص نطاق رقم عشوائي تشفيري كبير (32-بت) ليصل إلى نطاق محدد $R$ (طول النص الغلاف المتبقي)، تُستخدم عادة دالة باقي القسمة (<code>Modulo %</code>). ولكن نظراً لأن النطاق الكلي لـ 32-بت ($2^{32}$) لا يقبل القسمة دائماً بدون باقٍ على $R$، يظهر تفاوت ضئيل جداً يُعرف بـ <strong>انحياز باقي القسمة (Modulo Bias)</strong>، حيث تحظى بعض الأرقام الأولى بفرصة ظهور أكبر بمقدار واحد من بقية الأرقام.
+      </p>
+      <p>
+        يقضي تحسين <strong>Rejection Sampling</strong> على هذا الانحياز عبر حساب حد الأمان العدلي (Valid Threshold) وهو أكبر مضاعف صحيح لـ $R$ يتسع داخل نطاق $2^{32}$. عندما يُنتج مولد CSPRNG رقماً عشوائياً يقع في المنطقة الزائدة الفائقة للحد العادل، يتم <strong>رفض الرقم نهائياً وإسقاطه</strong> والسحب مجدداً فوراً. يضمن هذا الإجراء أن الأرقام المقبولة تخضع لنسبة احتمالية متطابقة 100% لجميع الخيارات المتاحة.
+      </p>
+
+      <div class="use-case-card">
+        <h4>مثال عملي تطبيقي (Use Case)</h4>
+        <p>تخيل أن نظام فحص الأمن السيبراني يملك خوارزمية تحليل إحصائي تستند إلى اختبار كاي-تربيعي ($\chi^2$) لمعاينة التوزيع التكراري لمواقع التعديل في النصوص.</p>
+        <p><strong>في النظام القديم:</strong> اكتشفت خوارزمية التحليل الإحصائي ترجحاً ميكروسكوبياً في تكرار اختيار الحروف الأولى من الكلمات بسبب Modulo Bias، وقامت فوراً <strong>بوضع علامة "مشبوه" (Flagged)</strong> على النص.</p>
+        <p><strong>في النظام الجديد:</strong> بسبب تطبيق Rejection Sampling، جاء توزيع مواضع الإخفاء متوازناً تماماً وبشكل يطابق التوزيع الطبيعي للعشوائية المطلقة، مما أدى لـ <strong>اجتياز فحص الـ Steganalysis بنجاح دون ترك أي أثر إحصائي</strong>.</p>
+      </div>
+
+      <div class="mermaid-container">
+        <div class="mermaid">
+flowchart TD
+    A["سحب رقم عشوائي خام 32-bit"] --> B{"هل الرقم >= حد الأمان العادل؟"}
+    B -- "نعم (يسبب انحياز Modulo Bias)" --> C["رفض الرقم (Reject) وإعادة السحب"]
+    C --> A
+    B -- "لا (منطقة التوزيع العادل)" --> D["قبول الرقم لحساب باقي القسمة"]
+    D --> E["موقع عشوائي نقي وغير منحاز 100%"]
+        </div>
+      </div>
+    </section>
+
+    <!-- القسم الخامس -->
+    <section class="section-block">
+      <h2 class="section-title">
+        <span class="section-number">5</span>
+        التحسين الرابع: الشفل الكسول للمواقع في الذاكرة (O(K) Lazy Swap Shuffle - Map)
+      </h2>
+      
+      <h3 class="subsection-title">الشرح النظري والمفاهيمي العميق</h3>
+      <p>
+        في خوارزمية Fisher-Yates الشائعة، يتم تبديل عناصر المصفوفة لضمان الحصول على عينة عشوائية بدون تكرار. النظام القديم كان يقوم بإنشاء مصفوفة كاملة تحتوي على فهارس جميع بتات نص الغلاف ($N$)، وهو ما يستنزف الذاكرة العشوائية والوقت الحسابي بدرجة $O(N)$.
+      </p>
+      <p>
+        يعتمد تحسين <strong>Lazy Swap</strong> على فكرة الوصول الكسول (Lazy Evaluation) باستخدام قاموس قيَم مؤقت <code>Map</code>. بدلاً من تخصيص مصفوفة بحجم $N$ بالكامل في الذاكرة، يبدأ النظام بفرضية أن كل موضع $i$ يشير إلى نفسه. وعند الحاجة لاختيار $K$ موقع فقط (وهو عدد بتات الرسالة المراد إخفاؤها)، تُنفذ عمليات التبديل والاحتفاظ بالقيم المعدلة فقط داخل الـ <code>Map</code>. هذا يقلل التعقيد الزمني والمكاني من <strong>$O(N)$ إلى $O(K)$</strong>، مما يجعل أداء الخوارزمية مستقلاً تماماً عن حجم النص الناقل.
+      </p>
+
+      <div class="use-case-card">
+        <h4>مثال عملي تطبيقي (Use Case)</h4>
+        <p>المستخدم يريد إخفاء رسالة صغيرة (تتكون من 500 بت) داخل كتاب إلكتروني ضخم كغلاف (يحتوي على 20,000,000 بت).</p>
+        <p><strong>في النظام القديم:</strong> حاول المتصفح إنشاء مصفوفة تضم 20 مليون عنصر صحيح في الذاكرة، مما أدى لاستنزاف مئات الميجابايت من RAM و<strong>تجميد واجهة المتصفح لمدة 4 ثوانٍ</strong>.</p>
+        <p><strong>في النظام الجديد:</strong> قام النظام بتخصيص قاموس <code>Map</code> لـ 500 عنصر فقط، وتمت عملية الشفل والتبديل خلال <strong>أقل من 2 ملي ثانية</strong> ودون أي استهلاك يذكر للذاكرة.</p>
+      </div>
+
+      <div class="mermaid-container">
+        <div class="mermaid">
+flowchart TD
+    A["بدء الشفل لاختيار K موقع من أصل N"] --> B["إنشاء قاموس كسول مؤقت Map"]
+    B --> C["سحب التزحزح العشوائي المصفى offset"]
+    C --> D["حساب الموقع المستهدف targetIndex"]
+    D --> E["تبديل القيم المتبادلة وتسجيلها في Map فقط"]
+    E --> F["إضافة الموقع المختار لقائمة المواقع النهائية"]
+    F --> G{"هل وصلنا لعدد K بت؟"}
+    G -- "لا" --> C
+    G -- "نعم" --> H["قائمة مواقع جاهزة بتعقيد O(K) زمني ومكاني"]
+        </div>
+      </div>
+    </section>
+
+    <!-- القسم السادس -->
+    <section class="section-block">
+      <h2 class="section-title">
+        <span class="section-number">6</span>
+        الخلاصة الفنية والأثر الإجمالي للنظام
+      </h2>
+      <p>
+        تُشكل التحسينات الهيكلية الأربعة نقلة نوعية شاملة جعلت نظام الإخفاء الإستيجانوغرافي يستوفي أعلى المتطلبات التشفيرية والتطويرية الحديثة:
+      </p>
+
+      <ul class="summary-list">
+        <li>
+          <strong>الرصانة التشفيرية المقاومة للكسر:</strong> الارتقاء بمساحة المفاتيح عبر <strong>PBKDF2-HMAC-SHA256</strong> جعل هجمات التخمين القائمة على المولدات السريعة خياراً مستحيلاً عملياً.
+        </li>
+        <li>
+          <strong>السرية غير القابلة للتنبؤ:</strong> محرك <strong>AES-256-CTR CSPRNG</strong> حسم جانب الحماية التشفيرية لمولد المواقع ضد محاولات الاسترجاع العكسي للحالة.
+        </li>
+        <li>
+          <strong>الحماية ضد الكشف الإحصائي:</strong> تقنية <strong>Unbiased Rejection Sampling</strong> أزالت أي تشويه في التوزيع الاحتمالي للمواضع، مما يمنح البيانات المخفية حماية كاملة أمام أدوات تحليل الـ Steganalysis.
+        </li>
+        <li>
+          <strong>كفاءة الاستقرار والأداء العالي:</strong> تحويل الشفل إلى خوارزمية كسولة <strong>$O(K)$ Lazy Swap</strong> وفر استقراراً تشغيلياً مطلقاً وسرعة فائقة تحمي النظام من هجمات حجب الخدمة واستهلاك الذاكرة.
+        </li>
+      </ul>
+
+      <p style="margin-top: 10px; font-weight: 700; color: var(--color-tertiary);">
+        بهذا المزيج، أصبحت البنية التحتية للنظام تجمع بين أقصى أمان تشفيري ممكن وأعلى كفاءة تشغيلية ممتازة.
+      </p>
+    </section>
+
+  </div>
+
+</body>
+</html>
