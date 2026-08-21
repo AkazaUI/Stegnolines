@@ -1,0 +1,162 @@
+/* ══════════════════════════════════════════════════════════════
+   CSS Component — Cover Editor (Code-Editor Style Textarea)
+   ══════════════════════════════════════════════════════════════
+   Wraps the imgEmbedCover textarea with a synchronized line-
+   number gutter and a dynamic message counter below.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Container ── */
+.cover-editor {
+  display: flex;
+  flex-direction: row;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-default);
+  background: var(--color-surface-container-lowest);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  height: 220px;
+  box-sizing: border-box;
+}
+
+.cover-editor:focus-within {
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(125, 163, 0, 0.2);
+}
+
+/* ── Line Numbers Gutter ── */
+.cover-editor__gutter {
+  flex-shrink: 0;
+  width: 44px;
+  padding: 8px 0;
+  background: var(--color-surface-container);
+  border-right: 1px solid var(--color-outline-variant);
+  overflow: hidden;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.cover-editor__gutter-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.cover-editor__line-num {
+  display: block;
+  width: 100%;
+  padding: 0 8px;
+  text-align: right;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-outline);
+  box-sizing: border-box;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.cover-editor__line-num--active {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* ── Textarea (inside editor) ── */
+.cover-editor__textarea {
+  flex: 1;
+  resize: none;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  padding: 8px 16px;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-on-surface);
+  overflow-y: auto;
+  overflow-x: hidden;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.cover-editor__textarea::placeholder {
+  color: var(--color-outline);
+}
+
+/* Remove default focus ring since the parent handles it */
+.cover-editor__textarea:focus {
+  outline: none;
+  box-shadow: none;
+  border: none;
+}
+
+/* ── Counter ── */
+.cover-editor__counter {
+  margin-top: var(--space-xs);
+  padding: 6px 4px;
+  font-family: var(--font-body);
+  font-size: var(--fs-body-sm);
+  font-weight: 600;
+  color: #000000;
+  line-height: 1.4;
+  transition: opacity 0.2s ease;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+/* Ensure counter stays black regardless of theme for readability */
+html.dark .cover-editor__counter,
+:root:not(.light) .cover-editor__counter {
+  color: #ffffff;
+}
+
+.cover-editor__counter .counter-written {
+  font-weight: 800;
+  color: var(--color-primary);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+.cover-editor__counter .counter-required {
+  font-weight: 800;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+/* ── RTL Support ── */
+html[dir="rtl"] .cover-editor {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .cover-editor__gutter {
+  border-right: none;
+  border-left: 1px solid var(--color-outline-variant);
+}
+
+html[dir="rtl"] .cover-editor__line-num {
+  text-align: left;
+}
+
+html[dir="rtl"] .cover-editor__textarea {
+  text-align: right;
+}
+
+/* ── Scrollbar Styling (Optional Thin Scrollbar) ── */
+.cover-editor__textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cover-editor__textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cover-editor__textarea::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: var(--radius-full);
+}
+
+.cover-editor__textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline);
+}

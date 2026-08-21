@@ -1,0 +1,117 @@
+/* ============================================================
+   STEGNOLINES UI LIBRARY — Tabs Component
+   ============================================================ */
+
+.tabs-nav {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-outline-variant);
+  padding-bottom: 0;
+  position: relative;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabs-nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide default bottom bar from active buttons when sliding indicator is active */
+.tabs-nav:has(.tabs-nav__indicator) .tab-btn.active::after {
+  background: transparent;
+}
+
+.tabs-nav__indicator {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  height: 3px;
+  background: var(--color-primary);
+  border-radius: var(--radius-full) var(--radius-full) 0 0;
+  transition: left 0.3s cubic-bezier(0.25, 1, 0.5, 1), width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: var(--space-sm) var(--space-lg);
+  font-family: var(--font-label);
+  font-size: var(--fs-label-md);
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition-colors);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.tab-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  border-radius: var(--radius-full) var(--radius-full) 0 0;
+  transition: background-color 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: var(--color-on-surface);
+  background: var(--color-surface-container-low);
+}
+
+.tab-btn.active {
+  color: var(--color-primary);
+}
+
+.tab-btn.active::after {
+  background: var(--color-primary);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+.tab-panel.hidden {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .tab-btn {
+    padding: var(--space-sm) 12px;
+  }
+}
+
+@media (max-width: 500px) {
+  .tabs-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: visible;
+  }
+  
+  .tab-btn {
+    flex: 1 1 0%;
+    min-width: 0;
+    padding: var(--space-sm) 4px;
+    font-size: 0.75rem;
+    white-space: normal;
+    word-wrap: break-word;
+    text-align: center;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

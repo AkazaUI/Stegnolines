@@ -1,0 +1,8 @@
+{
+  "title": "Messenger Chat",
+  "messages": [
+    { "sender_name": "Faisal", "timestamp_ms": 1753612200000, "content": "Hello from Meta Messenger" },
+    { "sender_name": "Ahmed", "timestamp_ms": 1753612260000, "content": "Hidden text: \u200b\u200c\u200b\u200c\u200b\u200c\u200b\u200c\u200b\u200c" },
+    { "sender_name": "Sara", "timestamp_ms": 1753612320000, "photos": [{ "uri": "image.jpg" }] }
+  ]
+}
