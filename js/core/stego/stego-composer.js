@@ -80,8 +80,8 @@ async function composeStego(coverText, secretMessage, hint, stegoKey, encryption
   // 8. Step 3: XOR key generation
   const xorKey = generateXORKey(coverBits, basePositions, messageBits);
 
-  // 9. Step 4: Convert XOR key to Variation Selector characters
-  const { vsStr, bytesArr } = xorKeyToVSString(xorKey);
+  // 9. Step 4: Convert XOR key to Variation Selector characters (with key-dependent S-Box permutation)
+  const { vsStr, bytesArr } = xorKeyToVSString(xorKey, resolvedStegoKey);
 
   // 10. Step 5: Build output
   const hasFakeCover = fakeCoverText && fakeCoverText.trim().length > 0;
@@ -116,11 +116,13 @@ async function composeStego(coverText, secretMessage, hint, stegoKey, encryption
 }
 
 /**
- * Main pure extraction pipeline with Dual-Engine Fallback.
+ * Main pure extraction pipeline with Dual-Engine Fallback & S-Box Inversion.
  *
- * Attempts extraction using the MODERN engine first (PBKDF2 + AES-256-CTR).
- * If that fails, automatically falls back to the LEGACY engine (DJB2 + Mulberry32)
- * to support messages hidden by older versions.
+ * Extraction Strategy:
+ *   1. Modern Engine (PBKDF2 + AES-256-CTR CSPRNG) + Permuted VS S-Box
+ *   2. Modern Engine + Standard Linear Identity VS
+ *   3. Legacy Engine (DJB2 + Mulberry32) + Standard Linear Identity VS
+ *   4. Legacy Engine + Permuted VS S-Box
  *
  * @param {string} stegoText     - The stego text (with invisible VS characters).
  * @param {string} rawStegoKey   - User-supplied pre-shared key.
@@ -128,53 +130,53 @@ async function composeStego(coverText, secretMessage, hint, stegoKey, encryption
  * @returns {Promise<object>} Decrypted secret message and hint components.
  */
 async function decomposeStego(stegoText, rawStegoKey, encryptionKey) {
-  // 1. Step 5 (Reverse): Extract VS bytes and clean text
-  const { vsBytes, cleanText: coverText } = extractVSFromText(stegoText);
+  // 1. Step 5 (Reverse): Extract raw VS indices and clean cover text
+  const { cleanText: coverText, rawVsIndices } = extractVSFromText(stegoText);
 
-  if (vsBytes.length === 0) {
+  if (!rawVsIndices || rawVsIndices.length === 0) {
     throw new Error('No hidden VS characters found in the message. Make sure to paste the complete final message.');
   }
 
-  // 2. Step 4 (Reverse): Convert VS bytes to binary bits
-  const xorKeyBinary = bytesToBinary(vsBytes);
-
-  // 3. Resolve stego key
+  // 2. Resolve stego key
   const { resolvedStegoKey } = await resolveStegoKey(rawStegoKey, coverText);
 
-  // 4. Convert cover text to binary
+  // 3. Convert cover text to binary
   const coverBits = stringToBinary(coverText);
-
-  if (xorKeyBinary.length > coverBits.length) {
-    throw new Error(`The key contains ${xorKeyBinary.length} bits but the cover contains only ${coverBits.length} bits.`);
-  }
-
   const decryptionKey = encryptionKey || resolvedStegoKey;
 
   /**
-   * Internal: attempt full decompose with a given position-generation function.
+   * Internal: attempt full decompose with a given position-generation function
+   * and VS inversion mode (permuted vs identity).
    *
    * @param {function} posFn - Either generatePositions (modern) or generatePositionsLegacy.
+   * @param {boolean} useVsPermutation - Whether to apply key-dependent inverse S-Box.
    * @returns {Promise<object|null>} Extraction result, or null if it fails.
    */
-  async function attemptDecompose(posFn) {
+  async function attemptDecompose(posFn, useVsPermutation) {
     try {
-      // 5. Step 2 (Reverse): Regenerate PRNG positions
+      const currentVsBytes = useVsPermutation && typeof invertVsBytes === 'function'
+        ? invertVsBytes(rawVsIndices, resolvedStegoKey)
+        : rawVsIndices;
+
+      const xorKeyBinary = bytesToBinary(currentVsBytes);
+      if (xorKeyBinary.length > coverBits.length) return null;
+
+      // Regenerate PRNG positions
       const basePositions = posFn(coverBits.length, xorKeyBinary.length, resolvedStegoKey);
 
-      // 6. Step 3 (Reverse): Recover payload bits via XOR reversal
+      // Recover payload bits via XOR reversal
       const recoveredBinary = recoverPayloadBits(coverBits, basePositions, xorKeyBinary);
       const recoveredPayload = binaryToBytes(recoveredBinary);
 
-      // 7. Stage 2 (Reverse): Decrypt payload
+      // Decrypt payload
       let decryptedPayload;
       try {
         decryptedPayload = await decryptPayloadCtr(recoveredPayload, decryptionKey, coverText);
       } catch (e) {
-        // If decryption fails, try using raw payload (might be unencrypted)
         decryptedPayload = recoveredPayload;
       }
 
-      // 8. Step 0 (Reverse): Brotli Decompression
+      // Brotli Decompression
       let payloadBytes;
       let brotliDurationMs = 0;
       let decompressed = false;
@@ -191,7 +193,7 @@ async function decomposeStego(stegoText, rawStegoKey, encryptionKey) {
         payloadBytes = decryptedPayload;
       }
 
-      // 9. Step 1 (Reverse): Parse payload
+      // Parse payload
       const { secretMessage, hint } = parsePayload(payloadBytes);
 
       if (secretMessage && secretMessage.length > 0) {
@@ -200,27 +202,35 @@ async function decomposeStego(stegoText, rawStegoKey, encryptionKey) {
           secretMessage,
           hint,
           coverText,
-          vsBytes,
+          vsBytes: currentVsBytes,
           brotliDurationMs,
           decompressed
         };
       }
     } catch (err) {
-      // Silently fail — the other engine will be tried
+      // Silently fail — other engines / modes will be tested
     }
     return null;
   }
 
-  // ── Dual-Engine Extraction Strategy ──
+  // ── Multi-Tier Fallback Strategy ──
 
-  // Attempt 1: Modern cryptographic engine (AES-CTR CSPRNG)
-  const modernResult = await attemptDecompose(generatePositions);
-  if (modernResult) return modernResult;
+  // Attempt 1: Modern CSPRNG + Key-Dependent Permuted VS S-Box
+  const resModernPermuted = await attemptDecompose(generatePositions, true);
+  if (resModernPermuted) return resModernPermuted;
 
-  // Attempt 2: Legacy fallback engine (DJB2 + Mulberry32)
+  // Attempt 2: Modern CSPRNG + Standard Linear Identity VS
+  const resModernIdentity = await attemptDecompose(generatePositions, false);
+  if (resModernIdentity) return resModernIdentity;
+
+  // Attempt 3: Legacy Mulberry32 + Standard Linear Identity VS
   if (typeof generatePositionsLegacy === 'function') {
-    const legacyResult = await attemptDecompose(generatePositionsLegacy);
-    if (legacyResult) return legacyResult;
+    const resLegacyIdentity = await attemptDecompose(generatePositionsLegacy, false);
+    if (resLegacyIdentity) return resLegacyIdentity;
+
+    // Attempt 4: Legacy Mulberry32 + Permuted VS S-Box
+    const resLegacyPermuted = await attemptDecompose(generatePositionsLegacy, true);
+    if (resLegacyPermuted) return resLegacyPermuted;
   }
 
   throw new Error('Decryption failed — make sure the Pre-Shared Key or Encryption Key is correct.');

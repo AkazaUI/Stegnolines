@@ -516,10 +516,29 @@
               </div>
             </div>
             
-            <div class="scanner-loader-content">
+              <!-- Numerical Stage Indicator Above Progress Bar -->
+              <div style="display: flex; justify-content: center; margin-bottom: var(--space-xs);">
+                <div class="scanner-stage-badge" id="scannerStageBadge" style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px; background: rgba(187, 209, 0, 0.1); border: 1px solid rgba(187, 209, 0, 0.25); border-radius: 999px;">
+                  <span id="scannerStageNumber" style="font-weight: 800; color: var(--color-primary); font-family: var(--font-label); font-size: var(--fs-label-sm);">1 / 3</span>
+                  <span style="color: rgba(255,255,255,0.2);">|</span>
+                  <span id="scannerStageName" style="font-size: var(--fs-label-sm); color: var(--color-on-surface); font-weight: 600; font-family: var(--font-label);">تصفية الرسائل</span>
+                </div>
+              </div>
+
               <h3 class="scanner-loader-title" id="scannerProgressLabel" data-i18n="scannerProgressProcessing">Processing...</h3>
               <p class="scanner-loader-subtitle" id="scannerProgressSubLabel">Preparing extraction pipeline...</p>
               
+              <!-- Monotonic Unified Progress Bar Track & Status -->
+              <div class="scanner-progress-track-wrapper" style="width: 100%; margin: var(--space-xs) 0 var(--space-sm) 0;">
+                <div class="scanner-progress-track" style="width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.05);">
+                  <div id="scannerProgressFill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #BBD100, #A2B500); border-radius: 999px; transition: width 0.25s ease;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: var(--fs-label-sm); color: var(--color-on-surface-variant);">
+                  <span id="scannerProgressStatusText" style="font-family: var(--font-label);">Starting analysis...</span>
+                  <span id="scannerProgressPctText" style="font-weight: 700; color: var(--color-primary); font-family: var(--font-label);">0%</span>
+                </div>
+              </div>
+
               <div class="scanner-loader-steps">
                 <div id="progStep1" class="loader-step">
                   <span class="material-symbols-outlined step-status-icon">lens</span>

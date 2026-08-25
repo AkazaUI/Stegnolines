@@ -1,12 +1,12 @@
 // ══════════════════════════════════════════════════════════════
-// Stage 3 — Hide | Step 5: Stego-Object (Zero-Allocation Span Slicing & Assembly)
+// Stage 3 — Hide | Step 5: Stego-Object (Zero-Allocation Span Slicing & Assembly with S-Box Support)
 // ══════════════════════════════════════════════════════════════
 //
 // Performance Highlights:
 //   Zero-Allocation Span Slicing: Eliminates per-character heap churn,
 //   slicing contiguous blocks of clean text in O(1) chunks.
 //
-// Dependencies: step4_vs_codec (fromVariationSelector, isBaseVariationSelector, isSupplementaryVariationSelector)
+// Dependencies: step4_vs_codec (fromVariationSelector, isBaseVariationSelector, isSupplementaryVariationSelector, invertVsBytes)
 //
 // ══════════════════════════════════════════════════════════════
 
@@ -19,13 +19,14 @@
  * Slices clean text spans directly, avoiding per-character string pushes.
  *
  * @param {string} text - The stego-object (cover text + hidden VS characters).
- * @returns {{ vsBytes: Uint8Array, cleanText: string }}
+ * @param {string} [stegoKey] - Optional stego key for S-Box inversion.
+ * @returns {{ vsBytes: Uint8Array, cleanText: string, rawVsIndices: Uint8Array }}
  */
-function extractVSFromText(text) {
-  if (!text) return { vsBytes: new Uint8Array(0), cleanText: '' };
+function extractVSFromText(text, stegoKey) {
+  if (!text) return { vsBytes: new Uint8Array(0), cleanText: '', rawVsIndices: new Uint8Array(0) };
 
   const len = text.length;
-  const vsBytes = [];
+  const rawVsIndices = [];
   const cleanChunks = [];
 
   let i = 0;
@@ -39,7 +40,7 @@ function extractVSFromText(text) {
       if (cleanStart < i) {
         cleanChunks.push(text.slice(cleanStart, i));
       }
-      vsBytes.push(code - 0xFE00);
+      rawVsIndices.push(code - 0xFE00);
       i++;
       cleanStart = i;
     }
@@ -50,7 +51,7 @@ function extractVSFromText(text) {
         if (cleanStart < i) {
           cleanChunks.push(text.slice(cleanStart, i));
         }
-        vsBytes.push(16 + (low - 0xDD00));
+        rawVsIndices.push(16 + (low - 0xDD00));
         i += 2;
         cleanStart = i;
       } else {
@@ -65,9 +66,16 @@ function extractVSFromText(text) {
     cleanChunks.push(text.slice(cleanStart, len));
   }
 
+  const cleanText = cleanChunks.length === 1 ? cleanChunks[0] : cleanChunks.join('');
+  const rawIndicesArray = new Uint8Array(rawVsIndices);
+  const vsBytes = (typeof invertVsBytes === 'function')
+    ? invertVsBytes(rawIndicesArray, stegoKey)
+    : rawIndicesArray;
+
   return {
-    vsBytes: new Uint8Array(vsBytes),
-    cleanText: cleanChunks.length === 1 ? cleanChunks[0] : cleanChunks.join('')
+    vsBytes,
+    cleanText,
+    rawVsIndices: rawIndicesArray
   };
 }
 

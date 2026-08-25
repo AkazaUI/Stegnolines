@@ -601,13 +601,19 @@ function generatePositionsLegacy(maxLength, count, stegoKey) {
   const k = Math.min(count, maxLength);
   const seed = stegoKeyToSeed(stegoKey || '');
   const prng = mulberry32(seed);
-  const pool = Array.from({ length: maxLength }, (_, i) => i);
-  const positions = [];
+  const swapMap = new Map();
+  const positions = new Array(k);
 
   for (let i = 0; i < k; i++) {
-    const idx = i + Math.floor(prng() * (pool.length - i));
-    [pool[i], pool[idx]] = [pool[idx], pool[i]];
-    positions.push(pool[i]);
+    const remaining = maxLength - i;
+    const offset = Math.floor(prng() * remaining);
+    const j = i + offset;
+
+    const valI = swapMap.has(i) ? swapMap.get(i) : i;
+    const valJ = swapMap.has(j) ? swapMap.get(j) : j;
+
+    swapMap.set(j, valI);
+    positions[i] = valJ;
   }
 
   return positions;
