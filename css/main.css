@@ -29,6 +29,7 @@
 @import url('components/stego-table.css');
 @import url('components/scanner.css');
 @import url('components/platform-guard.css');
+@import url('components/cover-editor.css');
 @import url('components/hints.css');
 @import url('components/floating-guide.css');
 @import url('components/scroll-to-top.css');
@@ -41,3 +42,4 @@
 @import url('pages/docs.css');
 @import url('pages/steganalysis.css');
 @import url('pages/offline.css');
+@import url('pages/about.css');

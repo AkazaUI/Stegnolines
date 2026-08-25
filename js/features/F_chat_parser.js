@@ -175,8 +175,20 @@ function detectPlatform(rawText) {
     }
   }
 
-  const best = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
-  return best && best[1] >= 2 ? best[0] : 'generic';
+  const multilinePlatforms = ['facebook', 'instagram', 'x', 'tiktok', 'youtube', 'snapchat', 'linkedin'];
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+
+  for (const [key, score] of sorted) {
+    if (score >= 2) {
+      if (multilinePlatforms.includes(key)) {
+        const hasHeaderMarker = lines.some(line => /:\s*|\d{1,2}:\d{2}|@\w+/.test(line));
+        if (!hasHeaderMarker) continue;
+      }
+      return key;
+    }
+  }
+
+  return 'generic';
 }
 
 
@@ -198,7 +210,7 @@ function parseChat(rawText, platform) {
     return rawText.split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0)
-      .map(line => ({ sender: '', message: line }));
+      .map(line => ({ sender: '', message: line, rawText: line }));
   }
 
   const config = CHAT_PLATFORMS[platform];
@@ -207,7 +219,11 @@ function parseChat(rawText, platform) {
   let currentMessage = null;
 
   for (const line of lines) {
-    const match = line.match(config.regex);
+    const cleanLineForMatch = (typeof extractVSFromText === 'function')
+      ? extractVSFromText(line).cleanText
+      : line;
+
+    const match = cleanLineForMatch.match(config.regex);
 
     if (match) {
       // Save previous message if exists
@@ -218,15 +234,26 @@ function parseChat(rawText, platform) {
 
       // Start new message
       currentMessage = config.extract(match);
+      if (currentMessage.sender) {
+        const senderIdx = line.indexOf(currentMessage.sender);
+        if (senderIdx !== -1) {
+          const colonIdx = line.indexOf(':', senderIdx + currentMessage.sender.length);
+          if (colonIdx !== -1) {
+            currentMessage.message = line.substring(colonIdx + 1).trim();
+          }
+        }
+      }
+      currentMessage.rawText = line;
 
     } else {
       // Continuation line or prefix before first match — append to current message body
       const trimmed = line.trim();
       if (trimmed) {
         if (!currentMessage) {
-          currentMessage = { sender: '', message: '' };
+          currentMessage = { sender: '', message: '', rawText: '' };
         }
-        currentMessage.message += (currentMessage.message ? '\n' : '') + trimmed;
+        currentMessage.message += (currentMessage.message ? '\n' : '') + line.trim();
+        currentMessage.rawText += (currentMessage.rawText ? '\n' : '') + line;
       }
     }
   }

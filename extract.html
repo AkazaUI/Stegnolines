@@ -8,6 +8,10 @@
   <meta name="description" content="Text-based steganography extraction interface. Reveal the hidden secret message from stego-text securely."/>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/chat-scanner.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
   <script src="js/i18n/common.js"></script>
   <script src="js/i18n/extract.js"></script>
   <script src="js/i18n/hints.js"></script>
@@ -368,18 +372,120 @@
             </div>
           </div>
 
-          <!-- 3. Chat Input -->
-          <div>
-            <div class="label-row">
-              <label class="form-label text-label-md" for="scannerChatInput" style="margin-bottom:0" data-i18n="exScannerChatLabel">Chat History</label>
+          <!-- 3. Chat Input (Paste Text OR Upload File) -->
+          <div class="scanner-input-container stack-md">
+            <!-- Part 1: Paste Text Section -->
+            <div id="scanner-paste-section">
+              <div class="label-row">
+                <label class="form-label text-label-md" for="scannerChatInput" style="margin-bottom:0" data-i18n="exScannerChatLabel">Chat History</label>
+                <span class="badge badge--draft text-label-md">
+                  <span class="material-symbols-outlined">notes</span> <span data-i18n="badgeRawText">Text</span>
+                </span>
+              </div>
+              <textarea
+                class="form-textarea"
+                id="scannerChatInput"
+                rows="7"
+                data-i18n-placeholder="exScannerChatPlaceholder"
+                placeholder="Paste the full chat history here — from any platform (WhatsApp, Telegram, Discord...)&#10;Or paste each message on a new line..."
+              ></textarea>
             </div>
-            <textarea
-              class="form-textarea"
-              id="scannerChatInput"
-              rows="8"
-              data-i18n-placeholder="exScannerChatPlaceholder"
-              placeholder="Paste the full chat history here — from any platform (WhatsApp, Telegram, Discord...)&#10;Or paste each message on a new line..."
-            ></textarea>
+
+            <!-- Part 2: Aesthetic "OR" Divider -->
+            <div class="scanner-or-divider">
+              <span class="scanner-or-divider__line"></span>
+              <span class="scanner-or-divider__badge" data-i18n="dividerOr">OR</span>
+              <span class="scanner-or-divider__line"></span>
+            </div>
+
+            <!-- Part 3: Upload File Section -->
+            <div id="scanner-file-section">
+              <div class="label-row" style="margin-bottom: 8px;">
+                <label class="form-label text-label-md" style="margin-bottom:0" data-i18n="exScannerFileLabel">Upload Chat Export File</label>
+                <span class="badge badge--encrypted text-label-md">
+                  <span class="material-symbols-outlined">upload_file</span> <span data-i18n="badgeFile">File</span>
+                </span>
+              </div>
+
+              <!-- Dropzone Box (Unified Container) -->
+              <div class="scanner-dropzone-box" id="scanner-file-dropzone" onclick="document.getElementById('scanner-file-input').click()">
+                <input type="file" id="scanner-file-input" style="display:none;" accept=".txt,.json,.csv,.zip,.html" onchange="handleScannerFileUpload(this.files)" />
+                
+                <!-- Prompt State (When no file is selected) -->
+                <div id="scanner-dropzone-prompt" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-xs); text-align: center; width: 100%;">
+                  <div class="dropzone__icon-wrap">
+                    <span class="material-symbols-outlined" style="font-size: 32px; color: var(--color-primary);">cloud_upload</span>
+                  </div>
+                  <p class="text-body-md" style="font-weight: 700; color: var(--color-on-surface); margin-bottom: 2px;" data-i18n="dropzoneTitle">Drop your chat export file here</p>
+                  <p class="text-body-sm" style="color: var(--color-on-surface-variant); margin-bottom: 6px;" data-i18n="dropzoneSubtitle">or click to browse from your device</p>
+                  <span class="badge badge--draft text-label-xs" data-i18n="supportedFormats">Supported formats: .txt, .json, .html, .csv, .zip</span>
+                </div>
+
+                <!-- File Loaded State (Displayed inside the box) -->
+                <div id="scanner-file-info-bar" style="display: none; width: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center;">
+                  <div class="dropzone__icon-wrap" style="width: 44px; height: 44px; background: rgba(187, 209, 0, 0.12); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; margin-bottom: 2px;">
+                    <span class="material-symbols-outlined" style="font-size: 24px; color: var(--color-primary);">description</span>
+                  </div>
+                  
+                  <!-- File Name & Size Header -->
+                  <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                    <strong id="scanner-file-name-display" style="font-size: var(--fs-body-md); color: var(--color-on-surface); font-weight: 700; letter-spacing: -0.01em;">file.txt</strong>
+                    <span id="scanner-file-size-display" style="font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">(0 KB)</span>
+                  </div>
+
+                  <!-- Message Count Tag on its own clear row -->
+                  <div style="margin: 2px 0 4px 0;">
+                    <span id="scanner-file-msg-count" class="badge badge--encrypted text-label-xs" style="padding: 3px 10px; border-radius: var(--radius-lg); display: inline-flex; align-items: center; gap: 4px;">
+                      <span class="material-symbols-outlined" style="font-size: 14px;">forum</span>
+                      <span id="scanner-file-msg-count-text">0 msgs</span>
+                    </span>
+                  </div>
+
+                  <p class="text-body-xs" style="color: var(--color-on-surface-variant); margin: 0 0 8px 0; opacity: 0.8;" data-i18n="dropzoneReplaceSubtitle">Click or drop a new file to replace</p>
+                  
+                  <button type="button" class="btn-scanner-remove-file" onclick="removeScannerFile(event)">
+                    <span class="material-symbols-outlined">delete</span>
+                    <span data-i18n="removeFile">Remove File</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Date Range Filter Card (Appears after file upload) -->
+              <div class="date-range-filter-card" id="scanner-date-filter-card" style="display: none;">
+                <div class="date-range-filter__header">
+                  <div class="date-range-filter__title-wrap">
+                    <span class="material-symbols-outlined date-range-filter__icon">date_range</span>
+                    <span class="date-range-filter__title" data-i18n="dateRangeFilter">Date Range Filter</span>
+                  </div>
+                  <span class="badge badge--draft date-range-filter__status" id="scanner-date-filter-status" data-i18n="allDates">All dates</span>
+                </div>
+
+                <div class="date-range-filter__grid">
+                  <div class="date-range-filter__field">
+                    <label class="date-range-filter__label" for="scanner-date-from" data-i18n="fromDate">From (Date & Time)</label>
+                    <div class="date-range-filter__input-wrap">
+                      <span class="material-symbols-outlined date-range-filter__input-icon">schedule</span>
+                      <input type="text" id="scanner-date-from" class="date-range-filter__input" data-i18n-placeholder="datePlaceholder" placeholder="YYYY-MM-DD HH:mm" autocomplete="off" />
+                    </div>
+                  </div>
+                  <div class="date-range-filter__field">
+                    <label class="date-range-filter__label" for="scanner-date-to" data-i18n="toDate">To (Date & Time)</label>
+                    <div class="date-range-filter__input-wrap">
+                      <span class="material-symbols-outlined date-range-filter__input-icon">schedule</span>
+                      <input type="text" id="scanner-date-to" class="date-range-filter__input" data-i18n-placeholder="datePlaceholder" placeholder="YYYY-MM-DD HH:mm" autocomplete="off" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="date-range-filter__presets">
+                  <button type="button" class="date-preset-btn" data-preset="today" data-i18n="presetToday">Today</button>
+                  <button type="button" class="date-preset-btn" data-preset="7days" data-i18n="presetLast7">Last 7 days</button>
+                  <button type="button" class="date-preset-btn" data-preset="30days" data-i18n="presetLast30">Last 30 days</button>
+                  <button type="button" class="date-preset-btn" data-preset="year" data-i18n="presetThisYear">This Year</button>
+                  <button type="button" class="date-preset-btn date-preset-btn--reset" data-preset="reset" data-i18n="presetReset">✕ Reset</button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 4. Action Buttons -->
@@ -705,6 +811,11 @@
   <script src="js/core/stego/xor-mask.js"></script>
   <script src="js/core/stego/vs-codec.js"></script>
   <script src="js/core/stego/stego-composer.js"></script>
+
+  <!-- ═══ Chat Extractor Modules ═══ -->
+  <script src="js/features/chat-parsers.js"></script>
+  <script src="js/features/chat-export.js"></script>
+  <script src="js/features/chat-scanner.js"></script>
 
   <!-- ═══ UI Features & Controllers ═══ -->
   <script src="js/features/F_stego_capacity.js"></script>

@@ -292,6 +292,17 @@ async function performEmbedding() {
 
     const { coverText, secretMessage, hint, stegoKey, fakeCoverText } = readEmbeddingInputs();
 
+    // ── EMOJI INPUT VALIDATION ──
+    const emojiError = validateEmojiInputs([
+      { el: 'embedCover', name: { en: "Cover Text", ar: "نص الغلاف" } },
+      { el: 'embedSecretMessage', name: { en: "Secret Message", ar: "الرسالة السرية" } },
+      { el: 'embedStegoKey', name: { en: "Pre-Shared Key", ar: "المفتاح المشترك مسبقاً" } },
+      { el: 'embedEncryptionKey', name: { en: "Encryption Key", ar: "مفتاح التشفير" } },
+      { el: 'embedHint', name: { en: "Hint", ar: "التلميح" } },
+      { el: 'embedFakeCover', name: { en: "Fake Cover", ar: "الغلاف المزيف" } }
+    ]);
+    if (emojiError) return;
+
     if (!coverText.trim()) return showToast('⚠ Please input the cover text.');
     if (!secretMessage) return showToast('⚠ Please input the secret message.');
     if (!stegoKey.trim()) return showToast('⚠ Please input the Pre-Shared Key (Stego-Key).');

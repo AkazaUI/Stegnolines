@@ -651,6 +651,47 @@
 
         <div class="stack-xl">
 
+          <!-- Multi-Message Protocol Mode Selector -->
+          <div class="mode-selector-card" style="background: var(--color-surface-container-low); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-lg); padding: var(--space-md); margin-bottom: var(--space-xs);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-xs);">
+              <div style="display: flex; align-items: center; gap: var(--space-xs);">
+                <span class="material-symbols-outlined" style="color: var(--color-primary); font-size: 20px;">layers</span>
+                <span class="font-semibold text-label-md" data-i18n="imgEmbedModeTitle">Embedding Strategy & Protocol</span>
+              </div>
+              <span class="badge badge--encrypted text-label-md">
+                <span class="material-symbols-outlined" style="font-size: 14px;">verified</span>
+                <span>Fold-Aware V2</span>
+              </span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-sm);">
+              <label class="mode-option-card" style="display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--color-primary); background: var(--color-surface-container-high); cursor: pointer;">
+                <input type="radio" name="imgEmbedModeRadio" value="multi" checked style="margin-top: 3px;">
+                <div>
+                  <div style="font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary);">forum</span>
+                    <span data-i18n="modeMultiTitle">WhatsApp Multi-Message (Adaptive)</span>
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--color-on-surface-variant); margin-top: 2px;" data-i18n="modeMultiDesc">
+                    Splits image payload into safe chunks placed at cover sentence midpoints to avoid WhatsApp "Read More" folds.
+                  </div>
+                </div>
+              </label>
+
+              <label class="mode-option-card" style="display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--color-outline-variant); background: transparent; cursor: pointer; opacity: 0.85;">
+                <input type="radio" name="imgEmbedModeRadio" value="single" style="margin-top: 3px;">
+                <div>
+                  <div style="font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">chat_bubble</span>
+                    <span data-i18n="modeSingleTitle">Legacy Single Line Mode</span>
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--color-on-surface-variant); margin-top: 2px;" data-i18n="modeSingleDesc">
+                    Embeds the entire hidden image into a single cover line (may create very long stego text).
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
           <!-- Social Platform Guard (Optional) -->
           <div class="platform-guard-card">
             <div class="platform-guard-header">
@@ -736,17 +777,39 @@
 
             <!-- Cover Input -->
             <div>
-              <div class="label-row">
-                <label class="form-label text-label-md" for="imgEmbedCover" style="margin-bottom:0"
-                  data-i18n="imgLabelCoverText">Cover Text</label>
-                <span class="badge badge--draft text-label-md">
-                  <span class="material-symbols-outlined">article</span> <span data-i18n="badgeCoverText">Medium</span>
-                </span>
+              <div class="label-row" style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: var(--space-xs);">
+                  <label class="form-label text-label-md" for="imgEmbedCover" style="margin-bottom:0"
+                    data-i18n="imgLabelCoverText">Cover Text</label>
+                  <span class="badge badge--draft text-label-md">
+                    <span class="material-symbols-outlined">article</span> <span data-i18n="badgeCoverText">Medium</span>
+                  </span>
+                </div>
+                <button type="button" class="btn-change-image" id="btnEditSegmentation" style="display: none; padding: 2px 8px; font-size: 0.72rem; gap: 4px; border-radius: var(--radius-sm);" title="Re-configure Segmentation">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">splitscreen</span>
+                  <span data-i18n="btnEditSegmentationText">تعديل التقسيم</span>
+                </button>
               </div>
-              <textarea class="form-textarea" id="imgEmbedCover" style="height: 220px;"
-                data-i18n-placeholder="imgPlaceholderCoverText"
-                placeholder="Paste your cover text here. The longer and more natural the text, the greater the embedding capacity..."
-                oninput="updateImgCapacityMeter()"></textarea>
+
+              <!-- Code-Editor Style Cover Text Input -->
+              <div class="cover-editor" id="imgCoverEditorWrap">
+                <!-- Line Numbers Gutter -->
+                <div class="cover-editor__gutter" id="imgCoverGutter" aria-hidden="true">
+                  <div class="cover-editor__gutter-inner" id="imgCoverGutterInner">
+                    <span class="cover-editor__line-num cover-editor__line-num--active">1</span>
+                  </div>
+                </div>
+                <!-- Textarea -->
+                <textarea class="cover-editor__textarea" id="imgEmbedCover"
+                  data-i18n-placeholder="imgPlaceholderCoverText"
+                  placeholder="اكتب رسالتك هنا، واضغط Enter للانتقال للرسالة التالية..."
+                  spellcheck="false" autocomplete="off"></textarea>
+              </div>
+
+              <!-- Dynamic Message Counter -->
+              <p class="cover-editor__counter" id="imgCoverCounter" style="display: none;">
+                تم كتابة <span class="counter-written">0</span> من أصل <span class="counter-required">0</span> رسائل مطلوبة
+              </p>
             </div>
 
             <!-- Image Upload Zone -->
@@ -766,7 +829,7 @@
               <input type="file" id="imgEmbedFileInput" accept=".jpg,.jpeg,.webp,.avif,.png" style="display:none;" />
 
               <!-- Premium File Upload Card -->
-              <div class="file-upload" id="imgEmbedUploadArea" style="height: 220px;">
+              <div class="file-upload" id="imgEmbedUploadArea">
                 <span class="material-symbols-outlined" id="imgUploadIcon">cloud_upload</span>
                 <p class="text-body-md file-upload__title" id="imgUploadTitle" data-i18n="imgDropzoneHint">Drag &amp;
                   drop your secret image here or click to browse</p>
@@ -920,22 +983,9 @@
             </div>
 
             <!-- ── Compression Before / After Accordion ── -->
-            <!-- Stego-Text Output — always visible editor block -->
-            <div style="margin-top: var(--space-md);">
-              <div class="editor-block">
-                <div class="editor-toolbar">
-                  <div class="editor-toolbar__title">
-                    <span class="material-symbols-outlined" style="color: var(--color-primary)">output</span>
-                    <span data-i18n="outputNormalTitle">Stego-Text</span>
-                  </div>
-                  <button type="button" class="floating-btn" onclick="copyResultText('imgStegoText', this)">
-                    <span class="material-symbols-outlined">content_copy</span>
-                    <span data-i18n="btnCopyStego">Copy Stego-Text</span>
-                  </button>
-                </div>
-                <textarea class="editor-block__textarea" id="imgStegoText" rows="10" readonly
-                  placeholder="The stego-text result will appear here after you click 'Embed Image'..."></textarea>
-              </div>
+            <!-- Stego-Text Output Container -->
+            <div style="margin-top: var(--space-md); display: flex; flex-direction: column; gap: var(--space-md);" id="imgDistributedOutputContainer">
+              <!-- Dynamic distributed blocks will be injected here by JS -->
             </div>
 
             <!-- Compression Before / After Accordion (shown last, closed by default) -->
@@ -1156,6 +1206,7 @@
   <script src="js/core/stego/prng-generator.js"></script>
   <script src="js/core/stego/xor-mask.js"></script>
   <script src="js/core/stego/vs-codec.js"></script>
+  <script src="js/core/stego/multi-message-protocol.js"></script>
   <script src="js/core/stego/stego-composer.js"></script>
 
   <!-- ═══ UI Features & Controllers ═══ -->
@@ -1229,6 +1280,100 @@
         Keep It</button>
       <button type="button" class="btn btn--primary" id="img-metadata-modal-strip" data-i18n="imgMetadataModalYes">Yes,
         Strip Metadata</button>
+    </div>
+  </div>
+
+  <!-- Smart Segmentation Interceptor Modal -->
+  <div class="stego-modal-backdrop" id="img-segmentation-modal-backdrop"></div>
+  <div class="stego-modal stego-modal--wide" id="img-segmentation-modal" role="dialog" aria-modal="true">
+    <div class="stego-modal__header">
+      <div class="stego-modal__icon-wrap" style="background: rgba(187, 209, 0, 0.12); color: var(--color-primary);">
+        <span class="material-symbols-outlined" style="font-size:24px;">splitscreen</span>
+      </div>
+      <div>
+        <div class="stego-modal__title" data-i18n="imgSegModalTitle">Smart Message Segmentation</div>
+        <div style="font-size: 0.75rem; color: var(--color-on-surface-variant); margin-top: 2px;">WhatsApp &amp; Social Platforms "Read More" Prevention System</div>
+      </div>
+    </div>
+
+    <div class="stego-modal__body" style="display: flex; flex-direction: column; gap: 16px;">
+      <p id="img-segmentation-modal-desc" data-i18n="imgSegModalDesc">
+        To prevent the 'Read More' fold on platforms like WhatsApp, your secret image payload should be distributed across multiple messages. Here is the recommended breakdown:
+      </p>
+
+      <!-- Stats Summary Card -->
+      <div class="seg-modal-stats-card">
+        <div class="seg-modal-stat-item">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--color-on-surface-variant);">inventory_2</span>
+            <span data-i18n="imgSegPayloadInfo">Compressed Payload:</span>
+          </div>
+          <strong id="imgSegPayloadValue" style="color: var(--color-on-surface); font-family: monospace;">- KB</strong>
+        </div>
+        <div class="seg-modal-stat-item seg-modal-stat-item--highlight">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--color-primary);">auto_awesome</span>
+            <span data-i18n="imgSegRecommendedBadge">Recommended:</span>
+          </div>
+          <strong id="imgSegRecommendedValue" style="color: var(--color-primary); font-size: 1.1rem; font-weight: 800;">12 Messages</strong>
+        </div>
+      </div>
+
+      <!-- Custom Input Section -->
+      <div class="seg-modal-custom-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label for="imgSegCustomInput" style="font-weight: 600; font-size: 0.85rem;" data-i18n="imgSegLabelCustomCount">Custom Message Count:</label>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="seg-stepper-wrap">
+              <button type="button" class="seg-stepper-btn" id="imgSegBtnMinus" title="Decrease" aria-label="Decrease messages">
+                <span class="material-symbols-outlined" style="font-size: 16px;">remove</span>
+              </button>
+              <input type="text" inputmode="numeric" pattern="[0-9]*" id="imgSegCustomInput" value="12" class="seg-stepper-input" autocomplete="off" spellcheck="false" />
+              <button type="button" class="seg-stepper-btn" id="imgSegBtnPlus" title="Increase" aria-label="Increase messages">
+                <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+              </button>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 600; color: var(--color-on-surface-variant);" data-i18n="imgSegMsgsLabel">msgs</span>
+          </div>
+        </div>
+        <!-- Scientific Capacity & Segment Risk Gauge Bar -->
+        <div class="seg-gauge-box" id="imgSegGaugeBox">
+          <div class="seg-gauge-header">
+            <div class="seg-gauge-metric">
+              <span class="seg-gauge-label" data-i18n="imgSegGaugeAvgLabel">Avg Chars / Msg:</span>
+              <strong id="imgSegGaugeAvgVal" class="seg-gauge-value">~320 chars</strong>
+            </div>
+            <div class="seg-gauge-metric" style="text-align: right;">
+              <span class="seg-gauge-label" data-i18n="imgSegGaugeRatioLabel">Capacity Safety:</span>
+              <strong id="imgSegGaugeRatioVal" class="seg-gauge-value">100% Optimal</strong>
+            </div>
+          </div>
+
+          <div class="seg-gauge-track" title="Scientific Capacity Distribution Gauge">
+            <div class="seg-gauge-fill seg-gauge-fill--safe" id="imgSegGaugeFill" style="width: 100%;"></div>
+          </div>
+
+          <div class="seg-gauge-footer">
+            <span id="imgSegGaugeMinLabel">1 msg</span>
+            <span data-i18n="imgSegGaugeThresholdLabel">WhatsApp 'Read More' Threshold: ~389B/msg</span>
+            <span id="imgSegGaugeMaxLabel">500 msgs</span>
+          </div>
+        </div>
+        
+        <!-- Live Dynamic Warning / Notice -->
+        <div id="imgSegWarningNotice" class="seg-notice seg-notice--safe">
+          <span class="material-symbols-outlined notice-icon" style="font-size: 18px;">check_circle</span>
+          <span class="notice-text" data-i18n="imgSegWarnSafe">Safe — Message lengths are optimal to prevent 'Read More'.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stego-modal__footer" style="flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center;">
+      <button type="button" class="btn btn--text" id="img-segmentation-modal-skip" style="color: var(--color-on-surface-variant);" data-i18n="imgSegBtnSkip">Skip Segmentation</button>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" class="btn btn--secondary" id="img-segmentation-modal-custom" data-i18n="imgSegBtnCustom">Apply Custom Count</button>
+        <button type="button" class="btn btn--primary" id="img-segmentation-modal-accept" data-i18n="imgSegBtnAccept">Accept Recommendation</button>
+      </div>
     </div>
   </div>
 

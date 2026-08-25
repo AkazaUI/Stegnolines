@@ -1,19 +1,20 @@
 // ══════════════════════════════════════════════════════════════
-// Stage 3 — Hide | Step 4: VS Codec (Variation Selector Encoding)
+// Stage 3 — Hide | Step 4: VS Codec (Ultra-High-Performance VS Encoding)
 // ══════════════════════════════════════════════════════════════
 //
-// Encodes and decodes data using invisible Unicode Variation Selector
-// characters. VS characters are invisible and do not alter rendered
-// text, making them ideal for steganographic embedding.
+// Performance Highlights:
+//   1. Precomputed Direct Lookup Table (LUT): Instant O(1) byte-to-character conversion.
+//   2. Direct bitwise parsing in xorKeyToVSString.
 //
 // Mapping:
 //   Byte 0–15   → VS1–VS16    (U+FE00 – U+FE0F)   — BMP range
 //   Byte 16–255 → VS17–VS256  (U+E0100 – U+E01EF) — Supplementary range
 //
-// Dependencies: shared/text_codec (bytesToBinary — for binary key input)
+// Dependencies: shared/text_codec (bytesToBinary)
 //
 // ══════════════════════════════════════════════════════════════
 
+'use strict';
 
 /** Start of the base Variation Selector range (VS1–VS16, BMP). */
 const VS_BASE_START = 0xFE00;
@@ -25,104 +26,73 @@ const VS_SUPPLEMENT_START = 0xE0100;
 /** End of the supplementary Variation Selector range (inclusive). */
 const VS_SUPPLEMENT_END   = 0xE01EF;
 
-
-// ── Range Check Helpers (DRY) ─────────────────────────────────
-
 /**
- * Check if a code point falls within the base VS range (U+FE00–U+FE0F).
- * @param {number} codePoint - The Unicode code point to test.
- * @returns {boolean}
+ * Precomputed 256-entry Lookup Table mapping byte values [0..255] to Variation Selector characters.
  */
+const BYTE_TO_VS_LUT = new Array(256);
+for (let b = 0; b < 16; b++) {
+  BYTE_TO_VS_LUT[b] = String.fromCodePoint(VS_BASE_START + b);
+}
+for (let b = 16; b < 256; b++) {
+  BYTE_TO_VS_LUT[b] = String.fromCodePoint(VS_SUPPLEMENT_START + b - 16);
+}
+
+// ── Range Check Helpers ─────────────────────────────────────
+
 function isBaseVariationSelector(codePoint) {
   return codePoint >= VS_BASE_START && codePoint <= VS_BASE_END;
 }
 
-/**
- * Check if a code point falls within the supplementary VS range (U+E0100–U+E01EF).
- * @param {number} codePoint - The Unicode code point to test.
- * @returns {boolean}
- */
 function isSupplementaryVariationSelector(codePoint) {
   return codePoint >= VS_SUPPLEMENT_START && codePoint <= VS_SUPPLEMENT_END;
 }
 
-
 // ── Byte ↔ VS Conversion ─────────────────────────────────────
 
-/**
- * Convert a byte value (0–255) to an invisible Variation Selector character.
- *
- * Bytes 0–15 map to the BMP range (VS1–VS16), and bytes 16–255 map to the
- * supplementary range (VS17–VS256).
- *
- * @param {number} byteValue - An integer in [0, 255].
- * @returns {string|null} The VS character, or null if out of range.
- */
 function toVariationSelector(byteValue) {
-  if (byteValue >= 0 && byteValue < 16) {
-    return String.fromCodePoint(VS_BASE_START + byteValue);
-  }
-  if (byteValue >= 16 && byteValue < 256) {
-    return String.fromCodePoint(VS_SUPPLEMENT_START + byteValue - 16);
+  if (byteValue >= 0 && byteValue < 256) {
+    return BYTE_TO_VS_LUT[byteValue];
   }
   return null;
 }
 
-
-/**
- * Convert a Variation Selector code point back to a byte value (0–255).
- *
- * @param {number} codePoint - The Unicode code point of a VS character.
- * @returns {number|null} The corresponding byte value, or null if not a VS.
- */
 function fromVariationSelector(codePoint) {
-  if (isBaseVariationSelector(codePoint)) {
+  if (codePoint >= VS_BASE_START && codePoint <= VS_BASE_END) {
     return codePoint - VS_BASE_START;
   }
-  if (isSupplementaryVariationSelector(codePoint)) {
-    return codePoint - VS_SUPPLEMENT_START + 16;
+  if (codePoint >= VS_SUPPLEMENT_START && codePoint <= VS_SUPPLEMENT_END) {
+    return 16 + (codePoint - VS_SUPPLEMENT_START);
   }
   return null;
 }
-
 
 // ── Binary Key → VS String ───────────────────────────────────
 
-/**
- * Pad a binary string to a multiple of 8 bits (byte-aligned).
- *
- * Trailing '0' bits are appended. This is necessary because the XOR key
- * length might not be a multiple of 8, but VS encoding works on whole bytes.
- *
- * @param {string} binaryString - The binary string to pad.
- * @returns {string} The byte-aligned binary string.
- */
 function padBinaryToByteAlignment(binaryString) {
-  const targetLength = Math.ceil(binaryString.length / 8) * 8;
-  return binaryString.padEnd(targetLength, '0');
+  const rem = binaryString.length & 7;
+  if (rem === 0) return binaryString;
+  return binaryString.padEnd(binaryString.length + (8 - rem), '0');
 }
 
-
-/**
- * Convert a binary XOR key to a string of invisible VS characters.
- *
- * Pipeline: binary string → pad to 8-bit alignment → split into bytes →
- * convert each byte to a VS character.
- *
- * @param {string} binaryKey - The XOR key as a binary string.
- * @returns {{ vsStr: string, bytesArr: number[] }}
- *   vsStr    — The invisible VS character string.
- *   bytesArr — The intermediate byte values (for visualization).
- */
 function xorKeyToVSString(binaryKey) {
   const paddedKey = padBinaryToByteAlignment(binaryKey);
-  const bytesArr = [];
-  const vsChars = [];
+  const totalBytes = paddedKey.length >> 3;
+  const bytesArr = new Array(totalBytes);
+  const vsChars = new Array(totalBytes);
 
-  for (let i = 0; i + 8 <= paddedKey.length; i += 8) {
-    const byteValue = parseInt(paddedKey.substring(i, i + 8), 2);
-    bytesArr.push(byteValue);
-    vsChars.push(toVariationSelector(byteValue));
+  for (let i = 0; i < totalBytes; i++) {
+    const base = i << 3;
+    const byteVal = ((paddedKey.charCodeAt(base) & 1) << 7) |
+                    ((paddedKey.charCodeAt(base + 1) & 1) << 6) |
+                    ((paddedKey.charCodeAt(base + 2) & 1) << 5) |
+                    ((paddedKey.charCodeAt(base + 3) & 1) << 4) |
+                    ((paddedKey.charCodeAt(base + 4) & 1) << 3) |
+                    ((paddedKey.charCodeAt(base + 5) & 1) << 2) |
+                    ((paddedKey.charCodeAt(base + 6) & 1) << 1) |
+                    (paddedKey.charCodeAt(base + 7) & 1);
+
+    bytesArr[i] = byteVal;
+    vsChars[i] = BYTE_TO_VS_LUT[byteVal];
   }
 
   return { vsStr: vsChars.join(''), bytesArr };

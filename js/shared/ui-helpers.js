@@ -31,6 +31,21 @@ function showToast(message) {
     return;
   }
 
+  // Prevent duplicate toasts from stacking
+  const cleanMessageText = message.replace(/[❌⚠✅📋🗑🔑]/g, '').trim();
+  const existingMsgs = wrap.querySelectorAll('.sec-toast__msg');
+  for (const existingEl of existingMsgs) {
+    if (existingEl.textContent.trim() === cleanMessageText) {
+      return; // Skip duplicate identical toast
+    }
+  }
+
+  // Cap active toasts to max 2
+  const activeToasts = wrap.querySelectorAll('.sec-toast');
+  if (activeToasts.length >= 2) {
+    activeToasts[0].remove();
+  }
+
   // Determine if it's an error or success message
   const isError = message.includes('❌') || message.includes('⚠') || message.toLowerCase().includes('error');
   
@@ -248,7 +263,7 @@ function selectTabFromHash() {
   const hash = window.location.hash.slice(1);
   if (!hash) return;
 
-  const validTabs = ['standard', 'scanner', 'hints', 'text', 'image'];
+  const validTabs = ['standard', 'scanner', 'hints', 'text', 'image', 'direct', 'chat-extractor'];
   if (validTabs.includes(hash)) {
     const targetBtn = document.querySelector(`.tabs-nav .tab-btn[data-tab="${hash}"]`);
     if (targetBtn) {
@@ -352,8 +367,15 @@ const DetailsToggle = (function () {
       
       // Auto-scroll/Focus on content when opened
       if (isVisible) {
+        accordion.classList.remove('scanner-card-focus-pulse');
+        void accordion.offsetWidth;
+        accordion.classList.add('scanner-card-focus-pulse');
+        setTimeout(() => accordion.classList.remove('scanner-card-focus-pulse'), 850);
+
         setTimeout(() => {
-          accordion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const yOffset = -90;
+          const y = accordion.getBoundingClientRect().top + window.scrollY + yOffset;
+          window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
           
           // Lock accordion textareas' min-height once they become visible
           accordion.querySelectorAll('textarea').forEach(textarea => {
@@ -488,4 +510,98 @@ function getCharsLabel() {
   const lang = localStorage.getItem('stegoLang') || 'en';
   return (dict && dict[lang] && dict[lang].charsLabel) ? dict[lang].charsLabel : 'chars';
 }
+
+// ── PROJECT-WIDE EMOJI INPUT VALIDATION ───────────────────────
+
+/**
+ * Detects if a string contains any emoji character using Unicode Extended_Pictographic.
+ * @param {string} str - Input text string.
+ * @returns {boolean} True if emoji is found, false otherwise.
+ */
+function containsEmoji(str) {
+  if (!str) return false;
+  try {
+    return /\p{Extended_Pictographic}/u.test(str);
+  } catch (e) {
+    return /[\u{1F300}-\u{1F9FF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(str);
+  }
+}
+
+/**
+ * Validates a list of input fields for emojis.
+ * Shows an explicit error toast message, adds visual error highlights, and focuses the field if an emoji is found.
+ *
+ * @param {Array<{el: HTMLElement|string, name: {en: string, ar: string, fr?: string, zh?: string, la?: string}}>} fields
+ * @returns {boolean} True if an emoji error was found (validation failed), false if clean.
+ */
+function validateEmojiInputs(fields) {
+  const currentLang = localStorage.getItem('stegoLang') || 'en';
+  for (const item of fields) {
+    const el = typeof item.el === 'string' ? document.getElementById(item.el) : item.el;
+    if (!el) continue;
+    
+    const val = el.value || '';
+    if (containsEmoji(val)) {
+      const targetWrap = el.closest('.cover-editor') || el;
+      targetWrap.classList.add('form-input--error');
+      setTimeout(() => targetWrap.classList.remove('form-input--error'), 4000);
+      
+      el.focus();
+      
+      const nameObj = item.name || {};
+      const fieldName = nameObj[currentLang] || nameObj['en'] || (currentLang === 'ar' ? 'المدخل' : 'Input');
+      
+      let msg;
+      if (currentLang === 'ar') {
+        msg = `❌ خطأ: لا يُسمح بأحرف الإيموجي (Emojis) في المدخلات! يرجى إزالة الرموز التعبيرية من (${fieldName}).`;
+      } else if (currentLang === 'fr') {
+        msg = `❌ Erreur : Les émojis ne sont pas autorisés dans les saisies ! Veuillez les supprimer de (${fieldName}).`;
+      } else if (currentLang === 'zh') {
+        msg = `❌ 错误：输入中不允许使用表情符号！请从 (${fieldName}) 中删除表情符号。`;
+      } else if (currentLang === 'la') {
+        msg = `❌ Error: Emojis in intritis non permittuntur! Delere emojis ex (${fieldName}).`;
+      } else {
+        msg = `❌ Error: Emojis are not allowed in inputs! Please remove emojis from (${fieldName}).`;
+      }
+      
+      showToast(msg);
+      return true; // Indicates emoji error found
+    }
+  }
+  return false; // All clear
+}
+
+/**
+ * Attaches real-time live input validation to flag inputs when emojis are typed or pasted.
+ */
+function initLiveEmojiValidation() {
+  const inputs = document.querySelectorAll('input[type="text"], input[type="password"], textarea, .form-input, .form-textarea');
+  inputs.forEach(input => {
+    if (input.dataset.emojiValidated) return;
+    input.dataset.emojiValidated = 'true';
+    
+    const checkLive = () => {
+      if (containsEmoji(input.value)) {
+        const targetWrap = input.closest('.cover-editor') || input;
+        targetWrap.classList.add('form-input--error');
+      } else {
+        const targetWrap = input.closest('.cover-editor') || input;
+        targetWrap.classList.remove('form-input--error');
+      }
+    };
+    
+    input.addEventListener('input', checkLive);
+    input.addEventListener('blur', checkLive);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initLiveEmojiValidation();
+});
+
+// Export functions globally
+window.containsEmoji = containsEmoji;
+window.validateEmojiInputs = validateEmojiInputs;
+window.initLiveEmojiValidation = initLiveEmojiValidation;
+
 

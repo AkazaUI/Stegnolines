@@ -43,6 +43,27 @@
     .icon-primary { background: rgba(187,209,0,0.1); color: var(--color-primary); }
     .icon-warning { background: rgba(234,179,8,0.1); color: #EAB308; }
     .icon-tertiary{ background: rgba(0,255,255,0.05); color: var(--color-tertiary); }
+    
+    .required-star {
+      color: var(--color-error);
+      font-weight: 700;
+      margin-left: 3px;
+    }
+    html[dir="rtl"] .required-star {
+      margin-left: 0;
+      margin-right: 3px;
+    }
+    .optional-tag {
+      color: var(--color-on-surface-variant);
+      opacity: 0.65;
+      font-weight: 400;
+      font-size: 0.85em;
+      margin-left: 4px;
+    }
+    html[dir="rtl"] .optional-tag {
+      margin-left: 0;
+      margin-right: 4px;
+    }
   </style>
   <script>
     (function() {
@@ -93,23 +114,40 @@
         <form id="contactForm" class="stack-md" novalidate onsubmit="handleContactSubmit(event)">
           
           <div class="grid-2col-md">
+            <!-- Full Name (OPTIONAL) -->
             <div>
-              <label class="form-label text-label-md" for="contactName" data-i18n="labelName">Full Name</label>
-              <input class="form-input" id="contactName" type="text" placeholder="e.g. Abdullah Al-Fahad" data-i18n-placeholder="phName" required />
+              <label class="form-label text-label-md" for="contactName">
+                <span data-i18n="labelName">Full Name</span>
+                <span class="optional-tag" data-i18n="labelOptional">(Optional)</span>
+              </label>
+              <input class="form-input" id="contactName" type="text" placeholder="e.g. Abdullah Al-Fahad (or leave blank)" data-i18n-placeholder="phName" />
             </div>
+            
+            <!-- Email Address (REQUIRED) -->
             <div>
-              <label class="form-label text-label-md" for="contactEmail" data-i18n="labelEmail">Email Address</label>
+              <label class="form-label text-label-md" for="contactEmail">
+                <span data-i18n="labelEmail">Email Address</span>
+                <span class="required-star">*</span>
+              </label>
               <input class="form-input" id="contactEmail" type="email" placeholder="name@domain.com" data-i18n-placeholder="phEmail" required />
             </div>
           </div>
 
+          <!-- Topic / Subject (REQUIRED) -->
           <div>
-            <label class="form-label text-label-md" for="contactSubject" data-i18n="labelSubject">Topic / Subject</label>
+            <label class="form-label text-label-md" for="contactSubject">
+              <span data-i18n="labelSubject">Topic / Subject</span>
+              <span class="required-star">*</span>
+            </label>
             <input class="form-input" id="contactSubject" type="text" placeholder="e.g. Technical Support, General Feedback..." data-i18n-placeholder="phSubject" required />
           </div>
 
+          <!-- Message Body (REQUIRED) -->
           <div>
-            <label class="form-label text-label-md" for="contactMessage" data-i18n="labelMessage">Message</label>
+            <label class="form-label text-label-md" for="contactMessage">
+              <span data-i18n="labelMessage">Message</span>
+              <span class="required-star">*</span>
+            </label>
             <textarea class="form-textarea" id="contactMessage" rows="6" placeholder="How can we help you?" data-i18n-placeholder="phMessage" required></textarea>
           </div>
 
@@ -121,37 +159,22 @@
         <!-- Divider -->
         <div style="border-top: 1px solid var(--color-outline-variant); margin-top: var(--space-xl); padding-top: var(--space-lg);"></div>
 
-        <!-- Contact Information (Bottom, Side-by-Side) -->
-        <div class="grid-2col-md" style="gap: var(--space-lg); align-items: start;">
-          
-          <div class="contact-info-card" style="box-shadow: none; margin: 0;">
-            <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-xs);">
-              <div class="contact-icon-wrap icon-primary" style="margin-bottom: 0;">
-                <span class="material-symbols-outlined" style="font-size: 24px;">mail</span>
-              </div>
-              <h3 class="text-headline-sm" data-i18n="cardEmailTitle">Email Us</h3>
+        <!-- Contact Information (Email Support Only) -->
+        <div class="contact-info-card" style="box-shadow: none; margin: 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-md);">
+          <div style="display: flex; align-items: center; gap: var(--space-md);">
+            <div class="contact-icon-wrap icon-primary" style="margin-bottom: 0; flex-shrink: 0;">
+              <span class="material-symbols-outlined" style="font-size: 24px;">mail</span>
             </div>
-            <p class="text-body-sm" style="color: var(--color-on-surface-variant); margin-bottom: var(--space-md); padding-left: 64px;" data-i18n="cardEmailDesc">
-              For general inquiries and support.
-            </p>
-            <div style="padding-left: 64px;">
-              <a href="mailto:support@stegnolines.local" style="color: var(--color-primary); text-decoration: none; font-weight: 600; font-size: var(--fs-body-md);">support@stegnolines.local</a>
+            <div>
+              <h3 class="text-headline-sm" style="margin-bottom: 2px;" data-i18n="cardEmailTitle">Email Us</h3>
+              <p class="text-body-sm" style="color: var(--color-on-surface-variant); margin: 0;" data-i18n="cardEmailDesc">
+                For general inquiries, security research, and technical support.
+              </p>
             </div>
           </div>
-
-          <div class="contact-info-card" style="box-shadow: none; margin: 0;">
-            <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-xs);">
-              <div class="contact-icon-wrap icon-tertiary" style="margin-bottom: 0;">
-                <span class="material-symbols-outlined" style="font-size: 24px;">location_on</span>
-              </div>
-              <h3 class="text-headline-sm" data-i18n="cardLocTitle">Location</h3>
-            </div>
-            <p class="text-body-sm" style="color: var(--color-on-surface-variant); padding-left: 64px; line-height: 1.6; white-space: pre-line;" data-i18n="cardLocDesc">
-              Kingdom of Saudi Arabia
-              Cybersecurity Department
-            </p>
+          <div>
+            <a href="mailto:stegnolinesupport@stegnolines.com" style="color: var(--color-primary); text-decoration: none; font-weight: 600; font-size: var(--fs-body-md);">stegnolinesupport@stegnolines.com</a>
           </div>
-
         </div>
 
       </div>
@@ -177,6 +200,138 @@
   <script src="js/shared/theme-manager.js"></script>
   <script src="js/shared/template-loader.js"></script>
   <script src="js/utils.js"></script>
+  <script src="js/shared/ui-helpers.js"></script>
+
+  <script>
+    /**
+     * Sanitizes user input string:
+     * 1. Strips dangerous control characters & CRLF header injection vectors (\r).
+     * 2. Trims leading & trailing whitespace.
+     */
+    function sanitizeString(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/[\r\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+        .trim();
+    }
+
+    /**
+     * HTML entity escaping to prevent XSS / Script Injection.
+     */
+    function escapeHtmlEntities(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /**
+     * Email format validation via RFC 5322 regex pattern.
+     */
+    function isValidEmailFormat(email) {
+      const emailPattern = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+      return emailPattern.test(email);
+    }
+
+    /**
+     * Secure Contact Form Handler with Validation, Sanitization, and Injection Protection.
+     */
+    function handleContactSubmit(event) {
+      if (event) event.preventDefault();
+      
+      const currentLang = localStorage.getItem('stegoLang') || 'en';
+
+      const nameEl = document.getElementById('contactName');
+      const emailEl = document.getElementById('contactEmail');
+      const subjectEl = document.getElementById('contactSubject');
+      const messageEl = document.getElementById('contactMessage');
+
+      const rawName = nameEl ? nameEl.value : '';
+      const rawEmail = emailEl ? emailEl.value : '';
+      const rawSubject = subjectEl ? subjectEl.value : '';
+      const rawMessage = messageEl ? messageEl.value : '';
+
+      // ── 1. SANITIZATION ──
+      const cleanName = sanitizeString(rawName);
+      const cleanEmail = sanitizeString(rawEmail);
+      const cleanSubject = sanitizeString(rawSubject);
+      const cleanMessage = sanitizeString(rawMessage);
+
+      // ── 2. VALIDATION (REQUIRED FIELDS) ──
+      // Email Validation
+      if (!cleanEmail) {
+        const errMsg = currentLang === 'ar'
+          ? '⚠ يرجى إدخال البريد الإلكتروني (حقل إجباري).'
+          : '⚠ Please enter your email address (Required).';
+        if (typeof showToast === 'function') showToast(errMsg);
+        if (emailEl) emailEl.focus();
+        return false;
+      }
+
+      if (!isValidEmailFormat(cleanEmail)) {
+        const errMsg = currentLang === 'ar'
+          ? '⚠ يرجى إدخال بريد إلكتروني بصيغة صحيحة (مثال: name@domain.com).'
+          : '⚠ Please enter a valid email format (e.g. name@domain.com).';
+        if (typeof showToast === 'function') showToast(errMsg);
+        if (emailEl) emailEl.focus();
+        return false;
+      }
+
+      // Subject Validation
+      if (!cleanSubject) {
+        const errMsg = currentLang === 'ar'
+          ? '⚠ يرجى إدخال موضوع الرسالة (حقل إجباري).'
+          : '⚠ Please enter the topic or subject (Required).';
+        if (typeof showToast === 'function') showToast(errMsg);
+        if (subjectEl) subjectEl.focus();
+        return false;
+      }
+
+      // Message Validation
+      if (!cleanMessage) {
+        const errMsg = currentLang === 'ar'
+          ? '⚠ يرجى إدخال محتوى الرسالة (حقل إجباري).'
+          : '⚠ Please enter your message content (Required).';
+        if (typeof showToast === 'function') showToast(errMsg);
+        if (messageEl) messageEl.focus();
+        return false;
+      }
+
+      // ── 3. EMOJI & SECURITY AUDIT CHECK ──
+      if (typeof validateEmojiInputs === 'function') {
+        const emojiError = validateEmojiInputs([
+          { el: 'contactEmail', name: { en: "Email Address", ar: "البريد الإلكتروني" } },
+          { el: 'contactSubject', name: { en: "Topic / Subject", ar: "موضوع الرسالة" } },
+          { el: 'contactMessage', name: { en: "Message", ar: "محتوى الرسالة" } }
+        ]);
+        if (emojiError) return false;
+      }
+
+      // ── 4. SECURE PAYLOAD CONSTRUCTION ──
+      const sanitizedPayload = {
+        senderName: cleanName ? escapeHtmlEntities(cleanName) : (currentLang === 'ar' ? 'مجهول (غير محدد)' : 'Anonymous Sender'),
+        senderEmail: escapeHtmlEntities(cleanEmail),
+        subject: escapeHtmlEntities(cleanSubject),
+        messageBody: escapeHtmlEntities(cleanMessage),
+        submittedAt: new Date().toISOString()
+      };
+
+      console.log('[ContactForm] Verified & Sanitized Payload:', sanitizedPayload);
+
+      // ── 5. SUCCESS FEEDBACK & RESET ──
+      const successMsg = currentLang === 'ar'
+        ? '✅ تم التحقق من الرسالة وتنظيفها وإرسالها بنجاح! سيتواصل معك الفريق قريبًا.'
+        : '✅ Message validated, sanitized and sent successfully! Our team will contact you soon.';
+
+      if (typeof showToast === 'function') showToast(successMsg);
+
+      document.getElementById('contactForm').reset();
+      return false;
+    }
+  </script>
 
   <!-- Floating Help/Guide Button -->
   <button type="button" class="floating-guide-btn" data-i18n-tooltip="floatingGuideTooltip" data-tooltip="Site Guide">

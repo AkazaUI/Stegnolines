@@ -91,12 +91,15 @@
   styleEl.textContent = styles;
   document.head.appendChild(styleEl);
 
-  // ── Path Prefix Resolver (Critical for nested /docs/ folders) ──
+  // ── Path Prefix Resolver (Critical for nested /docs/ & /Scanner feature/ folders) ──
   function getPathPrefix() {
     const href = window.location.href.replace(/\\/g, '/');
-    if (href.includes('/docs/user-guide/')) {
+    if (href.includes('/docs/getting-started/') || 
+        href.includes('/docs/user-guide/') || 
+        href.includes('/docs/technical-reference/') || 
+        href.includes('/docs/development/')) {
       return '../../';
-    } else if (href.includes('/docs/')) {
+    } else if (href.includes('/docs/') || href.includes('/Scanner feature/') || href.includes('/Scanner%20feature/')) {
       return '../';
     }
     return '';
@@ -110,8 +113,8 @@
       <div class="top-nav__inner">
         <!-- Brand logo -->
         <a class="top-nav__brand" href="${prefix}index.html" id="brand-link">
-          <img class="top-nav__brand-logo top-nav__brand-logo--light" src="${prefix}assets/brand/logo-dark.png" alt="STEGNOLINES"/>
-          <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="${prefix}assets/brand/logo-light.png" alt="STEGNOLINES"/>
+          <img class="top-nav__brand-logo top-nav__brand-logo--light" src="${prefix}assets/brand/logo-dark.png" alt="STEGNOLINES" onerror="this.style.display='none'"/>
+          <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="${prefix}assets/brand/logo-light.png" alt="STEGNOLINES" onerror="this.style.display='none'"/>
         </a>
 
         <!-- Desktop Navigation Links -->
@@ -337,21 +340,30 @@
         <!-- Settings Sidebar Navigation -->
         <aside class="settings-modal__sidebar">
           <div class="settings-modal__brand">
-            <span class="material-symbols-outlined">settings</span>
-            <span data-i18n="settingsTitle">Preferences</span>
+            <div class="settings-modal__brand-icon-wrap">
+              <span class="material-symbols-outlined">settings</span>
+            </div>
+            <div class="settings-modal__brand-text">
+              <span class="settings-modal__brand-title" data-i18n="settingsTitle">Preferences</span>
+              <span class="settings-modal__brand-badge">v2.0</span>
+            </div>
           </div>
-          <nav class="settings-modal__nav">
-            <button type="button" class="settings-nav-item active" data-target="general">
+          <nav class="settings-modal__nav" aria-label="Settings categories">
+            <button type="button" class="settings-nav-item active" data-target="general" title="General" data-i18n-title="settingsSectionGeneral" aria-label="General">
               <span class="material-symbols-outlined">tune</span>
               <span data-i18n="settingsSectionGeneral">General</span>
             </button>
-            <button type="button" class="settings-nav-item" data-target="policies">
-              <span class="material-symbols-outlined">policy</span>
-              <span data-i18n="settingsSectionPolicies">Policies</span>
+            <button type="button" class="settings-nav-item" data-target="policies" title="Privacy & Storage" data-i18n-title="settingsSectionPolicies" aria-label="Privacy & Storage">
+              <span class="material-symbols-outlined">shield</span>
+              <span data-i18n="settingsSectionPolicies">Privacy & Storage</span>
             </button>
-            <button type="button" class="settings-nav-item" id="ar-font-toggle-wrap" data-target="typography" style="display: none;">
+            <button type="button" class="settings-nav-item" id="ar-font-toggle-wrap" data-target="typography" title="Typography" data-i18n-title="settingsSectionTypography" aria-label="Typography" style="display: none;">
               <span class="material-symbols-outlined">text_fields</span>
               <span data-i18n="settingsSectionTypography">Typography</span>
+            </button>
+            <button type="button" class="settings-nav-item" data-target="about" title="About & Research" data-i18n-title="settingsSectionAbout" aria-label="About & Research">
+              <span class="material-symbols-outlined">info</span>
+              <span data-i18n="settingsSectionAbout">About & Research</span>
             </button>
           </nav>
         </aside>
@@ -360,134 +372,247 @@
         <div class="settings-modal__main">
           <div class="settings-modal__header">
             <div class="settings-modal__header-left">
-              <div class="settings-modal__title" data-i18n="settingsHeaderTitle">Preferences</div>
-              <div class="settings-modal__subtitle" data-i18n="settingsSubtitle">Manage application preferences, language, and display settings.</div>
+              <div class="settings-modal__title" id="settings-current-title" data-i18n="settingsHeaderTitle">Preferences</div>
+              <div class="settings-modal__subtitle" id="settings-current-subtitle" data-i18n="settingsSubtitle">Manage application preferences, language, cryptographic parameters, and display settings.</div>
             </div>
             <button class="settings-modal__close" id="settings-modal-close" aria-label="Close settings">
               <span class="material-symbols-outlined">close</span>
             </button>
           </div>
+          
           <div class="settings-modal__body">
-            <!-- General Tab -->
+            <!-- 1. General Tab -->
             <div class="settings-section-content active" id="section-general">
-              <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: var(--space-md);">
-                <div class="settings-row__info">
-                  <div class="settings-row__label" data-i18n="settingsLanguage">Language</div>
-                  <div class="settings-row__desc" data-i18n="settingsLanguageDesc">Choose the interface display language.</div>
+              <!-- Language Selection Card Group -->
+              <div class="settings-card-group">
+                <div class="settings-card-header">
+                  <span class="material-symbols-outlined settings-card-icon">language</span>
+                  <div>
+                    <div class="settings-row__label" data-i18n="settingsLanguage">Display Language</div>
+                    <div class="settings-row__desc" data-i18n="settingsLanguageDesc">Choose the interface display language.</div>
+                  </div>
                 </div>
-                <div class="settings-row__control" style="width: 100%;">
-                  <div class="lang-grid">
-                    <button type="button" class="lang-card" id="lang-btn-en" onclick="setLanguage('en')">
+                <div class="lang-grid">
+                  <button type="button" class="lang-card" id="lang-btn-en" onclick="setLanguage('en')">
+                    <div class="lang-card__top">
                       <span class="lang-card__badge">EN</span>
-                      <span class="lang-card__name">English</span>
                       <span class="lang-card__indicator"></span>
-                    </button>
-                    <button type="button" class="lang-card" id="lang-btn-ar" onclick="setLanguage('ar')">
+                    </div>
+                    <span class="lang-card__name">English</span>
+                    <span class="lang-card__sub">International</span>
+                  </button>
+                  <button type="button" class="lang-card" id="lang-btn-ar" onclick="setLanguage('ar')">
+                    <div class="lang-card__top">
                       <span class="lang-card__badge">AR</span>
-                      <span class="lang-card__name">العربية</span>
                       <span class="lang-card__indicator"></span>
-                    </button>
-                    <button type="button" class="lang-card" id="lang-btn-fr" onclick="setLanguage('fr')">
+                    </div>
+                    <span class="lang-card__name">العربية</span>
+                    <span class="lang-card__sub">Arabic</span>
+                  </button>
+                  <button type="button" class="lang-card" id="lang-btn-fr" onclick="setLanguage('fr')">
+                    <div class="lang-card__top">
                       <span class="lang-card__badge">FR</span>
-                      <span class="lang-card__name">Français</span>
                       <span class="lang-card__indicator"></span>
-                    </button>
-                    <button type="button" class="lang-card" id="lang-btn-zh" onclick="setLanguage('zh')">
+                    </div>
+                    <span class="lang-card__name">Français</span>
+                    <span class="lang-card__sub">French</span>
+                  </button>
+                  <button type="button" class="lang-card" id="lang-btn-zh" onclick="setLanguage('zh')">
+                    <div class="lang-card__top">
                       <span class="lang-card__badge">ZH</span>
-                      <span class="lang-card__name">中文</span>
                       <span class="lang-card__indicator"></span>
-                    </button>
-                    <button type="button" class="lang-card" id="lang-btn-la" onclick="setLanguage('la')">
+                    </div>
+                    <span class="lang-card__name">中文</span>
+                    <span class="lang-card__sub">Chinese</span>
+                  </button>
+                  <button type="button" class="lang-card" id="lang-btn-la" onclick="setLanguage('la')">
+                    <div class="lang-card__top">
                       <span class="lang-card__badge">LA</span>
-                      <span class="lang-card__name">Latina</span>
                       <span class="lang-card__indicator"></span>
-                    </button>
-                  </div>
+                    </div>
+                    <span class="lang-card__name">Latina</span>
+                    <span class="lang-card__sub">Latin</span>
+                  </button>
                 </div>
               </div>
 
-              <div class="settings-row">
-                <div class="settings-row__info">
-                  <div class="settings-row__label" data-i18n="settingsDarkMode">Dark Mode</div>
-                  <div class="settings-row__desc" data-i18n="settingsDarkModeDesc">Toggle between light and dark theme.</div>
+              <!-- Theme & Appearance Card Group -->
+              <div class="settings-card-group">
+                <div class="settings-card-header">
+                  <span class="material-symbols-outlined settings-card-icon">palette</span>
+                  <div>
+                    <div class="settings-row__label" data-i18n="settingsDarkMode">Theme & Appearance</div>
+                    <div class="settings-row__desc" data-i18n="settingsDarkModeDesc">Select between Dark, Light, or System Automatic display modes.</div>
+                  </div>
                 </div>
-                <div class="settings-row__control">
-                  <label class="theme-toggle" title="Toggle dark mode">
-                    <input type="checkbox" class="theme-toggle__input" id="toggle-dark-mode-modal"/>
-                    <div class="theme-toggle__track">
-                      <div class="theme-toggle__sky">
-                        <div class="theme-toggle__stars">
-                          <span class="theme-toggle__star"></span>
-                          <span class="theme-toggle__star"></span>
-                          <span class="theme-toggle__star"></span>
-                        </div>
-                        <div class="theme-toggle__clouds">
-                          <span class="theme-toggle__cloud"></span>
-                          <span class="theme-toggle__cloud"></span>
-                        </div>
-                      </div>
-                      <div class="theme-toggle__thumb">
-                        <div class="theme-toggle__craters">
-                          <span class="theme-toggle__crater"></span>
-                          <span class="theme-toggle__crater"></span>
-                          <span class="theme-toggle__crater"></span>
-                        </div>
-                      </div>
+                <div class="theme-modes-grid">
+                  <button type="button" class="theme-card" id="theme-btn-dark" onclick="setThemeMode('dark')">
+                    <div class="theme-card__preview theme-card__preview--dark">
+                      <div class="theme-card__preview-bar"></div>
+                      <div class="theme-card__preview-box"></div>
                     </div>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Policies Tab -->
-            <div class="settings-section-content" id="section-policies">
-              <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 16px;">
-                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-md);">
-                  <div class="settings-row__info" style="flex: 1;">
-                    <div class="settings-row__label" data-i18n="settingsHintsStorage">Hints Storage Policy</div>
-                    <div class="settings-row__desc" data-i18n="settingsHintsStorageDesc">Choose how stego hints are saved on your device.</div>
-                  </div>
-                  <div class="settings-row__control" style="width: 220px;">
-                    <!-- Custom dropdown wrapper like Target Platform -->
-                    <div class="custom-select-wrapper" id="settingsHintsStorageWrapper">
-                      <input type="hidden" id="settings-hints-storage" value="none">
-                      <div class="custom-select-trigger form-select scanner-select" id="settingsHintsStorageTrigger" onclick="toggleSettingsHintsStorageSelect(event)" style="padding: 6px 12px; font-size: var(--fs-body-sm); display: flex; align-items: center; justify-content: space-between;">
-                        <span id="settingsHintsStorageLabel" data-i18n="hintsOptNone">Do Not Save (Default)</span>
-                        <span class="material-symbols-outlined select-icon" style="font-size: 18px;">expand_more</span>
-                      </div>
-                      <div class="custom-select-options" id="settingsHintsStorageOptions" style="width: 100%;">
-                        <div class="custom-option selected" data-value="none" data-i18n="hintsOptNone" onclick="selectSettingsHintsStorageOption('none')">Do Not Save (Default)</div>
-                        <div class="custom-option" data-value="localStorage" data-i18n="hintsOptLocalStorage" onclick="selectSettingsHintsStorageOption('localStorage')">7-Day LocalStorage</div>
-                        <div class="custom-option" data-value="file" id="settings-hints-opt-file" data-i18n="hintsOptFile" onclick="selectSettingsHintsStorageOption('file')">Secure File (JSON)</div>
-                      </div>
+                    <div class="theme-card__footer">
+                      <span class="material-symbols-outlined theme-card__icon">dark_mode</span>
+                      <span class="theme-card__label" data-i18n="settingsThemeDark">Dark Mode</span>
+                      <span class="theme-card__check"></span>
                     </div>
-                  </div>
-                </div>
-                <!-- Reset Button Container -->
-                <div class="policy-reset-card" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(255,255,255,0.01); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-sm); transition: all 0.2s ease;">
-                  <div style="display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: var(--color-on-surface-variant); max-width: 70%;">
-                    <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary); flex-shrink: 0;">info</span>
-                    <span data-i18n="hintsSettingsResetDesc" style="line-height: 1.45;">Reset selection to clear logs and be prompted again on next embed.</span>
-                  </div>
-                  <button type="button" class="btn-reset-policy-custom" onclick="if (typeof resetHintsStoragePolicy === 'function') resetHintsStoragePolicy()" title="Reset selection to prompt again">
-                    <span class="material-symbols-outlined" style="font-size: 14px;">restart_alt</span>
-                    <span data-i18n="btnResetPolicy">Reset</span>
+                  </button>
+                  <button type="button" class="theme-card" id="theme-btn-light" onclick="setThemeMode('light')">
+                    <div class="theme-card__preview theme-card__preview--light">
+                      <div class="theme-card__preview-bar"></div>
+                      <div class="theme-card__preview-box"></div>
+                    </div>
+                    <div class="theme-card__footer">
+                      <span class="material-symbols-outlined theme-card__icon">light_mode</span>
+                      <span class="theme-card__label" data-i18n="settingsThemeLight">Light Mode</span>
+                      <span class="theme-card__check"></span>
+                    </div>
+                  </button>
+                  <button type="button" class="theme-card" id="theme-btn-system" onclick="setThemeMode('system')">
+                    <div class="theme-card__preview theme-card__preview--system">
+                      <div class="theme-card__preview-split-left"></div>
+                      <div class="theme-card__preview-split-right"></div>
+                    </div>
+                    <div class="theme-card__footer">
+                      <span class="material-symbols-outlined theme-card__icon">devices</span>
+                      <span class="theme-card__label" data-i18n="settingsThemeSystem">System Auto</span>
+                      <span class="theme-card__check"></span>
+                    </div>
                   </button>
                 </div>
               </div>
             </div>
 
-            <!-- Typography Tab (Arabic font selection) -->
-            <div class="settings-section-content" id="section-typography">
-              <div class="settings-row">
-                <div class="settings-row__info">
-                  <div class="settings-row__label" data-i18n="settingsFont">Arabic Font</div>
-                  <div class="settings-row__desc" data-i18n="settingsFontDesc">Select the preferred font for Arabic text display.</div>
+            <!-- 2. Privacy & Storage Tab -->
+            <div class="settings-section-content" id="section-policies">
+              <div class="settings-card-group">
+                <div class="settings-card-header">
+                  <span class="material-symbols-outlined settings-card-icon">shield</span>
+                  <div>
+                    <div class="settings-row__label" data-i18n="settingsHintsStorage">Stego Hints Storage Policy</div>
+                    <div class="settings-row__desc" data-i18n="settingsHintsStorageDesc">Select how stego hints and recovery logs are handled on your device.</div>
+                  </div>
                 </div>
-                <div class="settings-row__control">
-                  <div class="lang-pills">
-                    <button type="button" class="lang-pill font-pill" id="font-btn-thmanyah" onclick="setArabicFont('thmanyah')">ثمانية</button>
-                    <button type="button" class="lang-pill font-pill" id="font-btn-alexandria" onclick="setArabicFont('alexandria')">Alexandria</button>
+
+                <div class="policy-cards-grid">
+                  <button type="button" class="policy-card selected" id="policy-card-none" onclick="selectSettingsHintsStorageOption('none')">
+                    <span class="material-symbols-outlined policy-card__icon">security</span>
+                    <div class="policy-card__text">
+                      <div class="policy-card__title" data-i18n="hintsOptNone">Do Not Save (Default)</div>
+                      <div class="policy-card__desc">Zero storage footprint. No logs saved.</div>
+                    </div>
+                    <span class="policy-card__radio"></span>
+                  </button>
+
+                  <button type="button" class="policy-card" id="policy-card-localStorage" onclick="selectSettingsHintsStorageOption('localStorage')">
+                    <span class="material-symbols-outlined policy-card__icon">history</span>
+                    <div class="policy-card__text">
+                      <div class="policy-card__title" data-i18n="hintsOptLocalStorage">7-Day LocalStorage</div>
+                      <div class="policy-card__desc">Auto-expiring local cache in browser.</div>
+                    </div>
+                    <span class="policy-card__radio"></span>
+                  </button>
+
+                  <button type="button" class="policy-card" id="policy-card-file" onclick="selectSettingsHintsStorageOption('file')">
+                    <span class="material-symbols-outlined policy-card__icon">description</span>
+                    <div class="policy-card__text">
+                      <div class="policy-card__title" data-i18n="hintsOptFile">Secure File (JSON)</div>
+                      <div class="policy-card__desc">Persist hints to local JSON file.</div>
+                    </div>
+                    <span class="policy-card__radio"></span>
+                  </button>
+                </div>
+
+                <!-- Hidden input for legacy compatibility -->
+                <input type="hidden" id="settings-hints-storage" value="none">
+              </div>
+
+              <!-- Storage Footprint & Reset -->
+              <div class="settings-card-group" style="margin-top: 1rem;">
+                <div class="settings-card-header">
+                  <span class="material-symbols-outlined settings-card-icon">delete_sweep</span>
+                  <div>
+                    <div class="settings-row__label" data-i18n="settingsResetTitle">Storage Footprint & Cache</div>
+                    <div class="settings-row__desc" data-i18n="settingsResetDesc">Inspect used local storage space or reset preferences to defaults.</div>
+                  </div>
+                </div>
+                
+                <div class="storage-stats-bar">
+                  <div class="storage-stats-info">
+                    <span class="material-symbols-outlined" style="color: var(--color-primary);">storage</span>
+                    <span>Used Storage: <strong id="settings-storage-usage-text">0 KB</strong> (<span id="settings-storage-count-text">0 items</span>)</span>
+                  </div>
+                  <button type="button" class="btn btn--outline" onclick="resetAllSettingsPreferences()" style="font-size: 0.82rem; height: 36px;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">restart_alt</span>
+                    <span data-i18n="settingsClearStorageBtn">Reset All Preferences</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Typography Tab -->
+            <div class="settings-section-content" id="section-typography">
+              <div class="settings-card-group">
+                <div class="settings-card-header">
+                  <span class="material-symbols-outlined settings-card-icon">font_download</span>
+                  <div>
+                    <div class="settings-row__label" data-i18n="settingsFont">Arabic Font Family</div>
+                    <div class="settings-row__desc" data-i18n="settingsFontDesc">Select the preferred typography for Arabic text presentation.</div>
+                  </div>
+                </div>
+
+                <div class="font-cards-grid">
+                  <button type="button" class="font-card active" id="font-card-thmanyah" onclick="setArabicFont('thmanyah')">
+                    <div class="font-card__header">
+                      <span class="font-card__title">خط ثمانية (Thmanyah)</span>
+                      <span class="badge badge--neutral">Default</span>
+                      <span class="font-card__indicator"></span>
+                    </div>
+                    <div class="font-card__preview" style="font-family: 'Thmanyah', 'Alexandria', sans-serif;">
+                      نظام إخفاء متقدم بدون أي تشوهات بصرية أو عبء إضافي.
+                    </div>
+                  </button>
+
+                  <button type="button" class="font-card" id="font-card-alexandria" onclick="setArabicFont('alexandria')">
+                    <div class="font-card__header">
+                      <span class="font-card__title">خط الإسكندرية (Alexandria)</span>
+                      <span class="badge badge--neutral">Modern</span>
+                      <span class="font-card__indicator"></span>
+                    </div>
+                    <div class="font-card__preview" style="font-family: 'Alexandria', sans-serif;">
+                      نظام إخفاء متقدم بدون أي تشوهات بصرية أو عبء إضافي.
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. About & Academic Tab -->
+            <div class="settings-section-content" id="section-about">
+              <div class="about-card-banner">
+                <div class="about-card-badge">Cybersecurity Research 2026</div>
+                <h3 class="about-card-title" data-i18n="settingsAboutDesc">Hybrid Text Steganography System Using Bit Mapping & Invisible Characters</h3>
+                <p class="about-card-dept" data-i18n="settingsAboutDept">University of Science & Technology — Cyber Security Department</p>
+                <p class="about-card-sub" data-i18n="settingsAboutSupervision">Under Supervision of Eng. Mohammed Ali</p>
+              </div>
+
+              <div class="settings-card-group" style="margin-top: 1rem;">
+                <div class="about-feature-item">
+                  <span class="material-symbols-outlined about-feature-icon">verified_user</span>
+                  <div class="about-feature-text" data-i18n="settingsAboutZeroBackend">
+                    Zero-Server Privacy Guarantee: All computations execute 100% locally in your browser sandbox.
+                  </div>
+                </div>
+                <div class="about-feature-item">
+                  <span class="material-symbols-outlined about-feature-icon">auto_stories</span>
+                  <div class="about-feature-text">
+                    Comprehensive documentation with 10 chapters and full mathematical formulations available in the <a href="documentation.html" style="color: var(--color-primary); text-decoration: underline;">Documentation Portal</a>.
+                  </div>
+                </div>
+                <div class="about-feature-item">
+                  <span class="material-symbols-outlined about-feature-icon">terminal</span>
+                  <div class="about-feature-text" data-i18n="settingsAboutVersion">
+                    STEGNOLINES v2.0 (Build 2026)
                   </div>
                 </div>
               </div>
@@ -508,10 +633,15 @@
 
   window.selectSettingsHintsStorageOption = function(value, skipTrigger = false) {
     const hiddenInput = document.getElementById('settings-hints-storage');
-    if (!hiddenInput) return;
-    hiddenInput.value = value;
+    if (hiddenInput) hiddenInput.value = value;
     
-    // Update label
+    // Update policy cards active state
+    document.querySelectorAll('.policy-card').forEach(card => {
+      const cardVal = card.id.replace('policy-card-', '');
+      card.classList.toggle('selected', cardVal === value);
+    });
+
+    // Update label for legacy dropdown if present
     const labelSpan = document.getElementById('settingsHintsStorageLabel');
     const currentLang = localStorage.getItem('stegoLang') || 'en';
     
@@ -531,22 +661,6 @@
           labelSpan.textContent = isUnsupported ? 'Secure File (Unsupported)' : 'Secure File (JSON)';
         }
       }
-    }
-    
-    // Update active class
-    const opts = document.querySelectorAll('#settingsHintsStorageOptions .custom-option');
-    opts.forEach(opt => {
-      if (opt.getAttribute('data-value') === value) {
-        opt.classList.add('selected');
-      } else {
-        opt.classList.remove('selected');
-      }
-    });
-    
-    // Close dropdown
-    const options = document.getElementById('settingsHintsStorageOptions');
-    if (options) {
-      options.classList.remove('open');
     }
     
     // Trigger policy change handler in F_stego_hint.js
@@ -649,6 +763,9 @@
 
     function openSettings() {
       if (settingsModal && modalBackdrop) {
+        if (typeof updateStorageFootprintUI === 'function') {
+          updateStorageFootprintUI();
+        }
         settingsModal.classList.add('active');
         modalBackdrop.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -670,6 +787,12 @@
     // Sidebar tab switching inside settings modal
     const navItems = document.querySelectorAll('.settings-nav-item');
     const sections = document.querySelectorAll('.settings-section-content');
+    const tabTitleKeys = {
+      general: 'settingsSectionGeneral',
+      policies: 'settingsSectionPolicies',
+      typography: 'settingsSectionTypography',
+      about: 'settingsSectionAbout'
+    };
 
     navItems.forEach(item => {
       item.addEventListener('click', () => {
@@ -680,6 +803,18 @@
         const target = item.getAttribute('data-target');
         const section = document.getElementById('section-' + target);
         if (section) section.classList.add('active');
+
+        // Dynamically update the header title for mobile clarity
+        const titleEl = document.getElementById('settings-current-title');
+        if (titleEl && tabTitleKeys[target]) {
+          titleEl.setAttribute('data-i18n', tabTitleKeys[target]);
+          const currentLang = localStorage.getItem('stegoLang') || 'en';
+          if (typeof getTranslation === 'function') {
+            titleEl.textContent = getTranslation(tabTitleKeys[target], currentLang);
+          } else if (window.translations && window.translations[currentLang] && window.translations[currentLang][tabTitleKeys[target]]) {
+            titleEl.textContent = window.translations[currentLang][tabTitleKeys[target]];
+          }
+        }
       });
     });
 

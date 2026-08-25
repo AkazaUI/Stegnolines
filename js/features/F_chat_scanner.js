@@ -27,20 +27,56 @@ let _scannerState = {
 // ══════════════════════════════════════════════════════════════
 
 /**
- * Toggle a collapsible scanner result section.
+ * Toggle a collapsible scanner result section with smooth downward slide animation
+ * and automatic smooth focus/scroll into view.
  * @param {string} bodyId - The ID of the body element to toggle.
+ * @param {boolean} [forceOpen] - Optional explicit state (true = open, false = close).
  */
-function toggleScannerResult(bodyId) {
+function toggleScannerResult(bodyId, forceOpen) {
   const body = document.getElementById(bodyId);
-  const toggle = body.parentElement.querySelector('.scanner-result-toggle');
-  const chevron = toggle ? toggle.querySelector('.scanner-chevron') : null;
+  if (!body) return;
 
-  if (body.style.display === 'none') {
+  const card = body.closest('.accordion') || body.parentElement;
+  const toggle = card ? card.querySelector('.scanner-result-toggle, .accordion__trigger') : null;
+  const chevron = toggle ? (toggle.querySelector('.scanner-chevron') || toggle.querySelector('.material-symbols-outlined')) : null;
+
+  // Determine current visibility state
+  const isCurrentlyOpen = card.classList.contains('accordion--open') || body.classList.contains('accordion__body--open') || (body.style.display !== 'none' && body.offsetHeight > 0);
+  const shouldOpen = (forceOpen !== undefined) ? forceOpen : !isCurrentlyOpen;
+
+  if (shouldOpen) {
+    // Open section smoothly
+    card.classList.add('accordion--open');
+    body.classList.add('accordion__body--open');
     body.style.display = 'block';
+
     if (chevron) chevron.classList.add('rotated');
+
+    // Focus pulse glow highlight on the opened card
+    card.classList.remove('scanner-card-focus-pulse');
+    void card.offsetWidth; // Trigger reflow
+    card.classList.add('scanner-card-focus-pulse');
+    setTimeout(() => card.classList.remove('scanner-card-focus-pulse'), 850);
+
+    // Smoothly scroll page to bring content into view with sticky header offset
+    setTimeout(() => {
+      const yOffset = -90; // Accounts for sticky navbar header
+      const y = card.getBoundingClientRect().top + window.scrollY + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    }, 50);
+
   } else {
-    body.style.display = 'none';
+    // Close section smoothly
+    card.classList.remove('accordion--open');
+    body.classList.remove('accordion__body--open');
     if (chevron) chevron.classList.remove('rotated');
+
+    // Allow CSS transition to complete before setting display:none
+    setTimeout(() => {
+      if (!card.classList.contains('accordion--open')) {
+        body.style.display = 'none';
+      }
+    }, 350);
   }
 }
 
@@ -122,7 +158,12 @@ async function _hideProgress() {
   if (resultsCard && resultsCard.style.display !== 'none') {
     const yOffset = -90; // Accounts for sticky header height + breathing space
     const y = resultsCard.getBoundingClientRect().top + window.scrollY + yOffset;
-    window.scrollTo({ top: y, behavior: 'smooth' });
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+
+    resultsCard.classList.remove('scanner-card-focus-pulse');
+    void resultsCard.offsetWidth;
+    resultsCard.classList.add('scanner-card-focus-pulse');
+    setTimeout(() => resultsCard.classList.remove('scanner-card-focus-pulse'), 850);
   }
 
   await _delay(400); // Wait for the 400ms fadeOut keyframes to complete
@@ -179,8 +220,33 @@ function _delay(ms) {
  * Step 1 (Filter) → Step 2 (Extract VS) → Step 3 (Try password).
  */
 async function scannerOneClick() {
-  const rawText = document.getElementById('scannerChatInput').value;
-  if (!rawText.trim()) return showToast('⚠ Please paste the chat first.');
+  const inputValidation = (typeof window.getScannerInputValidation === 'function')
+    ? window.getScannerInputValidation()
+    : { status: 'empty', text: '' };
+
+  const curLang = localStorage.getItem('stegoLang') || 'en';
+
+  if (inputValidation.status === 'conflict') {
+    const conflictMsg = curLang === 'ar'
+      ? '⚠ تعارض في المدخلات: يرجى فحص نوع واحد فقط (إما نص المحادثة أو الملف المرفوع)، قم بمسح أحدهما للمتابعة.'
+      : '⚠ Input Conflict: Please inspect only one source at a time (either pasted chat or uploaded file). Remove one to proceed.';
+    return showToast(conflictMsg);
+  }
+
+  const rawText = inputValidation.text;
+
+  // ── EMOJI INPUT VALIDATION ──
+  const keyInputs = Array.from(document.querySelectorAll('.scanner-stego-key-input, .scanner-aes-key-input')).map(el => ({
+    el,
+    name: { en: "Key Field", ar: "حقل المفتاح" }
+  }));
+  const emojiError = validateEmojiInputs(keyInputs);
+  if (emojiError) return;
+
+  if (!rawText || !rawText.trim()) {
+    const msg = curLang === 'ar' ? '⚠ يرجى لصق نص المحادثة أو رفع ملف أولاً.' : '⚠ Please paste chat history or upload a file first.';
+    return showToast(msg);
+  }
 
   _resetScannerResults();
 
@@ -199,6 +265,7 @@ async function scannerOneClick() {
     return;
   }
 
+  _showStep1Results(false);
   _updateProgress(1, '① Filter completed ✓', 33);
   await _delay(150);
 
@@ -210,10 +277,21 @@ async function scannerOneClick() {
   _runExtractStep();
   totalDurationMs += (performance.now() - t2);
 
+  // Render Step 2 results card (shows extracted keys or clear "No VS detected" report)
+  _showStep2Results(true);
+
   if (_scannerState.carriers.length === 0) {
+    await _delay(200);
+    _updateProgress(3, '✅ Analysis completed', 100);
+    await _delay(400);
     await _hideProgress();
     _displayScannerTime(totalDurationMs);
-    return showToast('❌ No hidden key in the chat.');
+
+    const step2Card = document.getElementById('scannerStep2Card');
+    if (step2Card) {
+      step2Card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    return;
   }
 
   _updateProgress(2, '② VS extracted successfully ✓', 66);
@@ -237,6 +315,11 @@ async function scannerOneClick() {
   await _hideProgress();
 
   _displayScannerTime(totalDurationMs);
+
+  const resultsCard = document.getElementById('scannerStep3Card') || document.getElementById('scannerStep2Card');
+  if (resultsCard) {
+    resultsCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 }
 
 
@@ -245,8 +328,25 @@ async function scannerOneClick() {
  * expanded so the user can verify correctness and see VS characters.
  */
 async function scannerVerifyFilter() {
-  const rawText = document.getElementById('scannerChatInput').value;
-  if (!rawText.trim()) return showToast('⚠ Please paste the chat first.');
+  const inputValidation = (typeof window.getScannerInputValidation === 'function')
+    ? window.getScannerInputValidation()
+    : { status: 'empty', text: '' };
+
+  const curLang = localStorage.getItem('stegoLang') || 'en';
+
+  if (inputValidation.status === 'conflict') {
+    const conflictMsg = curLang === 'ar'
+      ? '⚠ تعارض في المدخلات: يرجى فحص نوع واحد فقط (إما نص المحادثة أو الملف المرفوع)، قم بمسح أحدهما للمتابعة.'
+      : '⚠ Input Conflict: Please inspect only one source at a time (either pasted chat or uploaded file). Remove one to proceed.';
+    return showToast(conflictMsg);
+  }
+
+  const rawText = inputValidation.text;
+
+  if (!rawText || !rawText.trim()) {
+    const msg = curLang === 'ar' ? '⚠ يرجى لصق نص المحادثة أو رفع ملف أولاً.' : '⚠ Please paste chat history or upload a file first.';
+    return showToast(msg);
+  }
 
   _resetScannerResults();
 
@@ -287,14 +387,23 @@ async function scannerVerifyFilter() {
  * @returns {boolean} True if messages were found, false otherwise.
  */
 function _runFilterStep(rawText) {
+  // Strip Windows carriage returns \r and UTF-8 BOM (U+FEFF)
+  rawText = (rawText || '').replace(/^\uFEFF/, '').replace(/\r/g, '');
+
   const platformSelect = document.getElementById('scannerPlatform');
   const selectedPlatform = platformSelect ? platformSelect.value : 'auto';
 
-  const platform = (selectedPlatform === 'auto')
+  let platform = (selectedPlatform === 'auto')
     ? detectPlatform(rawText)
     : selectedPlatform;
 
-  const messages = parseChat(rawText, platform);
+  let messages = parseChat(rawText, platform);
+
+  // Fallback to generic if platform parsing yielded 0 messages
+  if (messages.length === 0 && platform !== 'generic') {
+    platform = 'generic';
+    messages = parseChat(rawText, 'generic');
+  }
 
   if (messages.length === 0) {
     showToast('⚠ No messages found.');
@@ -347,11 +456,16 @@ async function _runTryStep() {
   const stegoInputs = Array.from(document.querySelectorAll('.scanner-stego-key-input'));
   const stegoKeys = Array.from(new Set(stegoInputs.map(inp => inp.value.trim())));
 
+  // Ensure empty string is included in candidate stego keys
+  if (!stegoKeys.includes("")) {
+    stegoKeys.push("");
+  }
+
   // Gather all AES encryption keys and filter unique
   const aesInputs = Array.from(document.querySelectorAll('.scanner-aes-key-input'));
   const aesKeys = Array.from(new Set(aesInputs.map(inp => inp.value.trim())));
 
-  // Ensure there is at least one blank AES key tested (for unencrypted CTR messages)
+  // Ensure empty string is included in candidate AES keys
   if (!aesKeys.includes("")) {
     aesKeys.push("");
   }
@@ -362,6 +476,26 @@ async function _runTryStep() {
   let totalMatchesCount = 0;
   const carrierResults = [];
 
+  // Helper to retrieve candidate cover strings for message at index
+  function getCandidateCovers(index) {
+    const msg = _scannerState.messages[index];
+    if (!msg) return [];
+    const cleanBody = _scannerState.cleanMessages[index] || '';
+    const rawClean = (msg.rawText && typeof extractVSFromText === 'function')
+      ? extractVSFromText(msg.rawText).cleanText
+      : '';
+
+    const candidates = [cleanBody];
+    if (msg.sender) {
+      candidates.push(`${msg.sender}: ${cleanBody}`);
+      candidates.push(`${msg.sender} - ${cleanBody}`);
+    }
+    if (rawClean) {
+      candidates.push(rawClean);
+    }
+    return Array.from(new Set(candidates.filter(c => c && c.length > 0)));
+  }
+
   for (let c = 0; c < carriers.length; c++) {
     const carrier = carriers[c];
     const carrierIndex = carrier.index;
@@ -370,31 +504,34 @@ async function _runTryStep() {
 
     const matches = [];
 
-    // 1. Try the carrier's own clean text first (fallback or normal embedding)
-    const carrierCleanText = cleanMessages[carrierIndex];
-    const carrierCoverBits = stringToBinary(carrierCleanText);
+    // 1. Try carrier's own cover text variations first (fallback / normal embedding)
+    const carrierCoverCandidates = getCandidateCovers(carrierIndex);
     let carrierMatched = false;
 
-    if (carrierCoverBits.length >= xorKeyBinary.length) {
-      // Pre-resolve stego keys for this carrier clean text
-      const resolvedStegoKeysMap = {};
-      for (const stKey of stegoKeys) {
-        const { resolvedStegoKey } = await resolveStegoKey(stKey, carrierCleanText);
-        resolvedStegoKeysMap[stKey] = resolvedStegoKey;
-      }
+    for (const carrierCover of carrierCoverCandidates) {
+      const carrierCoverBits = stringToBinary(carrierCover);
+      if (carrierCoverBits.length < xorKeyBinary.length) continue;
 
       for (const stKey of stegoKeys) {
-        const resolvedStegoKey = resolvedStegoKeysMap[stKey];
-        for (const aesKey of aesKeys) {
-          const carrierResult = await _tryOneCover(carrierCleanText, carrierCoverBits, xorKeyBinary, resolvedStegoKey, aesKey);
+        let resolvedStegoKey = stKey;
+        try {
+          const res = await resolveStegoKey(stKey, carrierCover);
+          resolvedStegoKey = res.resolvedStegoKey;
+        } catch (e) {
+          resolvedStegoKey = stKey || "";
+        }
+
+        const candidateAesKeys = Array.from(new Set([...aesKeys, resolvedStegoKey, stKey, ""]));
+        for (const aesKey of candidateAesKeys) {
+          const carrierResult = await _tryOneCover(carrierCover, carrierCoverBits, xorKeyBinary, resolvedStegoKey, aesKey);
           if (carrierResult.match) {
             matches.push({
               index: carrierIndex + 1,
-              coverText: carrierCleanText,
+              coverText: carrierCover,
               secretMessage: carrierResult.secretMessage,
               hint: carrierResult.hint,
               type: 'carrier_fallback',
-              usedStegoKey: stKey
+              usedStegoKey: stKey || (currentLang === 'ar' ? 'افتراضي (بدون مفتاح)' : 'Default (No Key)')
             });
             carrierMatched = true;
             break;
@@ -402,6 +539,7 @@ async function _runTryStep() {
         }
         if (carrierMatched) break;
       }
+      if (carrierMatched) break;
     }
 
     // 2. Try other clean messages in the chat if carrier fallback didn't match
@@ -409,44 +547,44 @@ async function _runTryStep() {
       for (let i = 0; i < cleanMessages.length; i++) {
         if (i === carrierIndex) continue;
 
-        const candidateCover = cleanMessages[i];
-        const candidateCoverBits = stringToBinary(candidateCover);
+        const candidateCovers = getCandidateCovers(i);
+        let foundMatchForMsg = false;
 
-        // Early skip if candidate cover is too short
-        if (candidateCoverBits.length < xorKeyBinary.length) {
-          continue;
-        }
+        for (const candidateCover of candidateCovers) {
+          const candidateCoverBits = stringToBinary(candidateCover);
+          if (candidateCoverBits.length < xorKeyBinary.length) continue;
 
-        // Pre-resolve stego keys for this candidate cover text
-        const resolvedStegoKeysMap = {};
-        for (const stKey of stegoKeys) {
-          const { resolvedStegoKey } = await resolveStegoKey(stKey, candidateCover);
-          resolvedStegoKeysMap[stKey] = resolvedStegoKey;
-        }
-
-        let foundMatchForCover = false;
-
-        for (const stKey of stegoKeys) {
-          const resolvedStegoKey = resolvedStegoKeysMap[stKey];
-          for (const aesKey of aesKeys) {
-            const result = await _tryOneCover(candidateCover, candidateCoverBits, xorKeyBinary, resolvedStegoKey, aesKey);
-            if (result.match) {
-              const isDuplicate = matches.some(m => m.secretMessage === result.secretMessage);
-              if (!isDuplicate) {
-                matches.push({
-                  index: i + 1,
-                  coverText: candidateCover,
-                  secretMessage: result.secretMessage,
-                  hint: result.hint,
-                  type: 'normal',
-                  usedStegoKey: stKey
-                });
-              }
-              foundMatchForCover = true;
-              break;
+          for (const stKey of stegoKeys) {
+            let resolvedStegoKey = stKey;
+            try {
+              const res = await resolveStegoKey(stKey, candidateCover);
+              resolvedStegoKey = res.resolvedStegoKey;
+            } catch (e) {
+              resolvedStegoKey = stKey || "";
             }
+
+            const candidateAesKeysOther = Array.from(new Set([...aesKeys, resolvedStegoKey, stKey, ""]));
+            for (const aesKey of candidateAesKeysOther) {
+              const result = await _tryOneCover(candidateCover, candidateCoverBits, xorKeyBinary, resolvedStegoKey, aesKey);
+              if (result.match) {
+                const isDuplicate = matches.some(m => m.secretMessage === result.secretMessage);
+                if (!isDuplicate) {
+                  matches.push({
+                    index: i + 1,
+                    coverText: candidateCover,
+                    secretMessage: result.secretMessage,
+                    hint: result.hint,
+                    type: 'normal',
+                    usedStegoKey: stKey || (currentLang === 'ar' ? 'افتراضي (بدون مفتاح)' : 'Default (No Key)')
+                  });
+                }
+                foundMatchForMsg = true;
+                break;
+              }
+            }
+            if (foundMatchForMsg) break;
           }
-          if (foundMatchForCover) break;
+          if (foundMatchForMsg) break;
         }
       }
     }
@@ -605,6 +743,10 @@ async function _runTryStep() {
 /**
  * Try a single cover text candidate against the VS key.
  *
+ * Uses Dual-Engine architecture: first attempts the modern CSPRNG
+ * engine, then falls back to the legacy Mulberry32 engine for
+ * backward compatibility with older hidden messages.
+ *
  * @param {string} candidateCover - The cover text to test.
  * @param {string} coverBits      - The binary string representation of candidateCover.
  * @param {string} xorKeyBinary   - The XOR key as a binary string.
@@ -613,41 +755,22 @@ async function _runTryStep() {
  * @returns {Promise<{ match: boolean, secretMessage?: string, hint?: string, reason?: string, details?: any, errorMsg?: string }>}
  */
 async function _tryOneCover(candidateCover, coverBits, xorKeyBinary, resolvedStegoKey, encryptionKey) {
-  try {
-    const positions = generatePositions(coverBits.length, xorKeyBinary.length, resolvedStegoKey);
-    const recoveredBinary = recoverPayloadBits(coverBits, positions, xorKeyBinary);
-    const recoveredPayload = binaryToBytes(recoveredBinary);
-
-    // ── Try decryption first (use provided key or fallback to resolvedStegoKey) ──
-    let decryptedPayload = recoveredPayload;
-    let decryptionSucceeded = false;
-    const decryptionKey = encryptionKey || resolvedStegoKey;
-    try {
-      decryptedPayload = await decryptPayloadCtr(recoveredPayload, decryptionKey, candidateCover);
-      decryptionSucceeded = true;
-    } catch (err) {
-      // Ignore decryption error, fallback will handle it
-    }
-
-    // Try processing the decrypted payload
-    let payloadBytes;
-    let decompressedSucceeded = false;
-    try {
-      if (decryptedPayload[0] === 0xFE) {
-        payloadBytes = doStreamDecompress(decryptedPayload.subarray(1));
-        decompressedSucceeded = true;
-      } else {
-        payloadBytes = decryptedPayload;
-      }
-    } catch (e) {
-      // Decompress failed for decrypted payload, set to raw recovered payload to trigger fallback
-      payloadBytes = null;
-    }
-
+  const parseAndDecodePayload = (bytes) => {
+    if (!bytes) return null;
     const strictDecoder = new TextDecoder('utf-8', { fatal: true });
+    let payloadBytes;
 
-    if (payloadBytes) {
-      // Separate message and hint bytes
+    try {
+      if (bytes[0] === 0xFE && typeof doStreamDecompress === 'function') {
+        try {
+          payloadBytes = doStreamDecompress(bytes.subarray(1));
+        } catch (e) {
+          payloadBytes = bytes;
+        }
+      } else {
+        payloadBytes = bytes;
+      }
+
       const delimiterIndex = payloadBytes.indexOf(0xFF);
       let msgBytes, hintBytes = null;
       if (delimiterIndex !== -1) {
@@ -657,51 +780,67 @@ async function _tryOneCover(candidateCover, coverBits, xorKeyBinary, resolvedSte
         msgBytes = payloadBytes;
       }
 
-      try {
-        const decodedMsg = strictDecoder.decode(msgBytes);
-        const decodedHint = hintBytes ? strictDecoder.decode(hintBytes) : '';
+      const decodedMsg = strictDecoder.decode(msgBytes);
+      const decodedHint = hintBytes ? strictDecoder.decode(hintBytes) : '';
 
-        if (decodedMsg.length > 0 && isPrintableText(decodedMsg)) {
-          return { match: true, secretMessage: decodedMsg, hint: decodedHint };
-        }
-      } catch (e) {
-        // Decode failed for decrypted payload, fallback will handle it
+      if (decodedMsg.length > 0 && isPrintableText(decodedMsg)) {
+        return { match: true, secretMessage: decodedMsg, hint: decodedHint };
       }
-    }
+    } catch (e) {}
 
-    // ── Fallback: if we decrypted but failed, try unencrypted raw payload ──
-    if (decryptionSucceeded) {
-      let rawPayloadBytes;
-      try {
-        if (recoveredPayload[0] === 0xFE) {
-          rawPayloadBytes = doStreamDecompress(recoveredPayload.subarray(1));
-        } else {
-          rawPayloadBytes = recoveredPayload;
-        }
+    return null;
+  };
 
-        const rawDelimiterIndex = rawPayloadBytes.indexOf(0xFF);
-        let rawMsgBytes, rawHintBytes = null;
-        if (rawDelimiterIndex !== -1) {
-          rawMsgBytes = rawPayloadBytes.subarray(0, rawDelimiterIndex);
-          rawHintBytes = rawPayloadBytes.subarray(rawDelimiterIndex + 1);
-        } else {
-          rawMsgBytes = rawPayloadBytes;
-        }
+  /**
+   * Internal: attempt extraction with a given position-generation function.
+   *
+   * @param {function} posFn - Either generatePositions (modern) or generatePositionsLegacy.
+   * @returns {Promise<object|null>} Extraction result, or null if it fails.
+   */
+  async function attemptExtraction(posFn) {
+    try {
+      const positions = posFn(coverBits.length, xorKeyBinary.length, resolvedStegoKey);
+      const recoveredBinary = recoverPayloadBits(coverBits, positions, xorKeyBinary);
+      const recoveredPayload = binaryToBytes(recoveredBinary);
 
-        const rawDecodedMsg = strictDecoder.decode(rawMsgBytes);
-        const rawDecodedHint = rawHintBytes ? strictDecoder.decode(rawHintBytes) : '';
-        if (rawDecodedMsg.length > 0 && isPrintableText(rawDecodedMsg)) {
-          return { match: true, secretMessage: rawDecodedMsg, hint: rawDecodedHint };
+      // If an explicit non-empty encryptionKey is provided:
+      if (encryptionKey && encryptionKey.trim().length > 0) {
+        try {
+          const decPayload = await decryptPayloadCtr(recoveredPayload, encryptionKey, candidateCover);
+          const res = parseAndDecodePayload(decPayload);
+          if (res) return res;
+        } catch (err) {}
+      } else {
+        // Empty AES key: Test RAW unencrypted first!
+        const rawRes = parseAndDecodePayload(recoveredPayload);
+        if (rawRes) return rawRes;
+
+        // Test resolvedStegoKey AES fallback second!
+        if (resolvedStegoKey) {
+          try {
+            const decPayload = await decryptPayloadCtr(recoveredPayload, resolvedStegoKey, candidateCover);
+            const res = parseAndDecodePayload(decPayload);
+            if (res) return res;
+          } catch (err) {}
         }
-      } catch (e) {
-        // Fallback failed too
       }
-    }
-
-    return { match: false, reason: 'unreadable' };
-  } catch (err) {
-    return { match: false, reason: 'invalid_utf8', errorMsg: err.message || err };
+    } catch (e) {}
+    return null;
   }
+
+  // ── Dual-Engine Extraction Strategy ──
+
+  // Attempt 1: Modern cryptographic engine (AES-CTR CSPRNG)
+  const modernResult = await attemptExtraction(generatePositions);
+  if (modernResult && modernResult.match) return modernResult;
+
+  // Attempt 2: Legacy fallback engine (DJB2 + Mulberry32)
+  if (typeof generatePositionsLegacy === 'function') {
+    const legacyResult = await attemptExtraction(generatePositionsLegacy);
+    if (legacyResult && legacyResult.match) return legacyResult;
+  }
+
+  return { match: false, reason: 'unreadable' };
 }
 
 
@@ -881,21 +1020,11 @@ function _showStep1Results(expanded) {
   // Update count badge
   document.getElementById('scannerStep1Count').textContent = `(📱 ${platformLabel} — ${messages.length} messages)`;
 
-  // Show card
+  // Show card & toggle body visibility with smooth animation & focus
   const card = document.getElementById('scannerStep1Card');
   card.style.display = 'block';
 
-  // Toggle body visibility
-  const body = document.getElementById('scannerStep1Body');
-  const chevron = card.querySelector('.scanner-chevron');
-
-  if (expanded) {
-    body.style.display = 'block';
-    if (chevron) chevron.classList.add('rotated');
-  } else {
-    body.style.display = 'none';
-    if (chevron) chevron.classList.remove('rotated');
-  }
+  toggleScannerResult('scannerStep1Body', expanded);
 }
 
 
@@ -951,21 +1080,11 @@ function _showStep2Results(expanded) {
     : (currentLang === 'ar' ? '(❌ لم يتم الكشف عن رموز VS)' : '(❌ No VS detected)');
   document.getElementById('scannerStep2Count').textContent = countText;
 
-  // Show card
+  // Show card & toggle body visibility with smooth animation & focus
   const card = document.getElementById('scannerStep2Card');
   card.style.display = 'block';
 
-  // Toggle body visibility
-  const body = document.getElementById('scannerStep2Body');
-  const chevron = card.querySelector('.scanner-chevron');
-
-  if (expanded) {
-    body.style.display = 'block';
-    if (chevron) chevron.classList.add('rotated');
-  } else {
-    body.style.display = 'none';
-    if (chevron) chevron.classList.remove('rotated');
-  }
+  toggleScannerResult('scannerStep2Body', expanded);
 }
 
 
@@ -980,60 +1099,52 @@ function isPrintableText(text) {
 
   let printableCount = 0;
   let hasLetterOrDigitOrEmoji = false;
-  let hasSuspiciousChar = false;
 
   const chars = [...text];
   for (const char of chars) {
     const code = char.codePointAt(0);
-    
+
+    // Reject control characters 0x00-0x1F except \n, \r, \t, and 0x7F-0x9F
+    if (code < 0x20 && code !== 0x0A && code !== 0x0D && code !== 0x09) {
+      return false;
+    }
+    if (code === 0x7F || (code >= 0x80 && code <= 0x9F)) {
+      return false;
+    }
+
     const isPrintable = (
-      (code >= 0x20 && code <= 0x7E) ||  // ASCII printable
-      (code >= 0x0600 && code <= 0x06FF) ||  // Arabic
-      (code >= 0x0750 && code <= 0x077F) ||  // Arabic Supplement
-      (code >= 0xFB50 && code <= 0xFDFF) ||  // Arabic Presentation Forms-A
-      (code >= 0xFE70 && code <= 0xFEFF) ||  // Arabic Presentation Forms-B
-      (code >= 0x4E00 && code <= 0x9FFF) ||  // CJK
-      (code >= 0xAC00 && code <= 0xD7AF) ||  // Korean
-      (code >= 0x1F300 && code <= 0x1FAFF) || // Emoji
-      code === 0x0A || code === 0x0D ||       // Newline, CR
-      code === 0x09                           // Tab
+      (code >= 0x20 && code <= 0x7E) ||       // ASCII printable (letters, numbers, punctuation, spaces)
+      (code >= 0x0600 && code <= 0x06FF) ||   // Arabic
+      (code >= 0x0750 && code <= 0x077F) ||   // Arabic Supplement
+      (code >= 0xFB50 && code <= 0xFDFF) ||   // Arabic Presentation Forms-A
+      (code >= 0xFE70 && code <= 0xFEFF) ||   // Arabic Presentation Forms-B
+      (code >= 0x4E00 && code <= 0x9FFF) ||   // CJK
+      (code >= 0xAC00 && code <= 0xD7AF) ||   // Korean
+      (code >= 0x1F300 && code <= 0x1FAFF) ||  // Emoji
+      code === 0x0A || code === 0x0D ||        // Newline, CR
+      code === 0x09                            // Tab
     );
 
     if (isPrintable) {
       printableCount++;
     }
 
-    // Check if it's a letter, digit, or emoji
     if (
       /[\p{L}\p{N}]/u.test(char) ||
       (code >= 0x1F300 && code <= 0x1FAFF)
     ) {
       hasLetterOrDigitOrEmoji = true;
     }
-
-    // Check for suspicious characters in short strings
-    if (
-      code === 0x7B || code === 0x7D || // { }
-      code === 0x5B || code === 0x5D || // [ ]
-      code === 0x5C || code === 0x7C || // \ |
-      code === 0x5E || code === 0x7E || // ^ ~
-      code === 0x60 ||                  // `
-      code === 0x7F                     // DEL
-    ) {
-      hasSuspiciousChar = true;
-    }
   }
 
   const totalLen = chars.length;
   const ratio = printableCount / totalLen;
 
-  if (totalLen <= 8) {
-    // Short message must be 100% printable, contain at least one letter/digit/emoji, and have no suspicious characters
-    return ratio === 1.0 && hasLetterOrDigitOrEmoji && !hasSuspiciousChar;
+  if (totalLen <= 50) {
+    return ratio === 1.0 && hasLetterOrDigitOrEmoji;
   }
 
-  // Longer messages need to be at least 80% printable
-  return ratio >= 0.8;
+  return ratio >= 0.95 && hasLetterOrDigitOrEmoji;
 }
 
 

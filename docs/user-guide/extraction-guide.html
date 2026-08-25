@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../../assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — Zero-Key Stegoanalysis Extraction Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../New_styles.css"/>
+  <link rel="stylesheet" href="../../css/main.css"/>
+  <link rel="stylesheet" href="../../css/pages/docs.css"/>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('stegoTheme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+      const savedLang = localStorage.getItem('stegoLang') || 'en';
+      document.documentElement.setAttribute('lang', savedLang);
+      document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
+      const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
+      document.documentElement.setAttribute('data-arabic-font', savedFont);
+      window.DOCS_BASE = '../../';
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <script src="../../js/features/page-loader.js"></script>
+  <div id="navbar-placeholder"></div>
+
+  <div class="docs-wrap">
+    <div class="docs-layout">
+      <!-- Sidebar Column -->
+      <aside class="docs-sidebar" id="docs-sidebar" aria-label="Documentation navigation">
+        <p class="docs-sidebar__title"><a href="../../documentation.html">Documentation</a></p>
+        <nav id="docs-sidebar-nav"></nav>
+      </aside>
+      
+      <div class="docs-sidebar-backdrop" id="docs-sidebar-backdrop"></div>
+      
+      <!-- Main Content Column -->
+      <div class="docs-main">
+        <button type="button" class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-expanded="false">
+          <span class="material-symbols-outlined">menu</span> Contents
+        </button>
+        
+        <nav class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../documentation.html">Documentation</a>
+          <span class="docs-breadcrumb__sep">/</span>
+          <span>User guide</span>
+          <span class="docs-breadcrumb__sep">/</span>
+          <span>Stegoanalysis Extraction</span>
+        </nav>
+        
+        <article class="docs-article">
+          <h1>Zero-Key Stegoanalysis Extraction Guide</h1>
+          
+          <p>The Stegoanalysis forensics interface (<code>steganalysis.html</code>) enables forensic analysts and investigators to inspect suspicious digital messages, detect invisible Unicode characters, classify concealment schemes, and extract payloads without requiring pre-shared encryption keys.</p>
+
+          <h2>1. Forensic Analysis Workflow</h2>
+          <ol>
+            <li><strong>Ingest Suspicious Message:</strong> Paste any message into the inspection textarea and click <strong>Analyze Text</strong>.</li>
+            <li><strong>Detection & Metric Classification:</strong> Review the live statistics cards (Hidden character count, entropy anomaly index, suspected scheme classification).</li>
+            <li><strong>Visual Diff Map & Carrier Table:</strong> Inspect the high-contrast carrier inventory table detailing code points, Unicode planes (BMP vs SSP), and glyph legitimacy.</li>
+            <li><strong>Trigger Zero-Key Extraction Engine:</strong> Click <strong>«استخراج الرسالة المخفية» / "Extract Hidden Message"</strong> to initiate the heuristic decapsulation pipeline.</li>
+          </ol>
+
+          <h2>2. Forensic Diagnostic Report Tabs</h2>
+          <ul>
+            <li><strong>Verdict & Confidence:</strong> Summary of identified steganography algorithm and forensic confidence score.</li>
+            <li><strong>Decoded Payload:</strong> Extracted payload rendered safely with active sanitization against DOM-based XSS attacks.</li>
+            <li><strong>Encoding Breakdown:</strong> Step-by-step trace of carrier separation, byte realignment, and decapsulation operations.</li>
+            <li><strong>Sanitized Clean Output:</strong> Copyable version of the cover text with all steganographic bytes stripped.</li>
+            <li><strong>Audit Report Export:</strong> Export standardized forensic audit trails in JSON or Markdown formats for forensic reporting.</li>
+          </ul>
+        </article>
+        
+        <!-- Pager -->
+        <nav class="docs-pager" aria-label="Documentation pagination">
+          <a class="docs-pager__link docs-pager__link--prev" id="docs-prev-link" href="#" hidden>
+            <span class="material-symbols-outlined docs-pager__icon" aria-hidden="true">arrow_back</span>
+            <div class="docs-pager__text">
+              <span class="docs-pager__dir" data-i18n="prevBtn">Previous</span>
+              <span class="docs-pager__label"></span>
+            </div>
+          </a>
+          <a class="docs-pager__link docs-pager__link--next" id="docs-next-link" href="#" hidden>
+            <div class="docs-pager__text">
+              <span class="docs-pager__dir" data-i18n="nextBtn">Next</span>
+              <span class="docs-pager__label"></span>
+            </div>
+            <span class="material-symbols-outlined docs-pager__icon" aria-hidden="true">arrow_forward</span>
+          </a>
+        </nav>
+      </div>
+      
+      <!-- Secondary TOC Column -->
+      <aside class="docs-toc" aria-label="On this page">
+        <p class="docs-toc__heading">On this page</p>
+        <nav id="docs-onpage-toc"></nav>
+      </aside>
+    </div>
+  </div>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="../../js/i18n/common.js"></script>
+  <script src="../../js/i18n/docs.js"></script>
+  <script src="../../js/i18n/docs-articles.js"></script>
+  <script src="../../js/i18n/toasts.js"></script>
+  <script src="../../js/i18n/index.js"></script>
+  <script src="../../js/shared/theme-manager.js"></script>
+  <script src="../../js/docs/nav-data.js"></script>
+  <script src="../../js/docs/docs.js"></script>
+  <script src="../../js/shared/ui-helpers.js"></script>
+  <script src="../../js/shared/template-loader.js"></script>
+</body>
+</html>

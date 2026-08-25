@@ -120,13 +120,10 @@ function doStreamCompress(inputBytes) {
         offset = end;
     }
     let finishing = true;
-    let safetyCounter = 0;
-    while (finishing && safetyCounter++ < 500) {
+    while (finishing) {
         const result = stream.compress(null, OUTPUT_SIZE);
         if (result.buf.length > 0) outputParts.push(new Uint8Array(result.buf));
-        if (result.code === BrotliStreamResultCode.ResultSuccess || result.code === BrotliStreamResultCode.ResultError) {
-            finishing = false;
-        }
+        if (result.code === BrotliStreamResultCode.ResultSuccess) finishing = false;
         result.free();
     }
     stream.free();

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../../assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — Threat Modeling & Mitigation Matrix</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../New_styles.css"/>
+  <link rel="stylesheet" href="../../css/main.css"/>
+  <link rel="stylesheet" href="../../css/pages/docs.css"/>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('stegoTheme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+      const savedLang = localStorage.getItem('stegoLang') || 'en';
+      document.documentElement.setAttribute('lang', savedLang);
+      document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
+      const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
+      document.documentElement.setAttribute('data-arabic-font', savedFont);
+      window.DOCS_BASE = '../../';
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <script src="../../js/features/page-loader.js"></script>
+  <div id="navbar-placeholder"></div>
+
+  <div class="docs-wrap">
+    <div class="docs-layout">
+      <!-- Sidebar Column -->
+      <aside class="docs-sidebar" id="docs-sidebar" aria-label="Documentation navigation">
+        <p class="docs-sidebar__title"><a href="../../documentation.html">Documentation</a></p>
+        <nav id="docs-sidebar-nav"></nav>
+      </aside>
+      
+      <div class="docs-sidebar-backdrop" id="docs-sidebar-backdrop"></div>
+      
+      <!-- Main Content Column -->
+      <div class="docs-main">
+        <button type="button" class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-expanded="false">
+          <span class="material-symbols-outlined">menu</span> Contents
+        </button>
+        
+        <nav class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../documentation.html">Documentation</a>
+          <span class="docs-breadcrumb__sep">/</span>
+          <span>Technical reference</span>
+          <span class="docs-breadcrumb__sep">/</span>
+          <span>Threat Modeling & Mitigation</span>
+        </nav>
+        
+        <article class="docs-article">
+          <h1>Threat Modeling & Security Mitigations</h1>
+          
+          <p>A comprehensive STRIDE-based threat modeling assessment was conducted across all client-side JavaScript components, DOM rendering interfaces, and WebAssembly memory bridges. All nine identified threat vectors were fully mitigated in code.</p>
+
+          <h2>Full Threat Modeling Matrix (Table 4.1)</h2>
+          
+          <div class="docs-table-wrapper">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>Threat Vector</th>
+                  <th>Impact & Severity</th>
+                  <th>Root Cause Analysis</th>
+                  <th>Code-Level Mitigation</th>
+                  <th>Residual Risk</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Uncompressed Fallback Vulnerability</strong></td>
+                  <td>Browser freeze/crash (DoS) due to millions of raw characters; large executable injection.</td>
+                  <td>Legacy fallback in catch blocks reading uncompressed raw bytes if AVIF/Brotli failed.</td>
+                  <td>Completely removed fallback. Any compression failure immediately halts pipeline, resets UI, and alerts user.</td>
+                  <td><span class="badge badge--success">None</span></td>
+                </tr>
+                <tr>
+                  <td><strong>File Signature Bypass</strong></td>
+                  <td>Malicious payload stego-hiding via fake extensions.</td>
+                  <td>Relying solely on file names and browser-reported MIME types with OR operator.</td>
+                  <td>Mandatory Magic Bytes checking and strict extension validation at entry point (<code>handleImgFileSelect</code>).</td>
+                  <td><span class="badge badge--success">None</span></td>
+                </tr>
+                <tr>
+                  <td><strong>HTML Filter Bypass (accept attribute)</strong></td>
+                  <td>Injecting unsupported files into JavaScript runtime.</td>
+                  <td>Drag-and-drop or selecting "All Files" in dialog bypassing HTML <code>accept</code> attribute.</td>
+                  <td>Enforcing programmatic byte-level validation across all input vectors before buffer allocation.</td>
+                  <td><span class="badge badge--success">None</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Object URL Memory Leak</strong></td>
+                  <td>Excessive RAM consumption leading to browser tab crashes during long sessions.</td>
+                  <td>Failing to call <code>URL.revokeObjectURL()</code> on temporary preview links during repeated uploads.</td>
+                  <td>Implemented <code>clearPreviousImgUploadedFile()</code> to immediately revoke previous preview URLs.</td>
+                  <td><span class="badge badge--neutral">Very Low</span> (Memory released on tab close)</td>
+                </tr>
+                <tr>
+                  <td><strong>DOM-Based XSS (Code Injection)</strong></td>
+                  <td>Malicious script execution, session theft, and LocalStorage exfiltration.</td>
+                  <td>Injecting user hints or emoji fields into UI directly via <code>innerHTML</code>.</td>
+                  <td>Implemented <code>escapeHtml(hintText)</code> and <code>replaceChildren()</code> to sanitize all inputs before DOM insertion.</td>
+                  <td><span class="badge badge--neutral">Very Low</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Freezing Tab UI / DOM Bloat</strong></td>
+                  <td>Browser freeze, RAM exhaustion, and tab termination from huge JSON files.</td>
+                  <td>Uploading massive JSON files with thousands of hint objects creating endless DOM nodes.</td>
+                  <td>Enforced strict 50 KB file limit, capped display to 40 items, and constrained field lengths (Hint &le; 60 chars).</td>
+                  <td><span class="badge badge--success">None</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Data Loss & LocalStorage Corruption</strong></td>
+                  <td>Loss of hint history or disabling of the hints tab due to parse exceptions.</td>
+                  <td>Overwriting LocalStorage without prior structural validation of existing data.</td>
+                  <td>Wrapped all JSON operations in <code>try-catch</code> and called <code>validateHints()</code> before writing to storage.</td>
+                  <td><span class="badge badge--neutral">Low</span> (External OS crash only)</td>
+                </tr>
+                <tr>
+                  <td><strong>Logic & Integrity Tampering</strong></td>
+                  <td>Injecting malformed fields, corrupting filter tabs, or hiding crucial data.</td>
+                  <td>Checking only for valid JSON syntax without validating subfield types (e.g. 'sent' vs 'received').</td>
+                  <td>Upgraded <code>validateHints()</code> to enforce strict element schemas and added custom security modal alerts.</td>
+                  <td><span class="badge badge--neutral">Low</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Accidental Data Deletion</strong></td>
+                  <td>Permanent accidental loss of user history due to mistaken button clicks.</td>
+                  <td>Relying on browser native <code>confirm()</code> which is easily dismissed or triggered accidentally.</td>
+                  <td>Replaced with custom confirmation modal featuring backdrop blur and danger-styled action buttons.</td>
+                  <td><span class="badge badge--success">None</span> (Requires conscious click)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+        
+        <!-- Pager -->
+        <nav class="docs-pager" aria-label="Documentation pagination">
+          <a class="docs-pager__link docs-pager__link--prev" id="docs-prev-link" href="#" hidden>
+            <span class="material-symbols-outlined docs-pager__icon" aria-hidden="true">arrow_back</span>
+            <div class="docs-pager__text">
+              <span class="docs-pager__dir" data-i18n="prevBtn">Previous</span>
+              <span class="docs-pager__label"></span>
+            </div>
+          </a>
+          <a class="docs-pager__link docs-pager__link--next" id="docs-next-link" href="#" hidden>
+            <div class="docs-pager__text">
+              <span class="docs-pager__dir" data-i18n="nextBtn">Next</span>
+              <span class="docs-pager__label"></span>
+            </div>
+            <span class="material-symbols-outlined docs-pager__icon" aria-hidden="true">arrow_forward</span>
+          </a>
+        </nav>
+      </div>
+      
+      <!-- Secondary TOC Column -->
+      <aside class="docs-toc" aria-label="On this page">
+        <p class="docs-toc__heading">On this page</p>
+        <nav id="docs-onpage-toc"></nav>
+      </aside>
+    </div>
+  </div>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="../../js/i18n/common.js"></script>
+  <script src="../../js/i18n/docs.js"></script>
+  <script src="../../js/i18n/docs-articles.js"></script>
+  <script src="../../js/i18n/toasts.js"></script>
+  <script src="../../js/i18n/index.js"></script>
+  <script src="../../js/shared/theme-manager.js"></script>
+  <script src="../../js/docs/nav-data.js"></script>
+  <script src="../../js/docs/docs.js"></script>
+  <script src="../../js/shared/ui-helpers.js"></script>
+  <script src="../../js/shared/template-loader.js"></script>
+</body>
+</html>

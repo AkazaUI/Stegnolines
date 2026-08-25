@@ -4,20 +4,42 @@
   <link rel="icon" type="image/png" href="assets/brand/favicon.png" />
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>StegoLines — Documentation Index</title>
-  <meta name="description" content="STEGNOLINES project documentation — guides, reference, and architecture."/>
+  <title>StegoLines — Documentation Portal</title>
+  <meta name="description" content="STEGNOLINES comprehensive scientific & technical documentation — architecture, algorithms, security model, and benchmarks."/>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="New_styles.css"/>
   <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/pages/docs.css"/>
   <script src="js/i18n/common.js"></script>
   <script src="js/i18n/docs.js"></script>
+  <script src="js/i18n/docs-articles.js"></script>
   <script src="js/i18n/toasts.js"></script>
   <script src="js/i18n/index.js"></script>
   <script>
-    window.translations = mergeI18n(I18N_COMMON, I18N_DOCS, I18N_TOASTS);
+    (function() {
+      // Immediate language and font detection to avoid FOUC
+      const savedLang = localStorage.getItem('stegoLang') || 'en';
+      document.documentElement.setAttribute('lang', savedLang);
+      document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
+      
+      const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
+      document.documentElement.setAttribute('data-arabic-font', savedFont);
+
+      const savedTheme = localStorage.getItem('stegoTheme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+
+      window.DOCS_BASE = '';
+      window.translations = mergeI18n(I18N_COMMON, I18N_DOCS, I18N_TOASTS);
+    })();
   </script>
   <script src="js/shared/theme-manager.js"></script>
   <script src="js/shared/connection-monitor.js"></script>
-  <script>window.DOCS_BASE = '';</script>
 </head>
 <body class="docs-body docs-index-page">
   <script src="js/features/page-loader.js"></script>
@@ -27,10 +49,41 @@
 
   <!-- ═══ Main Content ═══ -->
   <main class="main-content docs-index-main">
-    <header class="main-header">
-      <h1 class="text-display-lg" data-i18n="docsTitle">Documentation Index</h1>
-      <p class="text-body-lg" data-i18n="docsSubtitle">Guides, references, and technical docs for the STEGNOLINES steganography platform.</p>
+    <header class="main-header" style="text-align: center; margin-bottom: 2rem;">
+      <h1 class="text-display-lg" data-i18n="docsTitle" style="font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 800; margin-bottom: 0.75rem;">Documentation Portal</h1>
+      <p class="text-body-lg" data-i18n="docsSubtitle" style="max-width: 750px; margin: 0 auto; color: var(--color-on-surface-variant);">
+        Comprehensive scientific, architectural, and technical documentation for the Hybrid Text Steganography System.
+      </p>
     </header>
+
+    <!-- Key Performance & Security Metrics Bar -->
+    <section class="docs-metrics-grid" aria-label="System Performance Highlights">
+      <div class="docs-metric-card">
+        <span class="material-symbols-outlined docs-metric-card__icon">visibility_off</span>
+        <div class="docs-metric-card__value" data-i18n="metricImperceptibility">100% Invisibility</div>
+        <div class="docs-metric-card__label" data-i18n="metricImperceptibilityDesc">Zero visual distortions</div>
+      </div>
+      <div class="docs-metric-card">
+        <span class="material-symbols-outlined docs-metric-card__icon">verified_user</span>
+        <div class="docs-metric-card__value" data-i18n="metricRobustness">9/9 Platforms</div>
+        <div class="docs-metric-card__label" data-i18n="metricRobustnessDesc">100% survival on social apps</div>
+      </div>
+      <div class="docs-metric-card">
+        <span class="material-symbols-outlined docs-metric-card__icon">lock</span>
+        <div class="docs-metric-card__value" data-i18n="metricCrypto">PBKDF2 + AES-256</div>
+        <div class="docs-metric-card__label" data-i18n="metricCryptoDesc">100k rounds & CTR stream</div>
+      </div>
+      <div class="docs-metric-card">
+        <span class="material-symbols-outlined docs-metric-card__icon">task_alt</span>
+        <div class="docs-metric-card__value" data-i18n="metricTests">139/139 Tests</div>
+        <div class="docs-metric-card__label" data-i18n="metricTestsDesc">100% Jest pass across 9 suites</div>
+      </div>
+      <div class="docs-metric-card">
+        <span class="material-symbols-outlined docs-metric-card__icon">cloud_off</span>
+        <div class="docs-metric-card__value" data-i18n="metricClientSide">0 Server Calls</div>
+        <div class="docs-metric-card__label" data-i18n="metricClientSideDesc">Client-side WASM & Web Crypto</div>
+      </div>
+    </section>
 
     <!-- Search Section -->
     <section class="card docs-index-search-card" aria-label="Search documentation">
@@ -40,16 +93,17 @@
           type="search"
           class="form-input docs-index-search__input"
           id="docs-search-input"
-          placeholder="What can we help you find?"
+          placeholder="Search topics, algorithms, math specs, or tests (e.g. Brotli, AES, PRNG, Robustness)..."
           aria-label="Search documentation"
+          data-i18n-placeholder="docsSearchPlaceholder"
         />
         <button type="submit" class="btn btn--primary docs-index-search__submit" data-i18n="searchBtn">Search</button>
       </form>
     </section>
 
-    <!-- Index Grid (Dynamically Populated) -->
+    <!-- Index Grid (Dynamically Populated from nav-data.js) -->
     <div class="docs-index-grid" id="docs-index-grid">
-      <!-- Generated via JS -->
+      <!-- Generated via docs.js -->
     </div>
   </main>
 

@@ -4,14 +4,13 @@
   <link rel="icon" type="image/png" href="../../assets/brand/favicon.png" />
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>StegoLines — Capacity & hints</title>
+  <title>StegoLines — Capacity Management & Hints Protocol</title>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../../New_styles.css"/>
   <link rel="stylesheet" href="../../css/main.css"/>
   <link rel="stylesheet" href="../../css/pages/docs.css"/>
   <script>
     (function() {
-      // Retrieve theme preference immediately to prevent FOUC
       const savedTheme = localStorage.getItem('stegoTheme');
       if (savedTheme === 'dark') {
         document.documentElement.classList.add('dark');
@@ -20,158 +19,18 @@
         document.documentElement.classList.add('light');
         document.documentElement.classList.remove('dark');
       }
-
-      // Retrieve language preference immediately
       const savedLang = localStorage.getItem('stegoLang') || 'en';
       document.documentElement.setAttribute('lang', savedLang);
       document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
-
-      // Retrieve Arabic font preference immediately
       const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
       document.documentElement.setAttribute('data-arabic-font', savedFont);
-
       window.DOCS_BASE = '../../';
     })();
   </script>
 </head>
 <body class="docs-body">
   <script src="../../js/features/page-loader.js"></script>
-  <!-- ═══ Top Navigation ═══ -->
-  <nav class="top-nav" id="top-nav">
-    <div class="top-nav__inner">
-
-      <!-- Brand -->
-      <a class="top-nav__brand" href="../../index.html" id="brand-link">
-        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="../../assets/brand/logo-dark.png" alt="STEGNOLINES"/>
-        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="../../assets/brand/logo-light.png" alt="STEGNOLINES"/>
-      </a>
-
-      <!-- Desktop Nav Links -->
-      <nav class="top-nav__links" id="desktop-nav">
-        <div class="top-nav__dropdown" id="nav-embed-dropdown">
-          <button class="top-nav__dropdown-trigger" id="nav-embed" aria-expanded="false" aria-haspopup="true">
-            <span class="material-symbols-outlined">lock</span>
-            <span class="text-label-md" data-i18n="navEmbed">Embed</span>
-            <span class="material-symbols-outlined top-nav__dropdown-chevron">expand_more</span>
-          </button>
-          <div class="top-nav__dropdown-panel" id="embed-dropdown-panel">
-            <a class="top-nav__dropdown-item" href="../../index.html#text" data-tab="text">
-              <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">description</span>
-              </div>
-              <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title" data-i18n="emTabText">Text Embed</span>
-                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownTextDesc">Conceal secret text inside cover text</span>
-              </div>
-            </a>
-            <a class="top-nav__dropdown-item" href="../../index.html#image" data-tab="image">
-              <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">image</span>
-              </div>
-              <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title" data-i18n="emTabImage">Image Embed</span>
-                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownImageDesc">Hide a mini image inside cover text</span>
-              </div>
-            </a>
-          </div>
-        </div>
-
-        <div class="top-nav__dropdown" id="nav-extract-dropdown">
-          <button class="top-nav__dropdown-trigger" id="nav-extract" aria-expanded="false" aria-haspopup="true">
-            <span class="material-symbols-outlined">lock_open</span>
-            <span class="text-label-md" data-i18n="navExtract">Extract</span>
-            <span class="material-symbols-outlined top-nav__dropdown-chevron">expand_more</span>
-          </button>
-          <div class="top-nav__dropdown-panel" id="extract-dropdown-panel">
-            <a class="top-nav__dropdown-item" href="../../extract.html#standard" data-tab="standard">
-              <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">screen_search_desktop</span>
-              </div>
-              <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title" data-i18n="exTabStandard">Standard Extract</span>
-                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownStandardDesc">Decrypt with key & params</span>
-              </div>
-            </a>
-            <a class="top-nav__dropdown-item" href="../../extract.html#scanner" data-tab="scanner">
-              <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">cell_tower</span>
-              </div>
-              <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title" data-i18n="exTabScanner">Scanner</span>
-                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownScannerDesc">Scan chat history for secrets</span>
-              </div>
-            </a>
-            <a class="top-nav__dropdown-item" href="../../extract.html#hints" data-tab="hints">
-              <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">lightbulb</span>
-              </div>
-              <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title" data-i18n="exTabHints">Hints</span>
-                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownHintsDesc">View stego hints log</span>
-              </div>
-            </a>
-            <a class="top-nav__dropdown-item" href="../../extract.html#image" data-tab="image">
-              <div class="top-nav__dropdown-item-icon">
-                <span class="material-symbols-outlined">image</span>
-              </div>
-              <div class="top-nav__dropdown-item-text">
-                <span class="top-nav__dropdown-item-title" data-i18n="exTabImage">Image Extract</span>
-                <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownImageDesc">Reveal hidden image payload</span>
-              </div>
-            </a>
-          </div>
-        </div>
-
-        <a class="top-nav__link top-nav__link--active" href="../../documentation.html" id="nav-docs">
-          <span class="material-symbols-outlined">help</span>
-          <span class="text-label-md" data-i18n="navDocs">Documentation</span>
-        </a>
-      </nav>
-
-      <!-- Dynamic theme toggle / Preferences Trigger button -->
-      <div class="top-nav__actions">
-        <input type="checkbox" id="toggle-dark-mode" style="display: none !important;" />
-        <button class="icon-btn" id="top-nav-settings" aria-label="Settings" title="Settings">
-          <span class="material-symbols-outlined">settings</span>
-        </button>
-      </div>
-
-      <!-- Hamburger (Mobile layout) -->
-      <button class="top-nav__hamburger" id="hamburger-btn" aria-label="Open menu">
-        <span class="material-symbols-outlined">menu</span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- Mobile Navigation Drawer -->
-  <div class="top-nav__mobile-menu" id="mobile-menu">
-    <button class="top-nav__link" id="mobile-embed-toggle" type="button" style="border:none; background:none; width:100%; text-align:left; cursor:pointer; display:flex; align-items:center;">
-      <span class="material-symbols-outlined">lock</span>
-      <span class="text-label-md" data-i18n="navEmbed" style="margin-left: 8px;">Embed</span>
-      <span class="material-symbols-outlined" style="margin-left: auto;">expand_more</span>
-    </button>
-    <div class="top-nav__mobile-dropdown-items" id="mobile-embed-items" style="display:none; padding-left: 20px;">
-      <a class="top-nav__link" href="../../index.html#text" data-tab="text" data-i18n="emTabText">Text Embed</a>
-      <a class="top-nav__link" href="../../index.html#image" data-tab="image" data-i18n="emTabImage">Image Embed</a>
-    </div>
-
-    <button class="top-nav__link" id="mobile-extract-toggle" type="button" style="border:none; background:none; width:100%; text-align:left; cursor:pointer; display:flex; align-items:center; margin-top:12px;">
-      <span class="material-symbols-outlined">lock_open</span>
-      <span class="text-label-md" data-i18n="navExtract" style="margin-left: 8px;">Extract</span>
-      <span class="material-symbols-outlined" style="margin-left: auto;">expand_more</span>
-    </button>
-    <div class="top-nav__mobile-dropdown-items" id="mobile-extract-items" style="display:none; padding-left: 20px;">
-      <a class="top-nav__link" href="../../extract.html#standard" data-tab="standard" data-i18n="exTabStandard">Standard Extract</a>
-      <a class="top-nav__link" href="../../extract.html#scanner" data-tab="scanner" data-i18n="exTabScanner">Scanner</a>
-      <a class="top-nav__link" href="../../extract.html#hints" data-tab="hints" data-i18n="exTabHints">Hints</a>
-      <a class="top-nav__link" href="../../extract.html#image" data-tab="image" data-i18n="exTabImage">Image Extract</a>
-    </div>
-
-    <a class="top-nav__link" href="../../documentation.html" style="margin-top:12px; display:flex; align-items:center;">
-      <span class="material-symbols-outlined" style="margin-right: 8px;">help</span>
-      <span class="text-label-md" data-i18n="navDocs">Documentation</span>
-    </a>
-  </div>
+  <div id="navbar-placeholder"></div>
 
   <div class="docs-wrap">
     <div class="docs-layout">
@@ -198,18 +57,33 @@
         </nav>
         
         <article class="docs-article">
-          <h1>Capacity & hints</h1>
-          <p>Understanding Shannon capacity constraints and zero-overhead hint mechanisms is crucial for utilizing steganographic systems effectively.</p>
+          <h1>Capacity Management & Hints Protocol</h1>
+          
+          <p>This guide explains the mathematical formulas governing embedding capacity, the adaptive Brotli compression protocol, and the zero-overhead hint storage model.</p>
 
-<h2>Shannon Capacity & Text Carrier Metrics</h2>
-<p>Each character in the cover text provides a finite number of bits. In JavaScript, strings are UTF-16 encoded, yielding 16 bits per character. The maximum Shannon capacity $C_{max}$ in bits is determined by:
-$$C_{max} = 16 	imes N_{char}$$
-Where $N_{char}$ is the number of characters in the cover text. The payload bit length $K$ must satisfy $K le C_{max}$. The capacity indicator in the UI alerts you through green (safe), yellow (warning), and red (critical) states.</p>
+          <h2>1. Embedding Capacity Formula</h2>
+          <p>In the bit-mapping architecture, each bit of the compressed and encrypted secret payload matches a randomly selected bit in the cover text carrier. The <strong>Capacity Ratio</strong> is calculated as:</p>
+          <div class="math-box">
+            Capacity_Ratio = (Secret_Text_Size / Cover_Text_Size) &times; 100%
+          </div>
+          <p>The system supports a maximum theoretical capacity ratio of <strong>100% (1:1 byte-for-byte)</strong> without causing visual distortion. If the secret payload exceeds 100% of the available cover capacity, the UI prevents execution and displays an alert requesting a longer cover text.</p>
 
-<h2>Zero-Overhead Hint Ingress</h2>
-<p>STEGNOLINES packages the secret message and hint into a unified byte stream. When a hint is present, a separator byte is injected between them:
-$$	ext{Payload} = [	ext{Message Bytes}] + [0	ext{xFF}] + [	ext{Hint Bytes}]$$
-The byte $0	ext{xFF}$ is an illegal byte in the UTF-8 specification, which means it can NEVER appear in valid UTF-8 text. Therefore, $0	ext{xFF}$ serves as an absolute, zero-overhead boundary marker that can be recognized instantly during extraction without adding any padding or sizing metadata!</p>
+          <h2>2. Space Savings via Adaptive Brotli Compression</h2>
+          <p>The Brotli compression engine reduces the secret text size before encryption, dynamically calculated as:</p>
+          <div class="math-box">
+            Space_Savings_Ratio = (1 - Compressed_Size / Uncompressed_Size) &times; 100%
+          </div>
+          <p>For repetitive natural text (such as English or Arabic paragraphs), Brotli achieves up to <strong>55.5% space savings</strong>, effectively doubling the secret data capacity that can fit into a given cover text.</p>
+
+          <h2>3. The <code>0xFE</code> Flag Protocol</h2>
+          <p>To eliminate dictionary bloat on extremely short strings (where compressed output is larger than plain text), the system employs an adaptive flag byte:</p>
+          <ul>
+            <li><strong>Compressed Mode:</strong> If <code>CompressedBytes &lt; RawBytes</code>, a single prefix byte <code>0xFE</code> is prepended.</li>
+            <li><strong>Bypass Mode:</strong> If <code>CompressedBytes &ge; RawBytes</code>, the raw payload is transmitted directly without the <code>0xFE</code> flag.</li>
+          </ul>
+
+          <h2>4. Zero-Overhead Recovery Hints Protocol</h2>
+          <p>The system allows senders to embed optional password hints or context tags without transmitting extra files. The payload codec formats the hint alongside the secret payload using a deterministic internal delimiter before compression and encryption.</p>
         </article>
         
         <!-- Pager -->
@@ -239,88 +113,17 @@ The byte $0	ext{xFF}$ is an illegal byte in the UTF-8 specification, which means
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="main-footer">
-    <div class="main-footer__inner">
-      <div class="main-footer__brand">
-        <div class="main-footer__title" data-i18n="footerTitle">STEGNOLINES</div>
-        <p class="text-body-sm" style="max-width: 300px;" data-i18n="footerSubtitle">
-          Advanced Zero-Overhead Contextual Steganography and Cryptography for secure transmission.
-        </p>
-      </div>
-      
-      <div class="main-footer__cols-group">
-        <!-- Column 1: Embed -->
-        <div class="main-footer__col">
-          <div class="main-footer__col-title" data-i18n="footerColEmbed">Embed</div>
-          <ul class="main-footer__col-links">
-            <li><a href="../../index.html#text" class="main-footer__link" data-i18n="footerEmbedText">Text Steganography</a></li>
-            <li><a href="../../index.html#image" class="main-footer__link" data-i18n="footerEmbedImage">Image Steganography</a></li>
-          </ul>
-        </div>
+  <div id="footer-placeholder"></div>
 
-        <!-- Column 2: Extract -->
-        <div class="main-footer__col">
-          <div class="main-footer__col-title" data-i18n="footerColExtract">Extract</div>
-          <ul class="main-footer__col-links">
-            <li><a href="../../extract.html#standard" class="main-footer__link" data-i18n="footerExtractStandard">Standard Extract</a></li>
-            <li><a href="../../extract.html#scanner" class="main-footer__link" data-i18n="footerExtractScanner">Chat Scanner</a></li>
-            <li><a href="../../extract.html#hints" class="main-footer__link" data-i18n="footerExtractHints">Stego Hints Log</a></li>
-            <li><a href="../../extract.html#image" class="main-footer__link" data-i18n="footerExtractImage">Image Payload Recovery</a></li>
-          </ul>
-        </div>
-
-                <!-- Column: Steganalysis -->
-        <div class="main-footer__col">
-          <div class="main-footer__col-title" data-i18n="footerColSteganalysis">Steganalysis</div>
-          <ul class="main-footer__col-links">
-            <li><a href="../../steganalysis.html" class="main-footer__link" data-i18n="footerSteganalysis">Text Steganalysis</a></li>
-          </ul>
-        </div>
-
-<!-- Column 3: Documentation -->
-        <div class="main-footer__col">
-          <div class="main-footer__col-title" data-i18n="footerColResources">Documentation</div>
-          <ul class="main-footer__col-links">
-            <li><a href="../../docs/getting-started/overview.html" class="main-footer__link" data-i18n="footerResDocs">Getting started</a></li>
-            <li><a href="../../docs/user-guide/embedding.html" class="main-footer__link" data-i18n="footerResUi">User guide</a></li>
-            <li><a href="../../docs/technical-reference/pipeline.html" class="main-footer__link" data-i18n="footerResTest">Technical reference</a></li>
-            <li><a href="../../docs/development/project-structure.html" class="main-footer__link" data-i18n="footerResDev">Development</a></li>
-          </ul>
-        </div>
-
-        <!-- Column 4: Team -->
-        <div class="main-footer__col">
-          <div class="main-footer__col-title" data-i18n="footerColTeam">Team</div>
-          <ul class="main-footer__col-links">
-            <li><a href="../../about us.html" class="main-footer__link" data-i18n="footerAboutTeam">About Team</a></li>
-            <li><a href="../../contact team.html" class="main-footer__link" data-i18n="footerContactTeam">Contact With Team</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="main-footer__bottom">
-      <span>&copy; 2026 STEGNOLINES. All rights reserved.</span>
-    </div>
-  </footer>
-
-  <script src="../../js/utils.js"></script>
+  <script src="../../js/i18n/common.js"></script>
+  <script src="../../js/i18n/docs.js"></script>
+  <script src="../../js/i18n/docs-articles.js"></script>
+  <script src="../../js/i18n/toasts.js"></script>
+  <script src="../../js/i18n/index.js"></script>
   <script src="../../js/shared/theme-manager.js"></script>
   <script src="../../js/docs/nav-data.js"></script>
   <script src="../../js/docs/docs.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const savedLang = localStorage.getItem('stegoLang') || 'en';
-      const guideBtn = document.querySelector('.floating-guide-btn');
-      if (guideBtn) {
-        guideBtn.setAttribute('data-tooltip', savedLang === 'ar' ? 'إرشادات الموقع' : 'Site Guide');
-      }
-    });
-  </script>
-
-  <!-- Floating Help/Guide Button -->
-  <button type="button" class="floating-guide-btn" data-tooltip="Site Guide">
-    <span class="material-symbols-outlined">help</span>
-  </button>
+  <script src="../../js/shared/ui-helpers.js"></script>
+  <script src="../../js/shared/template-loader.js"></script>
 </body>
 </html>

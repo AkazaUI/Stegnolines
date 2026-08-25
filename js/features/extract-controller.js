@@ -122,6 +122,14 @@ async function performExtraction() {
   const rawStegoKeyEl = document.getElementById('extractStegoKey');
   const rawStegoKey = rawStegoKeyEl ? rawStegoKeyEl.value.trim() : '';
 
+  // ── EMOJI INPUT VALIDATION ──
+  const emojiError = validateEmojiInputs([
+    { el: 'extractCover', name: { en: "Stego-Text", ar: "نص الإخفاء" } },
+    { el: 'extractStegoKey', name: { en: "Pre-Shared Key", ar: "المفتاح المشترك مسبقاً" } },
+    { el: 'extractEncryptionKey', name: { en: "Encryption Key", ar: "مفتاح التشفير" } }
+  ]);
+  if (emojiError) return;
+
   if (!stegoText) return showToast('⚠ Please input the stego-text.');
   if (!rawStegoKey) return showToast('⚠ Please input the Pre-Shared Key (Stego-Key).');
 
@@ -246,6 +254,11 @@ function applyLanguage(lang) {
       el.setAttribute('data-tooltip', TRANSLATIONS[lang][key]);
     }
   });
+
+  // Update ChatScanner if present
+  if (window.ChatScanner && typeof window.ChatScanner.applyLanguage === 'function') {
+    window.ChatScanner.applyLanguage(lang);
+  }
 
   // Update current selected platform text if it has a dynamic i18n
   const selectLabel = document.getElementById('platformSelectLabel');

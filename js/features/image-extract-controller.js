@@ -56,6 +56,13 @@ async function performImageExtraction() {
   const stegoText = document.getElementById('imgExtractStego').value.trim();
   const stegoKey = document.getElementById('imgExtractKey').value.trim();
 
+  // ── EMOJI INPUT VALIDATION ──
+  const emojiError = validateEmojiInputs([
+    { el: 'imgExtractStego', name: { en: "Stego-Text", ar: "نص الإخفاء" } },
+    { el: 'imgExtractKey', name: { en: "AES-CTR Key", ar: "مفتاح فك التشفير AES-CTR" } }
+  ]);
+  if (emojiError) return;
+
   // 1. Validations
   if (!stegoText) {
     showToast(currentLang === 'ar' ? '⚠ الرجاء إدخال النص الإخفائي.' : '⚠ Please input the stego-text.');
@@ -68,11 +75,168 @@ async function performImageExtraction() {
 
   try {
     const startTime = performance.now();
-    // 2. Extract Variation Selector bytes from stego text
-    const { vsBytes, cleanText: coverText } = extractVSFromText(stegoText);
+    // 2. Split stego text by lines and extract hidden VS bytes
+    const stegoLines = stegoText.split(/\r?\n/).filter(line => line.length > 0);
+    let allExtractedLines = [];
 
-    if (vsBytes.length === 0) {
+    const extractVS = (typeof window.MultiMessageProtocol !== 'undefined' && window.MultiMessageProtocol.extractVSFromMessage)
+      ? window.MultiMessageProtocol.extractVSFromMessage
+      : extractVSFromText;
+
+    for (const line of stegoLines) {
+      const { vsBytes, cleanText } = extractVS(line);
+      if (vsBytes.length > 0) {
+        allExtractedLines.push({ vsBytes, cleanText, lineText: line });
+      }
+    }
+
+    if (allExtractedLines.length === 0) {
       throw new Error(currentLang === 'ar' ? 'لا توجد أحرف إخفاء (VS) مخفية في النص. تأكد من نسخ النص بالكامل.' : 'No hidden VS characters found in the message. Make sure to paste the complete text.');
+    }
+
+    // Check if first extracted line has Multi-Message Protocol Magic 'SLM' (0x53 0x4C 0x4D)
+    const firstVs = allExtractedLines[0].vsBytes;
+    const isMultiMessage = (firstVs.length >= 64 &&
+      firstVs[0] === 0x53 && firstVs[1] === 0x4C && firstVs[2] === 0x4D);
+
+    let vsBytes;
+    let coverText;
+
+    if (isMultiMessage) {
+      // ── MULTI-MESSAGE REASSEMBLY PIPELINE ──
+      const parsedChunks = [];
+      const coverTextParts = [];
+
+      for (const item of allExtractedLines) {
+        const header = window.MultiMessageProtocol.parseChunkHeader(item.vsBytes);
+        if (!header) {
+          throw new Error(currentLang === 'ar'
+            ? 'تنسيق ترويسة الرسائل المتعددة غير صالح أو تالف.'
+            : 'Invalid or corrupted multi-message header structure.');
+        }
+
+        const chunkPayload = item.vsBytes.subarray(64);
+        if (chunkPayload.length !== header.chunkDataLen) {
+          throw new Error(currentLang === 'ar'
+            ? `طول الجزء (${header.chunkIndex + 1}) لا يطابق الترويسة.`
+            : `Chunk (${header.chunkIndex + 1}) payload length mismatch.`);
+        }
+
+        // Verify per-chunk CRC32
+        const computedCrc = window.MultiMessageProtocol.computeCRC32(chunkPayload);
+        if (computedCrc !== header.chunkCrc32) {
+          throw new Error(currentLang === 'ar'
+            ? `فحص والسلامة (CRC32) للجزء (${header.chunkIndex + 1}) فشل. الجزء تالف.`
+            : `CRC32 checksum verification failed for chunk (${header.chunkIndex + 1}). Data corrupted.`);
+        }
+
+        parsedChunks.push({
+          header,
+          data: chunkPayload,
+          cleanText: item.cleanText
+        });
+      }
+
+      // Ensure all chunks belong to the same Transfer ID
+      const targetTransferId = parsedChunks[0].header.transferIdHex;
+      for (const c of parsedChunks) {
+        if (c.header.transferIdHex !== targetTransferId) {
+          throw new Error(currentLang === 'ar'
+            ? 'تم اكتشاف رسائل تنتمي لجلسات نقل مختلفة. يرجى التنسيق ونقل أجزاء الصورة نفسها فقط.'
+            : 'Detected messages from different transfer sessions. Please paste messages from the same image.');
+        }
+      }
+
+      const totalChunksNeeded = parsedChunks[0].header.totalChunks;
+      const receivedIndices = new Map();
+
+      for (const c of parsedChunks) {
+        const idx = c.header.chunkIndex;
+        if (receivedIndices.has(idx)) {
+          // Check for duplicate chunk
+          const existing = receivedIndices.get(idx);
+          if (existing.header.chunkCrc32 !== c.header.chunkCrc32) {
+            throw new Error(currentLang === 'ar'
+              ? `تعارض في الجزء المكرر (${idx + 1}). البيانات غير متطابقة.`
+              : `Conflicting duplicate chunk (${idx + 1}) detected.`);
+          }
+          continue; // Deduplicate identical chunk safely
+        }
+        receivedIndices.set(idx, c);
+      }
+
+      // Check missing chunk indexes
+      const missingList = [];
+      for (let i = 0; i < totalChunksNeeded; i++) {
+        if (!receivedIndices.has(i)) {
+          missingList.push(i + 1);
+        }
+      }
+
+      if (missingList.length > 0) {
+        const missingStr = missingList.join(', ');
+        throw new Error(currentLang === 'ar'
+          ? `أجزاء مفقودة! الأجزاء التالية لم يتم تسلمها: [${missingStr}] من أصل ${totalChunksNeeded}.`
+          : `Missing chunks! The following parts were not received: [${missingStr}] of ${totalChunksNeeded}.`);
+      }
+
+      // Reassemble chunks in exact order
+      const orderedChunks = [];
+      for (let i = 0; i < totalChunksNeeded; i++) {
+        orderedChunks.push(receivedIndices.get(i));
+      }
+
+      const totalReassembledLen = orderedChunks.reduce((sum, c) => sum + c.data.length, 0);
+      vsBytes = new Uint8Array(totalReassembledLen);
+      let byteOffset = 0;
+
+      for (const c of orderedChunks) {
+        vsBytes.set(c.data, byteOffset);
+        byteOffset += c.data.length;
+        coverTextParts.push(c.cleanText);
+      }
+
+      coverText = coverTextParts.join('\n');
+
+      // Verify SHA-256 digest of reassembled encrypted payload
+      const expectedShaHex = parsedChunks[0].header.fullPayloadSha256Hex;
+      const actualSha = await window.MultiMessageProtocol.computeSha256Raw(vsBytes);
+      const actualShaHex = Array.from(actualSha).map(b => b.toString(16).padStart(2, '0')).join('');
+
+      if (expectedShaHex !== actualShaHex) {
+        throw new Error(currentLang === 'ar'
+          ? 'فحص التشفير الكامل (SHA-256) يفيد بتلف الحمولة المجمعة.'
+          : 'Full payload SHA-256 integrity check failed. The assembled payload is corrupted.');
+      }
+
+    } else {
+      // ── LEGACY SINGLE-MESSAGE EXTRACTION PIPELINE ──
+      const chunks = [];
+      for (const item of allExtractedLines) {
+        const id = item.vsBytes[0];
+        const data = item.vsBytes.subarray(1);
+        chunks.push({ id, data, cleanText: item.cleanText });
+      }
+
+      chunks.sort((a, b) => a.id - b.id);
+      for (let i = 0; i < chunks.length; i++) {
+        if (chunks[i].id !== i) {
+          throw new Error(currentLang === 'ar' ? 'هناك أجزاء مفقودة من النص الإخفائي. تأكد من نسخ جميع النصوص بالكامل.' : 'Missing chunks detected. Make sure you copied all the parts.');
+        }
+      }
+
+      const totalDataSize = chunks.reduce((sum, chunk) => sum + chunk.data.length, 0);
+      vsBytes = new Uint8Array(totalDataSize);
+      let offsetData = 0;
+      const coverTextParts = [];
+
+      for (const chunk of chunks) {
+        vsBytes.set(chunk.data, offsetData);
+        offsetData += chunk.data.length;
+        coverTextParts.push(chunk.cleanText);
+      }
+
+      coverText = coverTextParts.join('\n');
     }
 
     // 3. Verify standard file steganographic payload marker for images

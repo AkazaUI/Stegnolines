@@ -39,17 +39,17 @@ const pages = [
   <strong>System Layer Blueprint</strong>
   <p>1. <strong>Payload Orchestration:</strong> Brotli Compression -> Boundary Marker Insertion (with zero-overhead delimiters).</p>
   <p>2. <strong>Cryptographic Engine:</strong> PBKDF2 Counter Block Derivation -> AES-256-CTR Cipherstream Execution.</p>
-  <p>3. <strong>PRNG Matrix Generator:</strong> DJB2 Seeding -> Mulberry32 Position Mapping -> Fisher-Yates Bit Selection.</p>
+  <p>3. <strong>CSPRNG Spatial Generator:</strong> PBKDF2 Key Derivation (100k rounds) -> AES-256-CTR CSPRNG -> Unbiased Rejection Sampling -> O(K) Lazy Fisher-Yates (with Dual-Engine Legacy Fallback).</p>
   <p>4. <strong>Bitwise Hide/XOR Masking:</strong> Generating XOR keys by comparing selected cover bits and ciphertext bits.</p>
   <p>5. <strong>Unicode Variation Selector (VS) Codec:</strong> Translating XOR key bytes into invisible BMP/Supplementary range variation selectors.</p>
 </div>
 
 <h2>High-Level Dataflow</h2>
 <h3>The Embedding Process</h3>
-<p>When a user conceals a message, the orchestrator translates the plain text and hint into bytes, compresses them, and runs AES-256-CTR. The key and counter are dynamically derived via PBKDF2 utilizing a salt built from the SHA-256 hash of the cover text. Deterministic bit positions in the cover text are calculated using the Mulberry32 PRNG (seeded by hashing the stego-key with DJB2). The stego composer compares the cover bits at those positions with the ciphertext bits, generating an XOR key. This XOR key is mapped byte-by-byte to invisible Variation Selector characters, which are prepended to the cover text, forming the stego object.</p>
+<p>When a user conceals a message, the orchestrator translates the plain text and hint into bytes, compresses them, and runs AES-256-CTR. The key and counter are dynamically derived via PBKDF2 utilizing a salt built from the SHA-256 hash of the cover text. Deterministic bit positions in the cover text are calculated using the AES-256-CTR CSPRNG with Unbiased Rejection Sampling and O(K) Lazy Fisher-Yates mapping (seeded by deriving the stego-key with PBKDF2-HMAC-SHA256). The stego composer compares the cover bits at those positions with the ciphertext bits, generating an XOR key. This XOR key is mapped byte-by-byte to invisible Variation Selector characters, which are prepended to the cover text, forming the stego object.</p>
 
 <h3>The Extraction Process</h3>
-<p>The receiver's extraction engine captures the stego object, extracts the invisible Variation Selector bytes, and converts them back to the binary XOR key. The cover text is resolved, hashed, and run through the Mulberry32 PRNG to retrieve the exact same bit positions. By applying bitwise XOR between the cover bits at those positions and the XOR key, the ciphertext is reconstructed, decrypted using AES-CTR, decompressed via Brotli, and split into the original secret message and hint.</p>` 
+<p>The receiver's extraction engine captures the stego object, extracts the invisible Variation Selector bytes, and converts them back to the binary XOR key. The cover text is resolved and run through the dual-engine extraction pipeline (trying modern CSPRNG first, then legacy Mulberry32 fallback) to retrieve the exact same bit positions. By applying bitwise XOR between the cover bits at those positions and the XOR key, the ciphertext is reconstructed, decrypted using AES-CTR, decompressed via Brotli, and split into the original secret message and hint.</p>` 
   },
   { 
     file: 'getting-started/components.html', 
@@ -68,7 +68,7 @@ const pages = [
   <li><strong>Steganographic Pipeline (<code>js/core/stego/</code>):</strong>
     <ul>
       <li><code>payload-codec.js</code>: Packages secret messages and hints into single-byte delimited byte arrays.</li>
-      <li><code>prng-generator.js</code>: Harnesses DJB2 and Mulberry32 to generate highly-distributed, deterministic bit indices.</li>
+      <li><code>prng-generator.js</code>: Executes PBKDF2-HMAC-SHA256, AES-256-CTR CSPRNG, and Unbiased Rejection Sampling to generate deterministic, unbiased bit indices with dual-engine legacy fallback.</li>
       <li><code>xor-mask.js</code>: Executes the bitwise exclusive-OR masking operations between cover carrier bits and payload bits.</li>
       <li><code>vs-codec.js</code>: Codes bytes into invisible Unicode Variation Selector characters and decodes them back.</li>
       <li><code>stego-composer.js</code>: The master orchestrator that integrates all compression, encryption, PRNG mapping, and VS codecs into single-call hide/extract APIs.</li>
@@ -176,10 +176,10 @@ $$\text{Counter}_{CTR} = \text{DerivedBytes}[32\dots 47] \quad \text{(128 bits)}
 $$\text{CipherBytes} = \text{AES-CTR}(\text{PayloadBytes}, \text{Key}_{AES}, \text{Counter}_{CTR})$$
 The ciphertext $\text{CipherBytes}$ is translated into a binary stream of bits $M = [m_1, m_2, \dots, m_K]$.</p>
 
-<h3>3. DJB2 Seed Generation & Mulberry32 PRNG</h3>
-<p>The stego-key is mapped to a 32-bit unsigned seed using the DJB2 hash algorithm:
-$$\text{Seed} = \text{DJB2}(\text{StegoKey}) = \left( 5381 \times 33^{L} + \sum_{i=1}^{L} \text{ord}(s_i) \times 33^{L-i} \right) \pmod{2^{32}}$$
-This seed is supplied to the Mulberry32 PRNG to yield a deterministic random number stream $R = [r_1, r_2, \dots, r_K]$ where $r_i \in [0, 1)$.</p>
+<h3>3. PBKDF2 Key Derivation & AES-256-CTR CSPRNG</h3>
+<p>The stego-key is derived into a 256-bit key using PBKDF2-HMAC-SHA256 with 100,000 iterations:
+$$\text{Key}_{256} = \text{PBKDF2}(\text{StegoKey}, \text{Salt}_{\text{domain}}, 100000) \quad \text{(256 bits)}$$
+This key seeds the AES-256-CTR CSPRNG block cipher generator. Unbiased rejection sampling eliminates modulo bias, yielding uniformly distributed random bit indices $P = [p_1, p_2, \dots, p_K]$ via an $O(K)$ Lazy Fisher-Yates shuffle (with automatic fallback to legacy Mulberry32 for older messages).</p>
 
 <h3>4. Deterministic Shuffling & Bit XOR Masking</h3>
 <p>The bitwise positions $P = [p_1, p_2, \dots, p_K]$ are generated using a partial Fisher-Yates shuffle. For each ciphertext bit $m_j$ and selected cover bit $c_{p_j}$, the XOR key bit $k_j$ is:
@@ -221,7 +221,7 @@ $$\text{VS\_CodePoint}(B) = \begin{cases}
 
 <h2>Available System Parameters</h2>
 <ul>
-  <li><strong>Stego Key:</strong> Seeds the Mulberry32 position generator. If left empty, it defaults to the SHA-256 hash of the cover text.</li>
+  <li><strong>Stego Key:</strong> Seeds the AES-256-CTR CSPRNG position generator. If left empty, it defaults to the SHA-256 hash of the cover text.</li>
   <li><strong>Encryption Key:</strong> Seeds the PBKDF2 parameters. If omitted, it defaults to the Stego Key to simplify UX.</li>
   <li><strong>Compression Toggle:</strong> Controls whether Brotli compression is run. Brotli is automatically bypassed if the compressed size is greater than the raw payload size (ensuring minimal bit overhead).</li>
   <li><strong>Split Mode Cover Text:</strong> Permits users to specify a surrogate cover text. The invisible Variation Selector characters are prepended to this surrogate text, allowing you to completely change the visible carrier message for the observer.</li>

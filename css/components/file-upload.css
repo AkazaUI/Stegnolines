@@ -11,9 +11,11 @@
   text-align: center;
   background: var(--color-surface-container-low);
   cursor: pointer;
-  height: 160px;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  height: 220px;
+  box-sizing: border-box;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
+  overflow: hidden;
 }
 
 .file-upload:hover {

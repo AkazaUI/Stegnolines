@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../../assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — System Algorithms & Pseudo-Code</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../New_styles.css"/>
+  <link rel="stylesheet" href="../../css/main.css"/>
+  <link rel="stylesheet" href="../../css/pages/docs.css"/>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('stegoTheme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+      const savedLang = localStorage.getItem('stegoLang') || 'en';
+      document.documentElement.setAttribute('lang', savedLang);
+      document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
+      const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
+      document.documentElement.setAttribute('data-arabic-font', savedFont);
+      window.DOCS_BASE = '../../';
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <script src="../../js/features/page-loader.js"></script>
+  <div id="navbar-placeholder"></div>
+
+  <div class="docs-wrap">
+    <div class="docs-layout">
+      <!-- Sidebar Column -->
+      <aside class="docs-sidebar" id="docs-sidebar" aria-label="Documentation navigation">
+        <p class="docs-sidebar__title"><a href="../../documentation.html">Documentation</a></p>
+        <nav id="docs-sidebar-nav"></nav>
+      </aside>
+      
+      <div class="docs-sidebar-backdrop" id="docs-sidebar-backdrop"></div>
+      
+      <!-- Main Content Column -->
+      <div class="docs-main">
+        <button type="button" class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-expanded="false">
+          <span class="material-symbols-outlined">menu</span> Contents
+        </button>
+        
+        <nav class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../documentation.html">Documentation</a>
+          <span class="docs-breadcrumb__sep">/</span>
+          <span>Technical reference</span>
+          <span class="docs-breadcrumb__sep">/</span>
+          <span>Algorithm Pseudo-Code</span>
+        </nav>
+        
+        <article class="docs-article">
+          <h1>System Algorithms & Detailed Pseudo-Code</h1>
+          
+          <p>This reference provides the complete algorithmic pseudo-code for all five core functional engines in the STEGNOLINES architecture.</p>
+
+          <h2>1. UI Module Pseudo-Code (Sender & Receiver)</h2>
+          
+          <h3>Sender-Side UI Workflow (Figure 4.11)</h3>
+          <pre><code>Input: Secret_Text (String), Cover_Text (String), User_Stego_Key (String), User_Aes_Key (String)
+Begin
+  // Step 1: WebAssembly Environment Verification
+  WASM_Status &larr; Initialize_WebAssembly_Module()
+  If WASM_Status is FAILED Then
+    Disable_UI_Controls()
+    Display_Error("Initialization failed: WebAssembly context required.")
+    Stop_Execution()
+  EndIf
+
+  // Step 2: Capacity Validation
+  If Length(Secret_Text) &gt; Length(Cover_Text) Then
+    Display_Error("Capacity Exceeded: Cover text is too short for secret payload.")
+    Stop_Execution()
+  EndIf
+
+  // Step 3: Automated Key Configuration and Fallback Logic
+  If User_Aes_Key is Empty Then
+    Active_Aes_Key &larr; Active_Stego_Key
+  Else
+    Active_Aes_Key &larr; User_Aes_Key
+  EndIf
+
+  // Step 4: Proceed to Core Pipeline
+  PassToEmbeddingProcess(Secret_Text, Cover_Text, Active_Stego_Key, Active_Aes_Key)
+End</code></pre>
+
+          <h3>Receiver-Side UI Workflow (Figure 4.12)</h3>
+          <pre><code>Input: Stego_Input (String), User_Stego_Key (String), User_Aes_Key (String)
+Begin
+  If Stego_Input is Empty Then
+    Display_Error("Extraction Error: Stego-Text input field cannot be empty.")
+    Stop_Execution()
+  EndIf
+
+  // Isolate invisible Variation Selectors
+  [Isolated_VS_Bytes, Clean_Cover_Text] &larr; Isolate_And_Decode_VS(Stego_Input)
+  If Length(Isolated_VS_Bytes) == 0 Then
+    Display_Error("Integrity Error: No hidden variation selector payload detected.")
+    Stop_Execution()
+  EndIf
+
+  If User_Aes_Key is Empty Then
+    Active_Aes_Key &larr; Active_Stego_Key
+  Else
+    Active_Aes_Key &larr; User_Aes_Key
+  EndIf
+
+  PassToExtractionProcess(Isolated_VS_Bytes, Clean_Cover_Text, Active_Stego_Key, Active_Aes_Key)
+End</code></pre>
+
+          <h2>2. Scanner Engine Algorithm (Figure 4.13)</h2>
+          <pre><code>Input: Raw_Chat_Transcript (String), Stego_Key (String), Optional_AES_Key (String)
+Output: Extracted_Secret_Message (String), Secret_Hint (String)
+Begin
+  // Step 1: Automatic Chat Transcript Formatting & Segmentation
+  Platform_Signature &larr; Identify_Chat_Platform_Format(Raw_Chat_Transcript)
+  Structured_Messages[] &larr; Filter_And_Segment_Transcript(Raw_Chat_Transcript, Platform_Signature)
+
+  // Step 2: Steganographic Carrier Isolation
+  [Clean_Messages[], VS_Payload_Bytes, Carrier_Index] &larr; Isolate_Steganographic_Payload(Structured_Messages[])
+  If VS_Payload_Bytes is Null Then
+    Raise_Error("Security Exception: No embedded steganographic components detected.")
+  EndIf
+
+  XOR_Key_Binary &larr; Convert_Bytes_To_Binary_String(VS_Payload_Bytes)
+
+  // Step 3: Candidate Evaluation Loop
+  For i = 0 To Length(Clean_Messages) - 1 Do
+    Target_Positions &larr; Generate_Deterministic_Positions(Length(Clean_Messages[i]), Length(XOR_Key_Binary), Resolved_Stego_Key)
+    Recovered_Binary &larr; Reverse_Bitwise_XOR(Clean_Messages[i], Target_Positions, XOR_Key_Binary)
+    Payload_Bytes &larr; Convert_Binary_To_Bytes(Recovered_Binary)
+
+    // Decryption & Decompression
+    Decrypted_Bytes &larr; Execute_AES_CTR_Decryption(Payload_Bytes, Resolved_AES_Key, Clean_Messages[i])
+    If Decrypted_Bytes[0] == 0xFE Then
+      Final_Bytes &larr; Execute_Brotli_Stream_Decompression(Decrypted_Bytes[1..End])
+    Else
+      Final_Bytes &larr; Decrypted_Bytes
+    EndIf
+
+    [Secret_Message, Secret_Hint, Valid] &larr; Validate_And_Parse_UTF8(Final_Bytes)
+    If Valid is TRUE Then
+      Return Secret_Message, Secret_Hint
+    EndIf
+  EndFor
+End</code></pre>
+
+          <h2>3. WebAssembly Brotli Compression Engine (Figure 4.14)</h2>
+          <pre><code>Procedure Initialize_Brotli_WASM_Context()
+Begin
+  WASM_Binary_Buffer &larr; Decode_Base64_To_ArrayBuffer(EMBEDDED_WASM_BASE64_STRING)
+  WASM_Instance &larr; WebAssembly_Compile_And_Instantiate(WASM_Binary_Buffer)
+  WASM_READY_STATUS &larr; TRUE
+End
+
+Function Execute_Brotli_Compression(Raw_Payload_Bytes)
+Begin
+  Compressed_Bytes &larr; WASM_Stream_Compress(Raw_Payload_Bytes, Quality=11, Chunk_Size=4096)
+  Return Compressed_Bytes
+End
+
+Function Execute_Brotli_Decompression(Compressed_Bytes)
+Begin
+  Restored_Original_Bytes &larr; WASM_Stream_Decompress(Compressed_Bytes, Chunk_Size=4096)
+  Return Restored_Original_Bytes
+End</code></pre>
+
+          <h2>4. Cryptographic Engine (Key Handler & AES-CTR) (Figure 4.15)</h2>
+          <pre><code>Function Derive_Cryptographic_Parameters(User_Password, Cover_Text)
+Begin
+  // Step 1: Deterministic 16-byte salt from cover hash
+  Cover_Hash &larr; SHA-256(Cover_Text)
+  Cryptographic_Salt &larr; Cover_Hash[0..15]
+
+  // Step 2: PBKDF2 Key Stretching (100,000 rounds)
+  Derived_48_Bytes &larr; PBKDF2(User_Password, Cryptographic_Salt, Iterations=100000, Hash=SHA-256, dkLen=48)
+
+  AES_256_Key &larr; Derived_48_Bytes[0..31]
+  CTR_IV &larr; Derived_48_Bytes[32..47]
+  Return AES_256_Key, CTR_IV
+End
+
+Function Encrypt_Payload_CTR(Plain_Bytes, User_Password, Cover_Text)
+Begin
+  [AES_Key, CTR_IV] &larr; Derive_Cryptographic_Parameters(User_Password, Cover_Text)
+  Cipher_Bytes &larr; AES_CTR_Encrypt(Key=AES_Key, Counter=CTR_IV, Plaintext=Plain_Bytes)
+  Return Cipher_Bytes
+End</code></pre>
+
+          <h2>5. Steganographic Spatial Engine (Figure 4.16)</h2>
+          <pre><code>Function Generate_Bit_Positions(Cover_Capacity, Payload_Bit_Length, Stego_Key)
+Begin
+  // Step 1: 256-bit PBKDF2 Key Derivation (100,000 rounds)
+  Key_256 &larr; PBKDF2(Stego_Key, Salt="StegoLine::CSPRNG::v2::Salt2026!", Iterations=100000, Hash=SHA-256, dkLen=32)
+  
+  // Step 2: Initialize AES-256-CTR CSPRNG
+  CSPRNG_Engine &larr; Initialize_AES256_CTR_CSPRNG(Key_256)
+  
+  // Step 3: O(K) Lazy Fisher-Yates with Unbiased Rejection Sampling
+  Target_Positions[] &larr; Execute_Unbiased_Lazy_Fisher_Yates(Cover_Capacity, Payload_Bit_Length, CSPRNG_Engine)
+  Return Target_Positions[]
+End
+
+Function Embed_Data_Into_Cover(Formatted_Payload_Bytes, Cover_Text, Stego_Key)
+Begin
+  Payload_Binary &larr; Convert_Bytes_To_Binary(Formatted_Payload_Bytes)
+  Cover_Binary &larr; Convert_String_To_Binary(Cover_Text)
+  Target_Positions &larr; Generate_Bit_Positions(Length(Cover_Binary), Length(Payload_Binary), Stego_Key)
+
+  // Bitwise XOR Key Generation
+  XOR_Key_Binary &larr; ""
+  For i = 0 To Length(Payload_Binary) - 1 Do
+    If Cover_Binary[Target_Positions[i]] == Payload_Binary[i] Then
+      XOR_Key_Binary += '0'
+    Else
+      XOR_Key_Binary += '1'
+    EndIf
+  EndFor
+
+  Invisible_VS_String &larr; Encode_Binary_To_Variation_Selectors(XOR_Key_Binary)
+  Final_Stego_Object &larr; Invisible_VS_String + Cover_Text
+  Return Final_Stego_Object
+End</code></pre>
+        </article>
+        
+        <!-- Pager -->
+        <nav class="docs-pager" aria-label="Documentation pagination">
+          <a class="docs-pager__link docs-pager__link--prev" id="docs-prev-link" href="#" hidden>
+            <span class="material-symbols-outlined docs-pager__icon" aria-hidden="true">arrow_back</span>
+            <div class="docs-pager__text">
+              <span class="docs-pager__dir" data-i18n="prevBtn">Previous</span>
+              <span class="docs-pager__label"></span>
+            </div>
+          </a>
+          <a class="docs-pager__link docs-pager__link--next" id="docs-next-link" href="#" hidden>
+            <div class="docs-pager__text">
+              <span class="docs-pager__dir" data-i18n="nextBtn">Next</span>
+              <span class="docs-pager__label"></span>
+            </div>
+            <span class="material-symbols-outlined docs-pager__icon" aria-hidden="true">arrow_forward</span>
+          </a>
+        </nav>
+      </div>
+      
+      <!-- Secondary TOC Column -->
+      <aside class="docs-toc" aria-label="On this page">
+        <p class="docs-toc__heading">On this page</p>
+        <nav id="docs-onpage-toc"></nav>
+      </aside>
+    </div>
+  </div>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="../../js/i18n/common.js"></script>
+  <script src="../../js/i18n/docs.js"></script>
+  <script src="../../js/i18n/docs-articles.js"></script>
+  <script src="../../js/i18n/toasts.js"></script>
+  <script src="../../js/i18n/index.js"></script>
+  <script src="../../js/shared/theme-manager.js"></script>
+  <script src="../../js/docs/nav-data.js"></script>
+  <script src="../../js/docs/docs.js"></script>
+  <script src="../../js/shared/ui-helpers.js"></script>
+  <script src="../../js/shared/template-loader.js"></script>
+</body>
+</html>

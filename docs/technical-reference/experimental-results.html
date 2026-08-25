@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="../../assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — Experimental Results & Benchmarks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../New_styles.css"/>
+  <link rel="stylesheet" href="../../css/main.css"/>
+  <link rel="stylesheet" href="../../css/pages/docs.css"/>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('stegoTheme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+      const savedLang = localStorage.getItem('stegoLang') || 'en';
+      document.documentElement.setAttribute('lang', savedLang);
+      document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
+      const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
+      document.documentElement.setAttribute('data-arabic-font', savedFont);
+      window.DOCS_BASE = '../../';
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <script src="../../js/features/page-loader.js"></script>
+  <div id="navbar-placeholder"></div>
+
+  <div class="docs-wrap">
+    <div class="docs-layout">
+      <!-- Sidebar Column -->
+      <aside class="docs-sidebar" id="docs-sidebar" aria-label="Documentation navigation">
+        <p class="docs-sidebar__title"><a href="../../documentation.html">Documentation</a></p>
+        <nav id="docs-sidebar-nav"></nav>
+      </aside>
+      
+      <div class="docs-sidebar-backdrop" id="docs-sidebar-backdrop"></div>
+      
+      <!-- Main Content Column -->
+      <div class="docs-main">
+        <button type="button" class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-expanded="false">
+          <span class="material-symbols-outlined">menu</span> Contents
+        </button>
+        
+        <nav class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../documentation.html">Documentation</a>
+          <span class="docs-breadcrumb__sep">/</span>
+          <span>Technical reference</span>
+          <span class="docs-breadcrumb__sep">/</span>
+          <span>Experimental Results & Benchmarks</span>
+        </nav>
+        
+        <article class="docs-article">
+          <h1>Experimental Results & Empirical Benchmarks</h1>
+          
+          <p>This chapter presents the empirical findings obtained during formal laboratory testing across four baseline cases, measuring capacity, compression efficiency, stego-text expansion, security brute-force resilience, and social media survival.</p>
+
+          <h2>1. Reference Baseline Test Cases</h2>
+          <ul>
+            <li><strong>Case 1 (Small Arabic Cover + Secret URL):</strong> Cover: 48 chars (88 bytes Arabic). Secret: 53 chars URL (53 bytes).</li>
+            <li><strong>Case 2 (Large English Cover + Long Secret Paragraph):</strong> Cover: 803 chars (803 bytes English). Secret: 707 chars paragraph (707 bytes).</li>
+            <li><strong>Case 3 (1:1 Equal Size English Cover + Arabic Secret):</strong> Cover: 57 chars (57 bytes English). Secret: 31 chars Arabic (57 bytes).</li>
+            <li><strong>Case 4 (Capacity Limit Violation):</strong> Cover: 20 chars (20 bytes English). Secret: 141 chars message (141 bytes) &rarr; Graceful failure assertion.</li>
+          </ul>
+
+          <h2>2. Quantitative Test Results</h2>
+
+          <h3>Table 5.1: Capacity Test Results</h3>
+          <div class="docs-table-wrapper">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>Tested Case</th>
+                  <th>Cover Length</th>
+                  <th>Secret Length</th>
+                  <th>Cover Size</th>
+                  <th>Compressed Size</th>
+                  <th>Capacity Ratio</th>
+                  <th>Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Case 1</strong></td>
+                  <td>48 characters</td>
+                  <td>53 characters</td>
+                  <td>88 bytes</td>
+                  <td>43 bytes</td>
+                  <td>48.9%</td>
+                  <td><span class="badge badge--success">Success</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Case 2</strong></td>
+                  <td>803 characters</td>
+                  <td>707 characters</td>
+                  <td>803 bytes</td>
+                  <td>314 bytes</td>
+                  <td>39.1%</td>
+                  <td><span class="badge badge--success">Success</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Case 3</strong></td>
+                  <td>31 characters</td>
+                  <td>31 characters</td>
+                  <td>57 bytes</td>
+                  <td>57 bytes</td>
+                  <td>100.0%</td>
+                  <td><span class="badge badge--success">Success</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Case 4</strong></td>
+                  <td>20 characters</td>
+                  <td>141 characters</td>
+                  <td>20 bytes</td>
+                  <td>141 bytes</td>
+                  <td>705.0%</td>
+                  <td><span class="badge badge--error">Failure (Over Capacity)</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Table 5.2: Brotli Compression Space Savings</h3>
+          <div class="docs-table-wrapper">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>Tested Case</th>
+                  <th>Uncompressed Size</th>
+                  <th>Compressed Size</th>
+                  <th>Space Savings Ratio</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Case 1</strong></td>
+                  <td>53 bytes</td>
+                  <td>43 bytes</td>
+                  <td><strong>18.8%</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Case 2</strong></td>
+                  <td>707 bytes</td>
+                  <td>314 bytes</td>
+                  <td><strong>55.5%</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Case 3</strong></td>
+                  <td>57 bytes</td>
+                  <td>57 bytes</td>
+                  <td><strong>0.0% (Adaptive Bypass)</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Table 5.3: Stego-Text Expansion Ratios</h3>
+          <div class="docs-table-wrapper">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>Tested Case</th>
+                  <th>Cover Text Size</th>
+                  <th>Secret Text Size</th>
+                  <th>Stego-Text Size</th>
+                  <th>Byte Expansion Ratio</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Case 1</strong></td>
+                  <td>88 bytes</td>
+                  <td>53 bytes</td>
+                  <td>255 bytes</td>
+                  <td>189.77%</td>
+                </tr>
+                <tr>
+                  <td><strong>Case 2</strong></td>
+                  <td>803 bytes</td>
+                  <td>707 bytes</td>
+                  <td>2040 bytes</td>
+                  <td>154.05%</td>
+                </tr>
+                <tr>
+                  <td><strong>Case 3</strong></td>
+                  <td>57 bytes</td>
+                  <td>57 bytes</td>
+                  <td>280 bytes</td>
+                  <td>391.23%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>3. Cross-Platform Robustness Results (Table 5.6)</h2>
+          <div class="docs-table-wrapper">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>Social / Chat Platform</th>
+                  <th>Tested Transmission Type</th>
+                  <th>Data Integrity Verification</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>WhatsApp</strong></td>
+                  <td>Mobile & Web Client Message</td>
+                  <td>100% Bit-for-bit match</td>
+                  <td><span class="badge badge--success">Success</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Telegram</strong></td>
+                  <td>Desktop & Mobile Message</td>
+                  <td>100% Bit-for-bit match</td>
+                  <td><span class="badge badge--success">Success</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Facebook Messenger & Post</strong></td>
+                  <td>Web & Mobile Post/Chat</td>
+                  <td>100% Bit-for-bit match</td>
+                  <td><span class="badge badge--success">Success</span></td>
+                </tr>
+                <tr>
+                  <td><strong>X (formerly Twitter)</strong></td>
+                  <td>Public Tweet & DM</td>
+                  <td>100% Bit-for-bit match</td>
+                  <td><span class="badge badge--success">Success</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Instagram Direct</strong></td>
+                  <td>DM Message Bubbles</td>
+                  <td>100% Bit-for-bit match</td>
+                  <td><span class="badge badge--success">Success</span></td>
+                </tr>
+                <tr>
+                  <td><strong>TikTok</strong></td>
+                  <td>Comments & Chat</td>
+                  <td>100% Bit-for-bit match</td>
+                  <td><span class="badge badge--success">Success</span></td>
+                </tr>
+                <tr>
+                  <td><strong>YouTube</strong></td>
+                  <td>Video Comment Section</td>
+                  <td>100% Bit-for-bit match</td>
+                  <td><span class="badge badge--success">Success</span></td>
+                </tr>
+                <tr>
+                  <td><strong>LinkedIn</strong></td>
+                  <td>Messaging & Post Feed</td>
+                  <td>100% Bit-for-bit match</td>
+                  <td><span class="badge badge--success">Success</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Snapchat</strong></td>
+                  <td>Chat Message Text</td>
+                  <td>100% Bit-for-bit match</td>
+                  <td><span class="badge badge--success">Success</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+        
+        <!-- Pager -->
+        <nav class="docs-pager" aria-label="Documentation pagination">
+          <a class="docs-pager__link docs-pager__link--prev" id="docs-prev-link" href="#" hidden>
+            <span class="material-symbols-outlined docs-pager__icon" aria-hidden="true">arrow_back</span>
+            <div class="docs-pager__text">
+              <span class="docs-pager__dir" data-i18n="prevBtn">Previous</span>
+              <span class="docs-pager__label"></span>
+            </div>
+          </a>
+          <a class="docs-pager__link docs-pager__link--next" id="docs-next-link" href="#" hidden>
+            <div class="docs-pager__text">
+              <span class="docs-pager__dir" data-i18n="nextBtn">Next</span>
+              <span class="docs-pager__label"></span>
+            </div>
+            <span class="material-symbols-outlined docs-pager__icon" aria-hidden="true">arrow_forward</span>
+          </a>
+        </nav>
+      </div>
+      
+      <!-- Secondary TOC Column -->
+      <aside class="docs-toc" aria-label="On this page">
+        <p class="docs-toc__heading">On this page</p>
+        <nav id="docs-onpage-toc"></nav>
+      </aside>
+    </div>
+  </div>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="../../js/i18n/common.js"></script>
+  <script src="../../js/i18n/docs.js"></script>
+  <script src="../../js/i18n/docs-articles.js"></script>
+  <script src="../../js/i18n/toasts.js"></script>
+  <script src="../../js/i18n/index.js"></script>
+  <script src="../../js/shared/theme-manager.js"></script>
+  <script src="../../js/docs/nav-data.js"></script>
+  <script src="../../js/docs/docs.js"></script>
+  <script src="../../js/shared/ui-helpers.js"></script>
+  <script src="../../js/shared/template-loader.js"></script>
+</body>
+</html>

@@ -190,24 +190,13 @@
     window.addEventListener('load', fadeOutLoader);
   }
 
-  // Smart slowness/offline handling: if loader persists for > 6 seconds, redirect to offline page
+  // Failsafe handling: if loader persists for > 6 seconds, fade out loader directly
   failsafeTimeoutId = setTimeout(() => {
     if (hasFaded) return;
-
-    // Detect if current page is offline.html to prevent infinite redirect loops
-    const isOfflinePage = window.location.pathname.endsWith('offline.html');
-
-    if (!isOfflinePage) {
-      // Redirect to offline page with current page as a redirect parameter for retry
-      const currentUrl = window.location.href;
-      window.location.href = 'offline.html?redirect=' + encodeURIComponent(currentUrl);
-    } else {
-      // If we are on the offline page itself, just fade out the loader so it's not stuck forever
-      hasFaded = true;
-      const loaderEl = document.getElementById('page-loader');
-      if (loaderEl) {
-        loaderEl.classList.add('fade-out');
-      }
+    hasFaded = true;
+    const loaderEl = document.getElementById('page-loader');
+    if (loaderEl) {
+      loaderEl.classList.add('fade-out');
     }
   }, MAX_LOAD_TIME);
 

@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مختبر الترميز المزدوج — StegoLine Dual Encoding</title>
+  
+  <link rel="icon" type="image/png" href="assets/brand/favicon.png" />
+  <link rel="stylesheet" href="New_styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+  <style>
+    :root {
+      --font-arabic: 'Alexandria', sans-serif;
+      --font-mono: 'Fira Code', monospace;
+      --bg: #0d0f14;
+      --card-bg: #151821;
+      --card-inner: #1c202c;
+      --border: #282e3f;
+      --gold: #f59e0b;
+      --gold-dim: rgba(245, 158, 11, 0.12);
+      --lime: #bbd100;
+      --lime-dim: rgba(187, 209, 0, 0.12);
+      --cyan: #00d2ff;
+      --cyan-dim: rgba(0, 210, 255, 0.12);
+      --rose: #f43f5e;
+      --rose-dim: rgba(244, 63, 94, 0.12);
+      --text: #f1f5f9;
+      --text-dim: #94a3b8;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-arabic);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 24px 16px 60px;
+    }
+
+    .wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .header .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--gold-dim);
+      color: var(--gold);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .header h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .header h1 span { color: var(--gold); }
+
+    .header p {
+      font-size: 0.95rem;
+      color: var(--text-dim);
+      max-width: 750px;
+      margin: 0 auto;
+    }
+
+    /* Input Card */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .input-grid { grid-template-columns: 1fr; }
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-group label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    input, textarea, select {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #fff;
+      font-family: var(--font-arabic);
+      font-size: 0.95rem;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--gold);
+    }
+
+    /* 3-Tier Scoreboard Banner */
+    .score-board {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.2fr;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 850px) {
+      .score-board { grid-template-columns: 1fr; }
+    }
+
+    .score-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .score-card.highlight {
+      border: 2px solid var(--gold);
+      background: linear-gradient(135deg, #1d1b14 0%, #151821 100%);
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
+    }
+
+    .score-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+
+    .score-num {
+      font-family: var(--font-mono);
+      font-size: 2.2rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .score-card.presence .score-num { color: var(--rose); }
+    .score-card.direct .score-num { color: var(--cyan); }
+    .score-card.dual .score-num { color: var(--gold); }
+
+    .score-sub {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    .winner-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: var(--gold);
+      color: #000;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* 3 Systems Side by Side */
+    .systems-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.1fr;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 950px) {
+      .systems-grid { grid-template-columns: 1fr; }
+    }
+
+    .system-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .system-card.presence { border-top: 3px solid var(--rose); }
+    .system-card.direct { border-top: 3px solid var(--cyan); }
+    .system-card.dual { border-top: 3px solid var(--gold); }
+
+    .sys-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sys-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sys-desc {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      min-height: 50px;
+    }
+
+    .output-preview {
+      background: #090a0d;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      max-height: 80px;
+      overflow-y: auto;
+      word-break: break-all;
+    }
+
+    .decoded-check {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 0.82rem;
+    }
+
+    .decoded-check strong { color: #86efac; }
+
+    /* Visualizer Box */
+    .visualizer-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .vis-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #fff;
+    }
+
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .step-item {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .step-item:hover {
+      border-color: var(--gold);
+    }
+
+    .dual-pair-tags {
+      display: flex;
+      gap: 8px;
+      font-family: var(--font-mono);
+      align-items: center;
+    }
+
+    .pill-offset {
+      background: var(--cyan-dim);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      color: var(--cyan);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+    }
+
+    .pill-symbol {
+      background: var(--gold-dim);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--gold);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+    }
+
+    .pill-char {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="tag">
+        <span class="material-symbols-outlined" style="font-size: 16px;">stars</span>
+        StegoLine Next-Gen Innovation
+      </div>
+      <h1>نظام <span>الترميز المزدوج</span> (Dual Positional Encoding)</h1>
+      <p>
+        دمج <strong>موقع الحرف في النص الحامل</strong> مع <strong>قيمة رمز الـ VS</strong> لنقل <strong>بايتين كاملين (16 بت) برمز VS واحد فقط</strong>!
+      </p>
+    </header>
+
+    <!-- Inputs -->
+    <section class="card">
+      <div class="input-grid">
+        <div class="field-group">
+          <label><span class="material-symbols-outlined" style="font-size: 16px; color: var(--gold);">vpn_key</span> الرسالة / البيانات السرية:</label>
+          <input type="text" id="secretInput" value="Secret Data #2026" placeholder="اكتب النص السري هنا..." />
+        </div>
+        <div class="field-group">
+          <label><span class="material-symbols-outlined" style="font-size: 16px; color: var(--cyan);">menu_book</span> النص الحامل (Cover Text):</label>
+          <input type="text" id="coverInput" value="بسم الله الرحمن الرحيم والصلاة والسلام على رسول الله الكريم وعلى اله وصحبه اجمعين مرحبا بكم في منصة ستيجولاين" placeholder="النص الحامل..." />
+        </div>
+      </div>
+    </section>
+
+    <!-- 3-Tier Scoreboard: The Grand Comparison -->
+    <section class="score-board">
+      
+      <!-- 1. Presence-Absence -->
+      <div class="score-card presence">
+        <span class="score-tag" style="background: var(--rose-dim); color: var(--rose);">1. نظام الحضور والغياب</span>
+        <div class="score-num" id="presenceCount">0</div>
+        <div class="score-sub">رمز VS مكتوب (0.25 بايت / رمز)</div>
+      </div>
+
+      <!-- 2. Direct Mapping (Current) -->
+      <div class="score-card direct">
+        <span class="score-tag" style="background: var(--cyan-dim); color: var(--cyan);">2. النظام المباشر الحالي</span>
+        <div class="score-num" id="directCount">0</div>
+        <div class="score-sub">رمز VS مكتوب (1 بايت / رمز)</div>
+      </div>
+
+      <!-- 3. Dual Multiplexing (New Winner) -->
+      <div class="score-card dual highlight">
+        <div class="winner-badge">🏆 الأقوى والأقل حجماً</div>
+        <span class="score-tag" style="background: var(--gold-dim); color: var(--gold);">3. نظام الترميز المزدوج</span>
+        <div class="score-num" id="dualCount">0</div>
+        <div class="score-sub" id="dualSavingsSub">رمز VS فقط! (2 بايت كاملة / رمز)</div>
+      </div>
+
+    </section>
+
+    <!-- Side-by-Side 3 Systems Grid -->
+    <div class="systems-grid">
+      
+      <!-- 1. Presence-Absence -->
+      <div class="system-card presence">
+        <div class="sys-header">
+          <div class="sys-title"><span class="material-symbols-outlined" style="font-size: 18px; color: var(--rose);">close</span> الحضور والغياب</div>
+          <span style="font-size: 0.75rem; color: var(--rose);">1 بت / رمز</span>
+        </div>
+        <div class="sys-desc">
+          كل رمز VS يعبر عن بت واحد فقط. لنقل 1 بايت يحتاج في المتوسط 4 رموز VS.
+        </div>
+        <div style="font-size: 0.75rem; font-weight: 600;">النص الناتج:</div>
+        <div class="output-preview" id="presenceStego">—</div>
+        <div class="decoded-check">المستخرج: <strong id="presenceDecoded">—</strong></div>
+      </div>
+
+      <!-- 2. Direct Mapping -->
+      <div class="system-card direct">
+        <div class="sys-header">
+          <div class="sys-title"><span class="material-symbols-outlined" style="font-size: 18px; color: var(--cyan);">check</span> المباشر الحالي</div>
+          <span style="font-size: 0.75rem; color: var(--cyan);">1 بايت / رمز</span>
+        </div>
+        <div class="sys-desc">
+          كل بايت يُعيّن لرمز VS واحد مباشرة ككتلة مجمعة في البداية (من 0 إلى 255).
+        </div>
+        <div style="font-size: 0.75rem; font-weight: 600;">النص الناتج:</div>
+        <div class="output-preview" id="directStego">—</div>
+        <div class="decoded-check">المستخرج: <strong id="directDecoded">—</strong></div>
+      </div>
+
+      <!-- 3. Dual Multiplexing -->
+      <div class="system-card dual">
+        <div class="sys-header">
+          <div class="sys-title"><span class="material-symbols-outlined" style="font-size: 18px; color: var(--gold);">bolt</span> الترميز المزدوج</div>
+          <span style="font-size: 0.75rem; color: var(--gold); font-weight: 700;">2 بايت / رمز 🚀</span>
+        </div>
+        <div class="sys-desc">
+          موقع الحرف في النص يحمل البايت الأول، ورمز الـ VS نفسه يحمل البايت الثاني! (توفير 50% إضافي).
+        </div>
+        <div style="font-size: 0.75rem; font-weight: 600;">النص الناتج:</div>
+        <div class="output-preview" id="dualStego">—</div>
+        <div class="decoded-check">المستخرج: <strong id="dualDecoded">—</strong></div>
+      </div>
+
+    </div>
+
+    <!-- Visualizer: Step-by-Step Dual Encoding -->
+    <section class="visualizer-box">
+      <div class="vis-title">
+        <span class="material-symbols-outlined" style="color: var(--gold); font-size: 20px;">account_tree</span>
+        تفاصيل عمل الترميز المزدوج خطوة بخطوة (كيف ينقل الرمز الواحد بايتين):
+      </div>
+      <div class="step-list" id="dualStepsList">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // ══════════════════════════════════════════════════════════════
+    // Lookup Tables for 256 VS Symbols
+    // ══════════════════════════════════════════════════════════════
+    const ALL_256_VS = [];
+    for (let i = 0xFE00; i <= 0xFE0F; i++) ALL_256_VS.push(String.fromCodePoint(i));
+    for (let i = 0xE0100; i <= 0xE01EF; i++) ALL_256_VS.push(String.fromCodePoint(i));
+
+    function vsToByte(cp) {
+      if (cp >= 0xFE00 && cp <= 0xFE0F) return cp - 0xFE00;
+      if (cp >= 0xE0100 && cp <= 0xE01EF) return 16 + (cp - 0xE0100);
+      return null;
+    }
+
+    function byteToVS(b) {
+      return ALL_256_VS[b & 255];
+    }
+
+    function strToBytes(str) { return new TextEncoder().encode(str); }
+    function bytesToStr(bytes) { return new TextDecoder().decode(bytes); }
+
+    // ══════════════════════════════════════════════════════════════
+    // SYSTEM 1: Presence-Absence (1 Bit per Symbol)
+    // ══════════════════════════════════════════════════════════════
+    function encodePresence(coverText, secretBytes) {
+      let bits = '';
+      for (let b of secretBytes) bits += b.toString(2).padStart(8, '0');
+      
+      const header = secretBytes.length.toString(2).padStart(16, '0');
+      const stream = header + bits;
+
+      let injected = 0;
+      let vsStr = '';
+      for (let i = 0; i < stream.length; i++) {
+        const slotIdx = i % 256;
+        if (stream[i] === '0') { // Present on bit 0
+          vsStr += ALL_256_VS[slotIdx];
+          injected++;
+        }
+      }
+      return { stegoText: vsStr + coverText, count: injected };
+    }
+
+    function decodePresence(stegoText) {
+      // Linear scan
+      let bits = '';
+      const chars = Array.from(stegoText);
+      let i = 0;
+      let slotIdx = 0;
+
+      while (i < chars.length && vsToByte(chars[i].codePointAt(0)) !== null) {
+        for (let s = 0; s < 256 && i < chars.length; s++) {
+          const cp = chars[i].codePointAt(0);
+          if (vsToByte(cp) === s) {
+            bits += '0';
+            i++;
+          } else {
+            bits += '1';
+          }
+        }
+      }
+
+      if (bits.length < 16) return new Uint8Array(0);
+      const len = parseInt(bits.substring(0, 16), 2);
+      const dataBits = bits.substring(16, 16 + len * 8);
+      const out = new Uint8Array(len);
+      for (let b = 0; b < len; b++) {
+        const chunk = dataBits.substring(b * 8, (b + 1) * 8);
+        if (chunk.length === 8) out[b] = parseInt(chunk, 2);
+      }
+      return out;
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // SYSTEM 2: Direct Byte Mapping (1 VS = 1 Byte)
+    // ══════════════════════════════════════════════════════════════
+    function encodeDirect(coverText, secretBytes) {
+      let vsStr = '';
+      for (let b of secretBytes) vsStr += byteToVS(b);
+      return { stegoText: vsStr + coverText, count: secretBytes.length };
+    }
+
+    function decodeDirect(stegoText) {
+      const bytes = [];
+      let i = 0;
+      while (i < stegoText.length) {
+        const cp = stegoText.codePointAt(i);
+        const b = vsToByte(cp);
+        if (b !== null) {
+          bytes.push(b);
+          i += (cp > 0xFFFF ? 2 : 1);
+        } else {
+          i += (cp > 0xFFFF ? 2 : 1);
+        }
+      }
+      return new Uint8Array(bytes);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // SYSTEM 3: DUAL POSITIONAL ENCODING (1 VS = 2 Bytes!)
+    // Byte 1 = Position/Offset in Cover Text | Byte 2 = VS Symbol Value
+    // ══════════════════════════════════════════════════════════════
+    function encodeDual(coverText, secretBytes) {
+      // 1. Prepend 2-byte Length Header
+      const len = secretBytes.length;
+      const fullBytes = new Uint8Array(len + 2);
+      fullBytes[0] = (len >> 8) & 0xFF;
+      fullBytes[1] = len & 0xFF;
+      fullBytes.set(secretBytes, 2);
+
+      // Pad to even length if needed
+      const pairsCount = Math.ceil(fullBytes.length / 2);
+      const pairs = [];
+      for (let p = 0; p < pairsCount; p++) {
+        const bOffset = fullBytes[p * 2];
+        const bSymbol = (p * 2 + 1 < fullBytes.length) ? fullBytes[p * 2 + 1] : 0;
+        pairs.push({ offset: bOffset, symbolVal: bSymbol });
+      }
+
+      // 2. Inject into cover text based on offset positions
+      const coverChars = Array.from(coverText || ' ');
+      let coverPtr = 0;
+      const resultChunks = [];
+      const steps = [];
+      let injectedCount = 0;
+
+      for (let p = 0; p < pairs.length; p++) {
+        const { offset, symbolVal } = pairs[p];
+        const vsChar = byteToVS(symbolVal);
+
+        // Advance cover pointer by offset (with modular wrapping if text is short)
+        const skip = offset % Math.max(1, coverChars.length);
+        
+        // Collect skipped cover text
+        let skippedText = '';
+        for (let s = 0; s < skip; s++) {
+          skippedText += coverChars[coverPtr % coverChars.length];
+          coverPtr++;
+        }
+
+        const anchorChar = coverChars[coverPtr % coverChars.length];
+        coverPtr++;
+
+        resultChunks.push(skippedText + anchorChar + vsChar);
+        injectedCount++;
+
+        steps.push({
+          pairNum: p + 1,
+          offsetVal: offset,
+          symbolVal: symbolVal,
+          vsName: `VS${symbolVal + 1}`,
+          anchorChar: anchorChar,
+          byteHex: `0x${offset.toString(16).toUpperCase().padStart(2, '0')} 0x${symbolVal.toString(16).toUpperCase().padStart(2, '0')}`
+        });
+      }
+
+      // Append remaining cover text
+      while (coverPtr < coverChars.length) {
+        resultChunks.push(coverChars[coverPtr]);
+        coverPtr++;
+      }
+
+      return {
+        stegoText: resultChunks.join(''),
+        count: injectedCount,
+        steps: steps
+      };
+    }
+
+    function decodeDual(stegoText, coverText) {
+      const coverChars = Array.from(coverText || ' ');
+      const stegoChars = Array.from(stegoText);
+      const extractedPairs = [];
+
+      let currentOffset = 0;
+      let i = 0;
+
+      while (i < stegoChars.length) {
+        const char = stegoChars[i];
+        const cp = char.codePointAt(0);
+        const vsVal = vsToByte(cp);
+
+        if (vsVal !== null) {
+          // Found a VS character!
+          extractedPairs.push({ offset: currentOffset % 256, symbolVal: vsVal });
+          currentOffset = 0; // Reset offset counter for next pair
+          i++;
+        } else {
+          currentOffset++;
+          i++;
+        }
+      }
+
+      // Reconstruct raw bytes from pairs
+      const rawBytes = [];
+      for (let p of extractedPairs) {
+        rawBytes.push(p.offset);
+        rawBytes.push(p.symbolVal);
+      }
+
+      if (rawBytes.length < 2) return new Uint8Array(0);
+      const totalLen = (rawBytes[0] << 8) | rawBytes[1];
+      const payload = rawBytes.slice(2, 2 + totalLen);
+      return new Uint8Array(payload);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // Live UI Controller
+    // ══════════════════════════════════════════════════════════════
+    function updateAll() {
+      const secret = document.getElementById('secretInput').value || '';
+      const cover = document.getElementById('coverInput').value || ' ';
+      const secretBytes = strToBytes(secret);
+
+      // 1. Presence-Absence
+      const presRes = encodePresence(cover, secretBytes);
+      const presDec = bytesToStr(decodePresence(presRes.stegoText));
+      document.getElementById('presenceCount').textContent = presRes.count;
+      document.getElementById('presenceStego').textContent = presRes.stegoText;
+      document.getElementById('presenceDecoded').textContent = presDec || '(فارغ)';
+
+      // 2. Direct Mapping
+      const dirRes = encodeDirect(cover, secretBytes);
+      const dirDec = bytesToStr(decodeDirect(dirRes.stegoText));
+      document.getElementById('directCount').textContent = dirRes.count;
+      document.getElementById('directStego').textContent = dirRes.stegoText;
+      document.getElementById('directDecoded').textContent = dirDec || '(فارغ)';
+
+      // 3. Dual Multiplexing
+      const dualRes = encodeDual(cover, secretBytes);
+      const dualDec = bytesToStr(decodeDual(dualRes.stegoText, cover));
+      document.getElementById('dualCount').textContent = dualRes.count;
+      document.getElementById('dualStego').textContent = dualRes.stegoText;
+      document.getElementById('dualDecoded').textContent = dualDec || '(فارغ)';
+
+      // Savings calculation vs Direct
+      const savingsVsDirect = dirRes.count > 0 
+        ? (((dirRes.count - dualRes.count) / dirRes.count) * 100).toFixed(0)
+        : 50;
+      document.getElementById('dualSavingsSub').textContent = `رمز VS فقط! (توفير ${savingsVsDirect}% مقارنة بالنظام المباشر)`;
+
+      // Render Visualizer Steps
+      renderDualSteps(dualRes.steps);
+    }
+
+    function renderDualSteps(steps) {
+      const list = document.getElementById('dualStepsList');
+      list.innerHTML = '';
+
+      if (!steps || steps.length === 0) {
+        list.innerHTML = '<div style="color: var(--text-dim); text-align: center; padding: 10px;">لا توجد خطوات</div>';
+        return;
+      }
+
+      steps.forEach(s => {
+        const item = document.createElement('div');
+        item.className = 'step-item';
+        item.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <strong style="color: var(--gold);">#${s.pairNum}</strong>
+            <span>الحرف الحامل: <span class="pill-char">${s.anchorChar === ' ' ? '␣ مسافة' : s.anchorChar}</span></span>
+          </div>
+
+          <div class="dual-pair-tags">
+            <span class="pill-offset">📍 الإزاحة (البايت 1): ${s.offsetVal}</span>
+            <span class="pill-symbol">🏷️ رمز الـ VS (البايت 2): ${s.vsName} [${s.symbolVal}]</span>
+            <span style="font-size: 0.75rem; color: var(--text-dim);">القيم: [${s.byteHex}]</span>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    document.getElementById('secretInput').addEventListener('input', updateAll);
+    document.getElementById('coverInput').addEventListener('input', updateAll);
+
+    window.addEventListener('DOMContentLoaded', updateAll);
+  </script>
+</body>
+</html>

@@ -4,10 +4,14 @@
   <link rel="icon" type="image/png" href="assets/brand/favicon.png" />
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>StegoLines — Text Steganalysis</title>
-  <meta name="description" content="Analyze text for hidden Unicode characters that may indicate steganographic content. Detect zero-width, directional, and variation selector characters."/>
+  <title>StegoLines — Text Steganalysis & Forensic Engine</title>
+  <meta name="description" content="Analyze text for hidden Unicode characters, homoglyphs, and classify steganographic techniques."/>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/chat-scanner.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
   <script src="js/i18n/common.js"></script>
   <script src="js/i18n/steganalysis.js"></script>
   <script src="js/i18n/toasts.js"></script>
@@ -30,7 +34,7 @@
 
     <header class="main-header">
       <h1 class="text-display-lg" data-i18n="steganalysisMainTitle">Text Steganalysis</h1>
-      <p class="text-body-lg" data-i18n="steganalysisMainSubtitle">Analyze text for hidden Unicode characters that may indicate steganographic content — without extracting the hidden message.</p>
+      <p class="text-body-lg" data-i18n="steganalysisMainSubtitle">Analyze text for hidden Unicode characters, homoglyphs, and detect steganographic techniques.</p>
     </header>
 
     <!-- ═══ Input Section ═══ -->
@@ -39,7 +43,7 @@
 
       <div class="stack-xl">
         <!-- Text Input -->
-        <div>
+        <div id="steganalysis-paste-section">
           <div class="label-row">
             <label class="form-label text-label-md" for="steganalysisInput" style="margin-bottom:0" data-i18n="steganalysisTextareaLabel">Input Text</label>
             <span class="badge badge--encrypted text-label-md">
@@ -49,10 +53,106 @@
           <textarea
             class="form-textarea"
             id="steganalysisInput"
-            rows="10"
+            rows="8"
             data-i18n-placeholder="steganalysisTextareaPlaceholder"
-            placeholder="Paste any chat message or text here to scan for hidden Unicode characters..."
+            placeholder="Paste any chat message or text here to scan for hidden Unicode characters and homoglyph substitutions..."
           ></textarea>
+        </div>
+
+        <!-- Aesthetic "OR" Divider -->
+        <div class="scanner-or-divider">
+          <span class="scanner-or-divider__line"></span>
+          <span class="scanner-or-divider__badge" data-i18n="dividerOr">OR</span>
+          <span class="scanner-or-divider__line"></span>
+        </div>
+
+        <!-- Upload File Section -->
+        <div id="steganalysis-file-section">
+          <div class="label-row" style="margin-bottom: 8px;">
+            <label class="form-label text-label-md" style="margin-bottom:0" data-i18n="exScannerFileLabel">Upload Chat Export File</label>
+            <span class="badge badge--encrypted text-label-md">
+              <span class="material-symbols-outlined">upload_file</span> <span data-i18n="badgeFile">File</span>
+            </span>
+          </div>
+
+          <!-- Dropzone Box (Unified Container) -->
+          <div class="scanner-dropzone-box" id="steganalysis-file-dropzone" tabindex="0" role="button" aria-label="Upload File">
+            <input type="file" id="steganalysis-file-input" style="display:none;" accept=".txt,.json,.csv,.zip,.html,.htm" />
+            
+            <!-- Prompt State (When no file is selected) -->
+            <div id="steganalysis-dropzone-prompt" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-xs); text-align: center; width: 100%;">
+              <div class="dropzone__icon-wrap">
+                <span class="material-symbols-outlined" style="font-size: 32px; color: var(--color-primary);">cloud_upload</span>
+              </div>
+              <p class="text-body-md" style="font-weight: 700; color: var(--color-on-surface); margin-bottom: 2px;" data-i18n="dropzoneTitle">Drop your chat export file here</p>
+              <p class="text-body-sm" style="color: var(--color-on-surface-variant); margin-bottom: 6px;" data-i18n="dropzoneSubtitle">or click to browse from your device</p>
+              <span class="badge badge--draft text-label-xs" data-i18n="supportedFormats">Supported formats: .txt, .json, .html, .csv, .zip</span>
+            </div>
+
+            <!-- File Loaded State (Displayed inside the box) -->
+            <div id="steganalysis-file-info-bar" style="display: none; width: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center;">
+              <div class="dropzone__icon-wrap" style="width: 44px; height: 44px; background: rgba(187, 209, 0, 0.12); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; margin-bottom: 2px;">
+                <span class="material-symbols-outlined" style="font-size: 24px; color: var(--color-primary);">description</span>
+              </div>
+              
+              <!-- File Name & Size Header -->
+              <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                <strong id="steganalysis-file-name-display" style="font-size: var(--fs-body-md); color: var(--color-on-surface); font-weight: 700; letter-spacing: -0.01em;">file.txt</strong>
+                <span id="steganalysis-file-size-display" style="font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">(0 KB)</span>
+              </div>
+
+              <!-- Message Count Tag -->
+              <div style="margin: 2px 0 4px 0;">
+                <span id="steganalysis-file-msg-count" class="badge badge--encrypted text-label-xs" style="padding: 3px 10px; border-radius: var(--radius-lg); display: inline-flex; align-items: center; gap: 4px;">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">forum</span>
+                  <span id="steganalysis-file-msg-count-text">0 msgs</span>
+                </span>
+              </div>
+
+              <p class="text-body-xs" style="color: var(--color-on-surface-variant); margin: 0 0 8px 0; opacity: 0.8;" data-i18n="dropzoneReplaceSubtitle">Click or drop a new file to replace</p>
+              
+              <button type="button" class="btn-scanner-remove-file" id="steganalysis-btn-remove-file">
+                <span class="material-symbols-outlined">delete</span>
+                <span data-i18n="removeFile">Remove File</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Date Range Filter Card (Appears after file upload) -->
+          <div class="date-range-filter-card" id="steganalysis-date-filter-card" style="display: none;">
+            <div class="date-range-filter__header">
+              <div class="date-range-filter__title-wrap">
+                <span class="material-symbols-outlined date-range-filter__icon">date_range</span>
+                <span class="date-range-filter__title" data-i18n="dateRangeFilter">Date Range Filter</span>
+              </div>
+              <span class="badge badge--draft date-range-filter__status" id="steganalysis-date-filter-status" data-i18n="allDates">All dates</span>
+            </div>
+
+            <div class="date-range-filter__grid">
+              <div class="date-range-filter__field">
+                <label class="date-range-filter__label" for="steganalysis-date-from" data-i18n="fromDate">From (Date & Time)</label>
+                <div class="date-range-filter__input-wrap">
+                  <span class="material-symbols-outlined date-range-filter__input-icon">schedule</span>
+                  <input type="text" id="steganalysis-date-from" class="date-range-filter__input" data-i18n-placeholder="datePlaceholder" placeholder="YYYY-MM-DD HH:mm" autocomplete="off" />
+                </div>
+              </div>
+              <div class="date-range-filter__field">
+                <label class="date-range-filter__label" for="steganalysis-date-to" data-i18n="toDate">To (Date & Time)</label>
+                <div class="date-range-filter__input-wrap">
+                  <span class="material-symbols-outlined date-range-filter__input-icon">schedule</span>
+                  <input type="text" id="steganalysis-date-to" class="date-range-filter__input" data-i18n-placeholder="datePlaceholder" placeholder="YYYY-MM-DD HH:mm" autocomplete="off" />
+                </div>
+              </div>
+            </div>
+
+            <div class="date-range-filter__presets">
+              <button type="button" class="date-preset-btn" data-preset="today" data-i18n="presetToday">Today</button>
+              <button type="button" class="date-preset-btn" data-preset="7days" data-i18n="presetLast7">Last 7 days</button>
+              <button type="button" class="date-preset-btn" data-preset="30days" data-i18n="presetLast30">Last 30 days</button>
+              <button type="button" class="date-preset-btn" data-preset="year" data-i18n="presetThisYear">This Year</button>
+              <button type="button" class="date-preset-btn date-preset-btn--reset" data-preset="reset" data-i18n="presetReset">✕ Reset</button>
+            </div>
+          </div>
         </div>
 
         <!-- Action Button -->
@@ -65,7 +165,7 @@
       </div>
     </section>
 
-    <!-- ═══ Results Section (Hidden by default) ═══ -->
+    <!-- ═══ Detection Results Section (Hidden by default) ═══ -->
     <section class="card" id="steganalysis-results-panel" style="display: none; margin-top: var(--space-lg);">
       <h2 class="text-headline-md card__title" data-i18n="steganalysisResultsTitle">Analysis Results</h2>
 
@@ -77,16 +177,14 @@
           </div>
           <div>
             <div class="success-header__title" data-i18n="steganalysisResultsTitle">Analysis Results</div>
-            <div class="success-header__subtitle" data-i18n="steganalysisResultsSubtitle">Hidden character detection report for the provided text.</div>
+            <div class="success-header__subtitle" data-i18n="steganalysisResultsSubtitle">Hidden character detection report & technique classification.</div>
           </div>
         </div>
-
-
 
         <!-- Metric Cards -->
         <div class="metric-cards-grid">
           <div class="metric-card">
-            <span class="metric-card__label" data-i18n="metricTotalHidden">Hidden Characters</span>
+            <span class="metric-card__label" data-i18n="metricTotalHidden">Hidden / Evasive Chars</span>
             <span class="metric-card__value" id="steganalysisTotalVal">0</span>
           </div>
           <div class="metric-card">
@@ -99,7 +197,7 @@
           </div>
         </div>
 
-        <!-- Results Body (Table or Clean State rendered here by JS) -->
+        <!-- Results Body (Table, Techniques Banner, or Clean State rendered here by JS) -->
         <div id="steganalysisResultsBody"></div>
 
         <!-- Summary -->
@@ -117,8 +215,9 @@
 
   <!-- ═══ Core Libraries ═══ -->
   <script src="js/shared/ui-helpers.js"></script>
+  <script src="js/features/chat-parsers.js"></script>
 
-  <!-- ═══ Detection Engine ═══ -->
+  <!-- ═══ Detection Engine & UI Controller ═══ -->
   <script src="js/features/F_text_steganalysis.js"></script>
 
   <!-- ═══ Dynamic Templates Loader ═══ -->

@@ -212,6 +212,7 @@ function _runExtractStep() {
   const messages = _scannerState.messages;
   const cleanMessages = [];
   let vsKey = null;
+  let rawCarrierMessage = '';
   let carrierIndex = -1;
 
   for (let i = 0; i < messages.length; i++) {
@@ -220,11 +221,13 @@ function _runExtractStep() {
 
     if (vsBytes.length > 0 && !vsKey) {
       vsKey = vsBytes;
+      rawCarrierMessage = messages[i].message;
       carrierIndex = i;
     }
   }
 
   _scannerState.cleanMessages = cleanMessages;
+  _scannerState.rawCarrierMessage = rawCarrierMessage;
   _scannerState.vsKey = vsKey;
   _scannerState.carrierIndex = carrierIndex;
 }
@@ -237,13 +240,15 @@ async function _runTryStep() {
   const vsKey = _scannerState.vsKey;
   const cleanMessages = _scannerState.cleanMessages;
   const carrierIndex = _scannerState.carrierIndex;
+  const rawCarrierMessage = _scannerState.rawCarrierMessage;
   const password = document.getElementById('scannerPassword').value;
 
   if (!vsKey) return;
 
-  const xorKeyBinary = bytesToBinary(vsKey);
   let foundMatch = false;
   let html = '<div class="space-y-2">';
+
+  const cleanCoverBitsMap = cleanMessages.map(msg => stringToBinary(msg));
 
   for (let i = 0; i < cleanMessages.length; i++) {
     // Skip carrier message itself
@@ -257,7 +262,8 @@ async function _runTryStep() {
     }
 
     const candidateCover = cleanMessages[i];
-    const coverBits = stringToBinary(candidateCover);
+    const coverBits = cleanCoverBitsMap[i];
+    const xorKeyBinary = bytesToBinary(vsKey);
 
     // Check if cover is long enough
     if (xorKeyBinary.length > coverBits.length) {
@@ -271,16 +277,30 @@ async function _runTryStep() {
 
     try {
       const { resolvedStegoKey } = await resolveStegoKey(password, candidateCover);
-      const positions = generatePositions(coverBits.length, xorKeyBinary.length, resolvedStegoKey);
-      const recoveredBinary = recoverPayloadBits(coverBits, positions, xorKeyBinary);
-      const payloadBytes = binaryToBytes(recoveredBinary);
-
       const strictDecoder = new TextDecoder('utf-8', { fatal: true });
-      const decoded = strictDecoder.decode(payloadBytes);
 
-      if (decoded.length > 0 && isPrintableText(decoded)) {
-        const { secretMessage, hint } = parsePayload(payloadBytes);
+      function tryEngine(posFn) {
+        try {
+          const positions = posFn(coverBits.length, xorKeyBinary.length, resolvedStegoKey);
+          const recoveredBinary = recoverPayloadBits(coverBits, positions, xorKeyBinary);
+          const payloadBytes = binaryToBytes(recoveredBinary);
+          const decoded = strictDecoder.decode(payloadBytes);
+          if (decoded.length > 0 && isPrintableText(decoded)) {
+            return parsePayload(payloadBytes);
+          }
+        } catch (e) {}
+        return null;
+      }
 
+      // 1. Try Modern Engine
+      let parsed = tryEngine(generatePositions);
+      // 2. Fallback to Legacy Engine
+      if (!parsed && typeof generatePositionsLegacy === 'function') {
+        parsed = tryEngine(generatePositionsLegacy);
+      }
+
+      if (parsed) {
+        const { secretMessage, hint } = parsed;
         foundMatch = true;
         html += `
           <div class="scanner-status-box success" style="border-width:2px; margin-bottom:var(--space-sm);">

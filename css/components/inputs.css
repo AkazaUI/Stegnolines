@@ -39,9 +39,16 @@
   box-shadow: 0 0 0 3px rgba(125,163,0,0.2);
 }
 
-.form-input--error {
+.form-input--error, .cover-editor.form-input--error {
   border-width: 2px;
-  border-color: var(--color-error) !important;
+  border-color: #ff4d4d !important;
+  box-shadow: 0 0 0 4px rgba(255, 77, 77, 0.25) !important;
+  animation: shakeError 0.35s ease-in-out;
+}
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
 }
 .form-error-text {
   margin-top: var(--space-xs);
