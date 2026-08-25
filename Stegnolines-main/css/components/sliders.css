@@ -1,0 +1,43 @@
+/* ============================================================
+   STEGNOLINES UI LIBRARY — Range Sliders Component
+   ============================================================ */
+
+.range-meta {
+  display: flex; justify-content: space-between;
+  margin-bottom: var(--space-xs);
+  color: var(--color-on-surface-variant);
+}
+.range-meta__value {
+  font-weight: 600;
+  color: var(--color-on-surface);
+}
+
+.range-input {
+  width: 100%;
+  height: 8px;
+  background: var(--color-surface-variant);
+  border-radius: var(--radius-lg);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  outline: none;
+}
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface-container-lowest);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.range-input::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.range-input::-moz-range-thumb {
+  width: 20px; height: 20px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface-container-lowest);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  cursor: pointer;
+}

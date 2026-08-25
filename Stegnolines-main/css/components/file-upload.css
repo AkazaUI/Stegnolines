@@ -1,0 +1,90 @@
+/* ============================================================
+   STEGNOLINES UI LIBRARY — File Upload Component
+   ============================================================ */
+
+.file-upload {
+  border: 2px dashed var(--color-outline-variant);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  background: var(--color-surface-container-low);
+  cursor: pointer;
+  height: 220px;
+  box-sizing: border-box;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.file-upload:hover {
+  background: var(--color-surface-container);
+  border-color: var(--color-secondary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+/* Floating cloud icon micro-animation on hover */
+.file-upload:hover .material-symbols-outlined {
+  animation: uploadIconFloat 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes uploadIconFloat {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-6px); }
+}
+
+.file-upload .material-symbols-outlined {
+  font-size: 1.875rem;
+  color: var(--color-on-surface-variant);
+  margin-bottom: var(--space-sm);
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.file-upload__title {
+  color: var(--color-on-surface);
+  font-weight: 500;
+}
+
+.file-upload__hint {
+  color: var(--color-on-surface-variant);
+}
+
+/* Marching ants styled dragover state */
+.file-upload.dragover {
+  border-color: transparent;
+  background-image: 
+    linear-gradient(90deg, var(--color-primary) 50%, transparent 50%),
+    linear-gradient(180deg, var(--color-primary) 50%, transparent 50%),
+    linear-gradient(270deg, var(--color-primary) 50%, transparent 50%),
+    linear-gradient(360deg, var(--color-primary) 50%, transparent 50%);
+  background-position: 0 0, 100% 0, 100% 100%, 0 100%;
+  background-size: 20px 2px, 2px 20px, 20px 2px, 2px 20px;
+  background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
+  animation: marchingAnts 0.8s linear infinite;
+  background-color: var(--color-surface-container) !important;
+  box-shadow: 0 0 20px rgba(187, 209, 0, 0.18), inset 0 0 10px rgba(187, 209, 0, 0.05);
+  transform: scale(1.02);
+}
+
+html.light .file-upload.dragover {
+  background-image: 
+    linear-gradient(90deg, var(--color-tertiary) 50%, transparent 50%),
+    linear-gradient(180deg, var(--color-tertiary) 50%, transparent 50%),
+    linear-gradient(270deg, var(--color-tertiary) 50%, transparent 50%),
+    linear-gradient(360deg, var(--color-tertiary) 50%, transparent 50%);
+}
+
+.file-upload.dragover .material-symbols-outlined {
+  color: var(--color-primary) !important;
+  transform: scale(1.15);
+}
+html.light .file-upload.dragover .material-symbols-outlined {
+  color: var(--color-tertiary) !important;
+}
+
+@keyframes marchingAnts {
+  to {
+    background-position: 20px 0, 100% 20px, -20px 100%, 0 -20px;
+  }
+}

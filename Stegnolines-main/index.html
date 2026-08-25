@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="icon" type="image/png" href="assets/brand/favicon.png" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StegoLines — Embedding Interface</title>
+  <meta name="description"
+    content="Text-based steganography embedding interface. Hide secret messages inside cover text securely." />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="js/i18n/common.js"></script>
+  <script src="js/i18n/embed.js"></script>
+  <script src="js/i18n/hints.js"></script>
+  <script src="js/i18n/toasts.js"></script>
+  <script src="js/i18n/index.js"></script>
+  <script>
+    window.translations = mergeI18n(I18N_COMMON, I18N_EMBED, I18N_HINTS, I18N_TOASTS);
+  </script>
+  <script src="js/shared/theme-manager.js"></script>
+  <script src="js/shared/connection-monitor.js"></script>
+  <!-- zxcvbn password strength estimator (Dropbox) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js" crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
+  <!-- Page-specific styles are loaded via css/main.css -->
+</head>
+
+<body>
+  <!-- Global SVG definitions to avoid display:none gradient bugs -->
+  <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
+    <defs>
+      <linearGradient id="ig-grad-guard" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#feda75" />
+        <stop offset="25%" stop-color="#fa7e1e" />
+        <stop offset="50%" stop-color="#d62976" />
+        <stop offset="75%" stop-color="#962fbf" />
+        <stop offset="100%" stop-color="#4f5bd5" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <script src="js/features/page-loader.js"></script>
+
+  <!-- Top Navigation Placeholder -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- ═══ Main Content ═══ -->
+  <main class="main-content">
+
+    <header class="main-header">
+      <h1 class="text-display-lg" data-i18n="mainHeaderTitle">Embedding Interface</h1>
+      <p class="text-body-lg" data-i18n="mainHeaderSubtitle">Conceal a secret message inside cover text using text-based
+        steganography.</p>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="tabs-nav" id="embed-tabs" style="margin-bottom: var(--space-lg);">
+      <button class="tab-btn active" data-tab="text" data-i18n="emTabText" data-i18n-title="navDropdownTextDesc" title="Conceal secret text inside cover text">Text</button>
+      <button class="tab-btn" data-tab="image" data-i18n="emTabImage" data-i18n-title="navDropdownImageDesc" title="Hide a mini image inside cover text">Image</button>
+    </nav>
+
+    <!-- Tab Panel: Text Embed -->
+    <div class="tab-panel active" id="tab-text">
+
+      <!-- ══════════════════════════════════════════
+         UNIFIED SINGLE CARD — top-to-bottom flow
+         ══════════════════════════════════════════ -->
+      <section class="card" id="embed-panel">
+        <h2 class="text-headline-md card__title" data-i18n="embedPanelTitle">Embedding Workflow</h2>
+
+
+
+        <div class="stack-xl">
+
+          <!-- Social Platform Guard (Optional) -->
+          <div class="platform-guard-card">
+            <div class="platform-guard-header">
+              <span class="material-symbols-outlined" style="color: var(--color-primary);">policy</span>
+              <div class="platform-guard-title" data-i18n="guardTitle">Social Platform Guard</div>
+              <span class="badge badge--draft text-label-md" data-i18n="badgeOptional">Optional</span>
+            </div>
+
+            <div class="platform-guard-select-grid">
+              <!-- Platform Selection -->
+              <div>
+                <label class="form-label text-label-md" data-i18n="labelGuardPlatform">Target Platform</label>
+                <div class="custom-select-wrapper" id="guardPlatformWrapper">
+                  <!-- Hidden input that holds the selected value -->
+                  <input type="hidden" id="guardPlatformSelect" value="none">
+                  <div class="custom-select-trigger form-select scanner-select" id="guardPlatformTrigger"
+                    onclick="toggleGuardPlatformSelect(event)">
+                    <span id="guardPlatformLabel" data-i18n="guardPlatformNone">None</span>
+                    <span class="material-symbols-outlined select-icon">expand_more</span>
+                  </div>
+                  <div class="custom-select-options" id="guardPlatformOptions">
+                    <!-- Dynamically populated with options containing brand icons! -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Placement Selection -->
+              <div>
+                <label class="form-label text-label-md" data-i18n="labelGuardPlacement">Placement / Location</label>
+                <div class="custom-select-wrapper" id="guardPlacementWrapper">
+                  <!-- Hidden input that holds the selected placement value -->
+                  <input type="hidden" id="guardPlacementSelect" value="none">
+                  <div class="custom-select-trigger form-select scanner-select" id="guardPlacementTrigger"
+                    onclick="toggleGuardPlacementSelect(event)" style="pointer-events: none; opacity: 0.5;">
+                    <span id="guardPlacementLabel" data-i18n="guardPlacementNone">-- Choose Placement --</span>
+                    <span class="material-symbols-outlined select-icon">expand_more</span>
+                  </div>
+                  <div class="custom-select-options" id="guardPlacementOptions">
+                    <!-- Dynamically populated -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Capacity Indicator Panel -->
+            <div class="platform-guard-preview-card" id="guardPreviewCard">
+              <div class="platform-preview-header">
+                <div class="platform-preview-info">
+                  <div class="platform-preview-icon" id="guardPreviewIcon"></div>
+                  <span id="guardPreviewName">Instagram</span>
+                  <span style="opacity: 0.5;">&bull;</span>
+                  <span id="guardPreviewPlacement"
+                    style="font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">Bio</span>
+                </div>
+                <div class="platform-preview-badge platform-preview-badge--safe" id="guardPreviewBadge">
+                  <span class="material-symbols-outlined" style="font-size: 14px;"
+                    id="guardPreviewBadgeIcon">check_circle</span>
+                  <span id="guardPreviewBadgeText">Safe</span>
+                </div>
+              </div>
+
+              <!-- Character counter and status bar -->
+              <div class="platform-preview-char-stats">
+                <span style="font-size: 0.72rem; font-family: monospace;" id="guardPreviewLimitText">Limit: 150
+                  chars</span>
+                <span class="font-semibold" style="font-size: 0.75rem;" id="guardPreviewCountText">0 / 150 chars</span>
+              </div>
+
+              <div class="platform-preview-progress-track">
+                <div class="platform-preview-progress-fill" id="guardPreviewProgressFill" style="width: 0%;"></div>
+              </div>
+
+              <div class="platform-preview-notice">
+                <span class="material-symbols-outlined"
+                  style="font-size: 14px; color: var(--color-primary);">info</span>
+                <span data-i18n="guardNotice">Steganographic characters are invisible but count in Unicode limits. Final
+                  output length is verified.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 1. TEXTAREA ROW: Cover (left) + Secret (right) -->
+          <div class="textarea-row">
+
+            <!-- Cover Input -->
+            <div>
+              <div class="label-row">
+                <label class="form-label text-label-md" for="embedCover" style="margin-bottom:0"
+                  data-i18n="labelCoverText">Cover Text</label>
+                <span class="badge badge--draft text-label-md">
+                  <span class="material-symbols-outlined">article</span> <span data-i18n="badgeCoverText">Medium</span>
+                </span>
+              </div>
+              <textarea class="form-textarea" id="embedCover" rows="9" data-i18n-placeholder="placeholderCoverText"
+                placeholder="Paste your cover text here. The longer and more natural the text, the greater the embedding capacity..."
+                oninput="updateCapacityMeter()"></textarea>
+            </div>
+
+            <!-- Secret Input -->
+            <div>
+              <div class="label-row">
+                <label class="form-label text-label-md" for="embedSecretMessage" style="margin-bottom:0"
+                  data-i18n="labelSecretMessage">Secret Message</label>
+                <span class="badge badge--encrypted text-label-md">
+                  <span class="material-symbols-outlined">lock</span> <span
+                    data-i18n="badgeSecretMessage">Payload</span>
+                </span>
+              </div>
+              <textarea class="form-textarea" id="embedSecretMessage" rows="9"
+                style="background-color: var(--color-surface-container-low);"
+                data-i18n-placeholder="placeholderSecretMessage"
+                placeholder="Type the secret message you want to hide inside the cover text..."
+                oninput="updateCapacityMeter()"></textarea>
+            </div>
+
+          </div><!-- /textarea-row -->
+
+          <!-- 2. CAPACITY METER (full-width) -->
+          <div id="capacityMeterPanel">
+            <div class="progress-meta text-body-sm">
+              <span>
+                <span class="material-symbols-outlined"
+                  style="font-size:16px; vertical-align:middle; margin-right:4px">speed</span>
+                <span data-i18n="labelCapacityMeter">Capacity Meter</span>
+              </span>
+              <span id="meterPercent" class="font-semibold" style="color:var(--color-on-surface)">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="meterFill" style="width:0%"></div>
+            </div>
+            <div class="capacity-stats-grid">
+              <span class="text-body-sm" style="color:var(--color-on-surface-variant)"><span
+                  data-i18n="labelCoverBits">Cover: </span><span class="font-semibold"
+                  style="color:var(--color-primary)" id="mCoverLen">0</span> <span data-i18n="labelBitsUnit">bits</span></span>
+              <span class="text-body-sm" style="color:var(--color-on-surface-variant)"><span
+                  data-i18n="labelMaxChars">Capacity: </span><span class="font-semibold"
+                  style="color:var(--color-primary)" id="mMaxChars">0</span> <span data-i18n="labelCharsUnit">chars</span></span>
+              <span class="text-body-sm" style="color:var(--color-on-surface-variant)"><span
+                  data-i18n="labelMsgBits">Msg: </span><span class="font-semibold" style="color:var(--color-primary)"
+                  id="mMsgBits">0</span> <span data-i18n="labelBitsUnit">bits</span></span>
+              <span class="text-body-sm" style="color:var(--color-on-surface-variant)"><span
+                  data-i18n="labelUsageBits">Usage: </span><span class="font-semibold"
+                  style="color:var(--color-primary)" id="mUsage">0 / 0</span> <span data-i18n="labelBitsUnit">bits</span></span>
+            </div>
+          </div>
+
+          <!-- 3. CONFIGURATION INPUTS (full-width stacked) -->
+          <div class="config-stack">
+
+            <!-- Pre-Shared Key -->
+            <div>
+              <div class="label-row">
+                <label class="form-label text-label-md" for="embedStegoKey" style="margin-bottom:0"
+                  data-i18n="labelStegoKey">Pre-Shared Key(Stego-Key)</label>
+                <span class="badge badge--encrypted text-label-md">
+                  <span class="material-symbols-outlined">key</span> StegoKey
+                </span>
+                <span class="text-label-md" id="preshared-counter"
+                  style="margin-inline-start: auto; color: var(--color-on-surface-variant);">0 chars</span>
+              </div>
+              <div class="input-eye-wrap">
+                <input class="form-input" id="embedStegoKey" type="password" data-i18n-placeholder="placeholderStegoKey"
+                  placeholder="Enter Pre-Shared Key (Required)..." />
+                <button class="eye-toggle-btn" id="eye-toggle-btn" type="button" aria-label="Toggle key visibility">
+                  <span class="material-symbols-outlined" id="eye-icon">visibility</span>
+                </button>
+              </div>
+              <div style="margin-top:var(--space-sm)">
+                <div class="strength-bars-4" id="strength-bars">
+                  <div class="strength-bar-4" id="sb-1"></div>
+                  <div class="strength-bar-4" id="sb-2"></div>
+                  <div class="strength-bar-4" id="sb-3"></div>
+                  <div class="strength-bar-4" id="sb-4"></div>
+                </div>
+                <div
+                  style="display:flex; align-items:center; justify-content:space-between; margin-top:var(--space-xs);">
+                  <p class="text-label-md" style="color:var(--color-on-surface-variant)">
+                    <span data-i18n="labelKeyStrength">Key strength: </span><span class="font-bold"
+                      style="color:var(--color-primary)" id="strength-label" data-i18n="strengthNone">None</span>
+                  </p>
+                  <span class="tooltip-trigger" style="font-size:0">
+                    <span class="material-symbols-outlined"
+                      style="font-size:16px; color:var(--color-on-surface-variant); cursor:help">help_outline</span>
+                    <span class="tooltip-bubble text-body-sm" data-i18n="strengthTooltip">Level 1 (Weak): 1–7 chars ·
+                      Level 2 (Fair): 8–11 chars · Level 3 (Strong): 12–15 chars with numbers/symbols · Level 4 (Very
+                      Strong): 16+ chars, mixed</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Advanced Settings (Hint & Salt) -->
+            <details class="advanced-settings-details">
+              <summary class="advanced-settings-summary">
+                <span class="material-symbols-outlined" style="font-size:18px">settings</span>
+                <span data-i18n="advancedSettingsSummary">Advanced Settings</span>
+                <span class="material-symbols-outlined expand-icon"
+                  style="font-size:18px; margin-left:auto">expand_more</span>
+              </summary>
+              <div class="advanced-settings-content">
+                <!-- Encryption Key (AES-CTR) -->
+                <div>
+                  <div class="label-row">
+                    <label class="form-label text-label-md" for="embedEncryptionKey" style="margin-bottom:0"
+                      data-i18n="labelEncryptionKey">Encryption Key</label>
+                    <span class="badge badge--encrypted text-label-md">AES</span>
+                    <span class="badge badge--draft text-label-md" data-i18n="badgeOptional">Optional</span>
+                  </div>
+                  <div class="input-eye-wrap">
+                    <input class="form-input" id="embedEncryptionKey" type="password"
+                      data-i18n-placeholder="placeholderEncryptionKey"
+                      placeholder="Enter key for AES Encryption Algorithm..." />
+                    <button class="eye-toggle-btn" id="enc-eye-toggle-btn" type="button"
+                      aria-label="Toggle encryption key visibility">
+                      <span class="material-symbols-outlined" id="enc-eye-icon">visibility</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Hint (Optional) -->
+                <div>
+                  <div class="label-row">
+                    <label class="form-label text-label-md" for="embedHint" style="margin-bottom:0"
+                      data-i18n="labelHint">Hint</label>
+                    <span class="badge badge--draft text-label-md" data-i18n="badgeOptional">Optional</span>
+                  </div>
+                  <input class="form-input" id="embedHint" type="text" data-i18n-placeholder="placeholderHint"
+                    placeholder="Extraction clue for the receiver..." oninput="updateCapacityMeter()" />
+                  <div class="hint-counter-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                    <span class="text-body-sm hint-error-text" id="embedHintError" style="color: var(--color-error); font-weight: 500; display: none;"></span>
+                    <span class="text-body-sm" id="embedHintCounter" style="color: var(--color-on-surface-variant); margin-inline-start: auto;">0/60</span>
+                  </div>
+                </div>
+
+                <!-- embedFakeCover (Optional) -->
+                <div>
+                  <div class="label-row">
+                    <label class="form-label text-label-md" for="embedFakeCover" style="margin-bottom:0"
+                      data-i18n="labelFakeCover">Fake Cover (optional)</label>
+                    <span class="badge badge--draft text-label-md" data-i18n="badgeOptional">Optional</span>
+                  </div>
+                  <textarea class="form-textarea" id="embedFakeCover" rows="3"
+                    data-i18n-placeholder="placeholderFakeCover"
+                    placeholder="Optional — paste a normal message here to transfer VS characters to a fake cover instead of the cover text. Leave empty = normal behavior (VS inside cover)."></textarea>
+                  <p class="text-body-sm" style="color:var(--color-on-surface-variant); margin-top:var(--space-xs)"
+                    data-i18n="helpFakeCover">
+                    If you enter text here, VS characters will be moved to this fake cover instead of the cover — to
+                    distract any third party. Size must be ≥ secret message size.
+                  </p>
+                </div>
+              </div>
+            </details>
+
+          </div><!-- /config-stack -->
+
+          <!-- 4. ACTION BUTTONS -->
+          <div class="btn-group">
+            <button class="btn btn--primary" id="btnGenerateMap">
+              <span class="material-symbols-outlined" style="font-size:18px">visibility_off</span>
+              <span data-i18n="btnHideData">Hide Data</span>
+            </button>
+          </div>
+
+        </div><!-- /stack-xl -->
+      </section><!-- /embed-panel -->
+
+      <!-- ══════════════════════════════════════════
+         RESULTS CARD — shown after embedding
+         ══════════════════════════════════════════ -->
+      <section class="card" id="embed-results-panel" style="display:none; margin-top: var(--space-lg);">
+        <h2 class="text-headline-md card__title" data-i18n="embedResultsTitle">Embedding Results</h2>
+
+        <div class="stack-xl">
+
+          <!-- 5. OUTPUT (Steganographic Output — bottom of panel) -->
+          <div id="output-section" class="result-card" style="display:none;">
+
+            <!-- Success Header -->
+            <div class="success-header">
+              <div class="success-header__icon-wrap">
+                <span class="material-symbols-outlined" style="font-size:24px">check_circle</span>
+              </div>
+              <div>
+                <div class="success-header__title" data-i18n="successTitle">Data Hidden Successfully!</div>
+                <div class="success-header__subtitle" data-i18n="successSubtitle">Your secret payload is now securely
+                  embedded. You can copy the stego-text below.</div>
+              </div>
+            </div>
+            <!-- Embed Time Taken card grid -->
+            <div id="embedTimeTaken" class="metric-cards-grid" style="display: none; margin-bottom: var(--space-md);">
+              <div class="metric-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                  <span class="metric-card__label" data-i18n="metricEmbedTime">Embedding Duration</span>
+                </div>
+                <span class="metric-card__value" id="embedTimeVal">0 ms</span>
+                <span class="metric-card__badge metric-card__badge--primary" data-i18n="badgeOptimal">Optimized</span>
+              </div>
+              <div class="metric-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                  <span class="metric-card__label" data-i18n="metricCompressTime">Compression Duration</span>
+                </div>
+                <span class="metric-card__value" id="embedCompressTimeVal">0 ms</span>
+                <span class="metric-card__badge metric-card__badge--amber" id="embedCompressTimeBadge" data-i18n="badgeBrotliActive">Brotli Active</span>
+              </div>
+            </div>
+
+            <!-- Mode A: Normal (single stego-object) -->
+            <div id="outputModeNormal">
+              <div class="editor-block">
+                <div class="editor-toolbar">
+                  <div class="editor-toolbar__title">
+                    <span class="material-symbols-outlined" style="color: var(--color-primary)">output</span>
+                    <span data-i18n="outputNormalTitle">Stego-Text</span>
+                  </div>
+                  <button type="button" class="floating-btn" onclick="copyResultText('stegoText', this)">
+                    <span class="material-symbols-outlined">content_copy</span>
+                    <span data-i18n="btnCopyStego">Copy Stego-Text</span>
+                  </button>
+                </div>
+                <textarea class="editor-block__textarea" id="stegoText" rows="10" readonly
+                  data-i18n-placeholder="placeholderStegoOutput"
+                  placeholder="The stego-text result will appear here after you click 'Hide Data'..."></textarea>
+              </div>
+            </div>
+
+            <!-- Mode B: Split (clean cover + carrier with VS) -->
+            <div id="outputModeSplit" style="display:none;">
+              <div class="split-grid">
+                <!-- Clean Cover -->
+                <div class="editor-block">
+                  <div class="editor-toolbar">
+                    <div class="editor-toolbar__title">
+                      <span class="material-symbols-outlined" style="color: var(--color-primary)">article</span>
+                      <span data-i18n="outputSplitCover">Clean Cover (Message #1)</span>
+                    </div>
+                    <button type="button" class="floating-btn" onclick="copyResultText('splitCleanCover', this)">
+                      <span class="material-symbols-outlined">content_copy</span>
+                      <span data-i18n="btnCopy">Copy</span>
+                    </button>
+                  </div>
+                  <textarea class="editor-block__textarea" id="splitCleanCover" rows="6" readonly
+                    data-i18n-placeholder="placeholderSplitCover"
+                    placeholder="Clean cover will appear here..."></textarea>
+                </div>
+
+                <!-- Fake Cover with VS -->
+                <div class="editor-block">
+                  <div class="editor-toolbar">
+                    <div class="editor-toolbar__title">
+                      <span class="material-symbols-outlined"
+                        style="color: var(--color-secondary)">enhanced_encryption</span>
+                      <span data-i18n="outputSplitFakeCover">Fake Cover + VS (Message #2)</span>
+                    </div>
+                    <button type="button" class="floating-btn" onclick="copyResultText('splitFakeCoverOutput', this)">
+                      <span class="material-symbols-outlined">content_copy</span>
+                      <span data-i18n="btnCopy">Copy</span>
+                    </button>
+                  </div>
+                  <textarea class="editor-block__textarea" id="splitFakeCoverOutput" rows="6" readonly
+                    data-i18n-placeholder="placeholderSplitFakeCover"
+                    placeholder="Fake Cover with VS will appear here..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Extraction Hint preview banner -->
+            <div class="hint-banner" id="hint-banner-container">
+              <span class="material-symbols-outlined hint-banner__icon">key</span>
+              <div>
+                <div class="hint-banner__title" data-i18n="hintBannerTitle">Extraction Hint Clue (Hint for the receiver)
+                </div>
+                <div class="hint-banner__value" id="hint-preview-value" data-i18n="hintBannerNoValue">No hint provided.
+                </div>
+              </div>
+            </div>
+
+
+            <!-- Social share buttons -->
+            <div class="share-row"
+              style="border-top: 1px solid var(--color-outline-variant); padding-top: var(--space-md); margin-top: var(--space-xs);">
+              <span class="share-row__label" data-i18n="labelShareOutput">Share Output:</span>
+              <div style="display:flex; flex-wrap:wrap; gap:var(--space-sm);">
+                <button type="button" class="btn--share-circle" id="share-whatsapp" title="Send to WhatsApp">
+                  <svg viewBox="0 0 24 24" fill="#25D366">
+                    <path
+                      d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                  </svg>
+                </button>
+                <button type="button" class="btn--share-circle" id="share-facebook" title="Send to Facebook">
+                  <svg viewBox="0 0 24 24" fill="#1877F2">
+                    <path
+                      d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
+                </button>
+                <button type="button" class="btn--share-circle" id="share-instagram" title="Copy for Instagram">
+                  <svg viewBox="0 0 24 24">
+                    <defs>
+                      <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#feda75" />
+                        <stop offset="25%" stop-color="#fa7e1e" />
+                        <stop offset="50%" stop-color="#d62976" />
+                        <stop offset="75%" stop-color="#962fbf" />
+                        <stop offset="100%" stop-color="#4f5bd5" />
+                      </linearGradient>
+                    </defs>
+                    <path fill="url(#ig-grad)"
+                      d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                  </svg>
+                </button>
+                <button type="button" class="btn--share-circle" id="share-x" title="Send to X">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                      d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                </button>
+                <button type="button" class="btn--share-circle" id="share-snapchat" title="Send to Snapchat">
+                  <svg viewBox="0 0 16 16">
+                    <path fill="#FFFFFF" stroke="#000000" stroke-width="1.2" stroke-linejoin="round" d="M15.943 11.526c-.111-.303-.323-.465-.564-.599a1.416 1.416 0 0 0-.123-.064l-.219-.111c-.752-.399-1.339-.902-1.746-1.498a3.387 3.387 0 0 1-.3-.531c-.034-.1-.032-.156-.008-.207a.338.338 0 0 1 .097-.1c.129-.086.262-.173.352-.231c.162-.104.289-.187.371-.245.309-.216.525-.446.66-.702a1.397 1.397 0 0 0 .069-1.16c-.205-.538-.713-.872-1.329-.872a1.829 1.829 0 0 0-.487.065c.006-.368-.002-.757-.035-1.139-.116-1.344-.587-2.048-1.077-2.61a4.294 4.294 0 0 0-1.095-.881C9.764.216 8.92 0 7.999 0c-.92 0-1.76.216-2.505.641-.412.232-.782.53-1.097.883-.49.562-.96 1.267-1.077 2.61-.033.382-.04.772-.036 1.138a1.83 1.83 0 0 0-.487-.065c-.615 0-1.124.335-1.328.873a1.398 1.398 0 0 0 .067 1.161c.136.256.352.486.66.701.082.058.21.14.371.246l.339.221a.38.38 0 0 1 .109.11c.026.053.027.11-.012.217a3.363 3.363 0 0 1-.295.52c-.398.583-.968 1.077-1.696 1.472-.385.204-.786.34-.955.8-.128.348-.044.743.28 1.075.119.125.257.23.409.31a4.43 4.43 0 0 0 1 .4.66.66 0 0 1 .202.09c.118.104.102.26.259.488.079.118.18.22.296.3.33.229.701.243 1.095.258.355.014.758.03 1.217.18.19.064.389.186.618.328.55.338 1.305.802 2.566.802 1.262 0 2.02-.466 2.576-.806.227-.14.424-.26.609-.321.46-.152.863-.168 1.218-.181.393-.015.764-.03 1.095-.258a1.14 1.14 0 0 0 .336-.368c.114-.192.11-.327.217-.42a.625.625 0 0 1 .19-.087 4.446 4.446 0 0 0 .004-.002Z"/>
+                  </svg>
+                </button>
+                <button type="button" class="btn--share-circle" id="share-messenger" title="Send to Messenger">
+                  <svg viewBox="0 0 24 24" fill="#00B2FF">
+                    <path
+                      d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.469 8.654V24l4.088-2.242c1.092.3 2.246.464 3.443.464 6.627 0 12-4.974 12-11.111C24 4.974 18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26 6.559-6.962 3.13 3.26 5.888-3.26-6.559 6.962z" />
+                  </svg>
+                </button>
+                <button type="button" class="btn--share-circle" id="share-telegram" title="Send to Telegram">
+                  <svg viewBox="0 0 24 24" fill="#26A5E4">
+                    <path
+                      d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+                  </svg>
+                </button>
+                <button type="button" class="btn--share-circle" id="share-youtube" title="Copy for YouTube">
+                  <svg viewBox="0 0 16 16" fill="#FF0000">
+                    <path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.01 2.01 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.01 2.01 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31 31 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.01 2.01 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A100 100 0 0 1 7.858 2zM6.4 5.209v4.818l4.157-2.408z"/>
+                  </svg>
+                </button>
+                <button type="button" class="btn--share-circle" id="share-linkedin" title="Copy for LinkedIn">
+                  <svg viewBox="0 0 16 16" fill="#0077B5">
+                    <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/>
+                  </svg>
+                </button>
+                <button type="button" class="btn--share-circle" id="share-tiktok" title="Copy for TikTok">
+                  <svg viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3V0Z"/>
+                  </svg>
+                </button>
+                <button type="button" class="btn--share-circle" id="share-wechat" title="Copy for WeChat">
+                  <svg viewBox="0 0 16 16" fill="#07C160">
+                    <path d="M11.176 14.429c-2.665 0-4.826-1.8-4.826-4.018 0-2.22 2.159-4.02 4.824-4.02S16 8.191 16 10.411c0 1.21-.65 2.301-1.666 3.036a.324.324 0 0 0-.12.366l.218.81a.616.616 0 0 1 .029.117.166.166 0 0 1-.162.162.177.177 0 0 1-.092-.03l-1.057-.61a.519.519 0 0 0-.256-.074.509.509 0 0 0-.142.021 5.668 5.668 0 0 1-1.576.22ZM9.064 9.542a.647.647 0 1 0 .557-1 .645.645 0 0 0-.646.647.615.615 0 0 0 .09.353Zm3.232.001a.646.646 0 1 0 .546-1 .645.645 0 0 0-.644.644.627.627 0 0 0 .098.356Z"/>
+                    <path d="M0 6.826c0 1.455.781 2.765 2.001 3.656a.385.385 0 0 1 .143.439l-.161.6-.1.373a.499.499 0 0 0-.032.14.192.192 0 0 0 .193.193c.039 0 .077-.01.111-.029l1.268-.733a.622.622 0 0 1 .308-.088c.058 0 .116.009.171.025a6.83 6.83 0 0 0 1.625.26 4.45 4.45 0 0 1-.177-1.251c0-2.936 2.785-5.02 5.824-5.02.05 0 .1 0 .15.002C10.587 3.429 8.392 2 5.796 2 2.596 2 0 4.16 0 6.826Zm4.632-1.555a.77.77 0 1 1-1.54 0 .77.77 0 0 1 1.54 0Zm3.875 0a.77.77 0 1 1-1.54 0 .77.77 0 0 1 1.54 0Z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Technical Diagnostics Accordion -->
+          <div class="diag-accordion" id="toggleDetailsBtnWrap" style="display:none; margin-top: var(--space-md);">
+            <button type="button" class="diag-accordion__trigger" id="toggleDetailsBtn" onclick="toggleDetails()">
+              <span class="diag-accordion__icon material-symbols-outlined">terminal</span>
+              <div class="diag-accordion__text-wrap">
+                <div class="diag-accordion__title" data-i18n="diagAccordionTitle">Technical Diagnostics</div>
+                <div class="diag-accordion__subtitle" data-i18n="diagAccordionSubtitle">VS Analysis · Base Map · XOR Key
+                </div>
+              </div>
+              <span class="material-symbols-outlined diag-accordion__chevron">expand_more</span>
+            </button>
+
+            <div class="diag-accordion__body">
+              <div class="diag-grid">
+
+                <!-- Deep Analytics Callout Banner -->
+                <div class="diag-panel diag-panel--full"
+                  style="background: linear-gradient(135deg, rgba(187,209,0,0.08) 0%, rgba(125,163,0,0.03) 100%); border-color: rgba(187,209,0,0.3); display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: var(--space-md); flex-wrap: wrap; padding: var(--space-md) var(--space-lg); grid-column: 1 / -1; width: 100%; box-sizing: border-box;">
+                  <div style="display: flex; align-items: center; gap: var(--space-md);">
+                    <span class="material-symbols-outlined"
+                      style="color: var(--color-primary); font-size: 28px;">insights</span>
+                    <div>
+                      <h4
+                        style="margin: 0; font-weight: 700; font-size: var(--fs-body-md); color: var(--color-on-surface);"
+                        data-i18n="deepDiagBannerTitle">Stego Analytics Dashboard</h4>
+                      <p style="margin: 2px 0 0 0; font-size: var(--fs-body-sm); color: var(--color-on-surface-variant); opacity: 0.85;"
+                        data-i18n="deepDiagBannerSub">Access a comprehensive, interactive breakdown of the encoding
+                        trace, payload stages, and bit-level mapping.</p>
+                    </div>
+                  </div>
+                  <a href="details.html" class="btn-gradient"
+                    style="text-decoration: none; padding: 10px 22px; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: var(--space-xs); font-family: var(--font-label); font-size: var(--fs-body-md); font-weight: 700; color: #1B1D00 !important; cursor: pointer; transition: var(--transition-all);"
+                    id="btn-deep-dive">
+                    <span class="material-symbols-outlined" style="font-size:18px;">analytics</span>
+                    <span data-i18n="btnDeepDive">Deep Analytics Dashboard</span>
+                  </a>
+                </div>
+
+                <!-- Panel 1: VS Hex Analysis -->
+                <div class="diag-panel diag-panel--full" id="vsAnalysisSection">
+                  <div class="diag-panel__header">
+                    <div class="diag-panel__title">
+                      <span class="material-symbols-outlined">analytics</span>
+                      <span data-i18n="labelVsHex">Visual Steganography Hex Stream</span>
+                    </div>
+                    <span class="badge badge--draft text-label-md" id="vsKeyCount">0 bytes</span>
+                  </div>
+                  <div class="progress-track" style="height:6px; margin: var(--space-xs) 0;">
+                    <div class="progress-fill" id="vsKeyMeter" style="width:0%;"></div>
+                  </div>
+                  <div class="diag-panel__viewport" id="vsVisualizationHtml">
+                    <span style="opacity:0.5; font-style:italic;">VS hex visualization will appear here...</span>
+                  </div>
+                  <!-- Hidden legacy textarea for full backward-compatibility -->
+                  <textarea class="editor-block__textarea" id="vsVisualization" style="display:none;"
+                    readonly></textarea>
+                </div>
+
+                <!-- Panel 2: PRNG Coordinate Base Map -->
+                <div class="diag-panel">
+                  <div class="diag-panel__header">
+                    <div class="diag-panel__title">
+                      <span class="material-symbols-outlined">location_on</span>
+                      <span data-i18n="labelPrngBase">PRNG Random Base Positions</span>
+                    </div>
+                  </div>
+                  <div class="diag-panel__viewport" id="baseMapHtml" style="overflow-y:auto;">
+                    <span style="opacity:0.5; font-style:italic;">Base positions will appear here...</span>
+                  </div>
+                  <!-- Hidden legacy textarea for full backward-compatibility -->
+                  <textarea class="editor-block__textarea" id="baseMapOutput" style="display:none;" readonly></textarea>
+                </div>
+
+                <!-- Panel 3: Bitwise XOR Key Mask -->
+                <div class="diag-panel">
+                  <div class="diag-panel__header">
+                    <div class="diag-panel__title">
+                      <span class="material-symbols-outlined">vpn_key</span>
+                      <span data-i18n="labelXorMask">Binary XOR Key Difference Mask</span>
+                    </div>
+                  </div>
+                  <div class="diag-panel__viewport" id="xorKeyHtml" style="overflow-y:auto;">
+                    <span style="opacity:0.5; font-style:italic;">XOR key will appear here...</span>
+                  </div>
+                  <!-- Hidden legacy textarea for full backward-compatibility -->
+                  <textarea class="editor-block__textarea" id="shiftKeyOutput" style="display:none;"
+                    readonly></textarea>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- View Full Report Button (Interactive Diagnostic Panel) -->
+          <div id="btnFullReportWrap"
+            style="display:none; margin-top: var(--space-md); width: 100%; box-sizing: border-box;">
+            <a href="details.html" target="_blank" id="btn-full-report" class="diag-report-panel"
+              style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: var(--space-md) var(--space-lg); border-radius: var(--radius-lg); text-decoration: none; transition: var(--transition-all); box-sizing: border-box; cursor: pointer;">
+              <div style="display: flex; align-items: center; gap: var(--space-md);">
+                <span class="material-symbols-outlined report-icon"
+                  style="color: var(--color-primary); font-size: 22px; transition: var(--transition-all);">insights</span>
+                <span data-i18n="btnFullReport" class="report-text"
+                  style="font-family: var(--font-label); font-size: var(--fs-body-md); font-weight: 700; color: var(--color-on-surface); transition: var(--transition-all);">View
+                  Full Report</span>
+              </div>
+              <span class="material-symbols-outlined arrow-icon"
+                style="color: var(--color-on-surface-variant); opacity: 0.6; transition: var(--transition-all);">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+
+    </section><!-- /embed-results-panel -->
+    </div><!-- /tab-text -->
+
+    <!-- Tab Panel: Image Embed -->
+    <div class="tab-panel hidden" id="tab-image">
+      <section class="card" id="img-embed-panel">
+        <h2 class="text-headline-md card__title" data-i18n="imgEmbedPanelTitle">Image Embedding Workflow</h2>
+
+        <div class="stack-xl">
+
+          <!-- Multi-Message Protocol Mode Selector -->
+          <div class="mode-selector-card" style="background: var(--color-surface-container-low); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-lg); padding: var(--space-md); margin-bottom: var(--space-xs);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-xs);">
+              <div style="display: flex; align-items: center; gap: var(--space-xs);">
+                <span class="material-symbols-outlined" style="color: var(--color-primary); font-size: 20px;">layers</span>
+                <span class="font-semibold text-label-md" data-i18n="imgEmbedModeTitle">Embedding Strategy & Protocol</span>
+              </div>
+              <span class="badge badge--encrypted text-label-md">
+                <span class="material-symbols-outlined" style="font-size: 14px;">verified</span>
+                <span>Fold-Aware V2</span>
+              </span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-sm);">
+              <label class="mode-option-card" style="display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--color-primary); background: var(--color-surface-container-high); cursor: pointer;">
+                <input type="radio" name="imgEmbedModeRadio" value="multi" checked style="margin-top: 3px;">
+                <div>
+                  <div style="font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary);">forum</span>
+                    <span data-i18n="modeMultiTitle">WhatsApp Multi-Message (Adaptive)</span>
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--color-on-surface-variant); margin-top: 2px;" data-i18n="modeMultiDesc">
+                    Splits image payload into safe chunks placed at cover sentence midpoints to avoid WhatsApp "Read More" folds.
+                  </div>
+                </div>
+              </label>
+
+              <label class="mode-option-card" style="display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--color-outline-variant); background: transparent; cursor: pointer; opacity: 0.85;">
+                <input type="radio" name="imgEmbedModeRadio" value="single" style="margin-top: 3px;">
+                <div>
+                  <div style="font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">chat_bubble</span>
+                    <span data-i18n="modeSingleTitle">Legacy Single Line Mode</span>
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--color-on-surface-variant); margin-top: 2px;" data-i18n="modeSingleDesc">
+                    Embeds the entire hidden image into a single cover line (may create very long stego text).
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Social Platform Guard (Optional) -->
+          <div class="platform-guard-card">
+            <div class="platform-guard-header">
+              <span class="material-symbols-outlined" style="color: var(--color-primary);">policy</span>
+              <div class="platform-guard-title" data-i18n="guardTitle">Social Platform Guard</div>
+              <span class="badge badge--draft text-label-md" data-i18n="badgeOptional">Optional</span>
+            </div>
+
+            <div class="platform-guard-select-grid">
+              <!-- Platform Selection -->
+              <div>
+                <label class="form-label text-label-md" data-i18n="labelGuardPlatform">Target Platform</label>
+                <div class="custom-select-wrapper" id="imgGuardPlatformWrapper">
+                  <input type="hidden" id="imgGuardPlatformSelect" value="none">
+                  <div class="custom-select-trigger form-select scanner-select" id="imgGuardPlatformTrigger"
+                    onclick="toggleImgGuardPlatformSelect(event)">
+                    <span id="imgGuardPlatformLabel" data-i18n="guardPlatformNone">None</span>
+                    <span class="material-symbols-outlined select-icon">expand_more</span>
+                  </div>
+                  <div class="custom-select-options" id="imgGuardPlatformOptions">
+                    <!-- Dynamically populated -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Placement Selection -->
+              <div>
+                <label class="form-label text-label-md" data-i18n="labelGuardPlacement">Placement / Location</label>
+                <div class="custom-select-wrapper" id="imgGuardPlacementWrapper">
+                  <input type="hidden" id="imgGuardPlacementSelect" value="none">
+                  <div class="custom-select-trigger form-select scanner-select" id="imgGuardPlacementTrigger"
+                    onclick="toggleImgGuardPlacementSelect(event)" style="pointer-events: none; opacity: 0.5;">
+                    <span id="imgGuardPlacementLabel" data-i18n="guardPlacementNone">-- Choose Placement --</span>
+                    <span class="material-symbols-outlined select-icon">expand_more</span>
+                  </div>
+                  <div class="custom-select-options" id="imgGuardPlacementOptions">
+                    <!-- Dynamically populated -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Capacity Indicator Panel -->
+            <div class="platform-guard-preview-card" id="imgGuardPreviewCard">
+              <div class="platform-preview-header">
+                <div class="platform-preview-info">
+                  <div class="platform-preview-icon" id="imgGuardPreviewIcon"></div>
+                  <span id="imgGuardPreviewName">Instagram</span>
+                  <span style="opacity: 0.5;">&bull;</span>
+                  <span id="imgGuardPreviewPlacement"
+                    style="font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">Bio</span>
+                </div>
+                <div class="platform-preview-badge platform-preview-badge--safe" id="imgGuardPreviewBadge">
+                  <span class="material-symbols-outlined" style="font-size: 14px;"
+                    id="imgGuardPreviewBadgeIcon">check_circle</span>
+                  <span id="imgGuardPreviewBadgeText">Safe</span>
+                </div>
+              </div>
+
+              <!-- Character counter and status bar -->
+              <div class="platform-preview-char-stats">
+                <span style="font-size: 0.72rem; font-family: monospace;" id="imgGuardPreviewLimitText">Limit: 150
+                  chars</span>
+                <span class="font-semibold" style="font-size: 0.75rem;" id="imgGuardPreviewCountText">0 / 150
+                  chars</span>
+              </div>
+
+              <div class="platform-preview-progress-track">
+                <div class="platform-preview-progress-fill" id="imgGuardPreviewProgressFill" style="width: 0%;"></div>
+              </div>
+
+              <div class="platform-preview-notice">
+                <span class="material-symbols-outlined"
+                  style="font-size: 14px; color: var(--color-primary);">info</span>
+                <span data-i18n="guardNotice">Steganographic characters are invisible but count in Unicode limits. Final
+                  output length is verified.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 1. TEXTAREA ROW: Cover (left) + Image Upload (right) -->
+          <div class="split-grid" style="margin-bottom: 0;">
+
+            <!-- Cover Input -->
+            <div>
+              <div class="label-row" style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: var(--space-xs);">
+                  <label class="form-label text-label-md" for="imgEmbedCover" style="margin-bottom:0"
+                    data-i18n="imgLabelCoverText">Cover Text</label>
+                  <span class="badge badge--draft text-label-md">
+                    <span class="material-symbols-outlined">article</span> <span data-i18n="badgeCoverText">Medium</span>
+                  </span>
+                </div>
+                <button type="button" class="btn-change-image" id="btnEditSegmentation" style="display: none; padding: 2px 8px; font-size: 0.72rem; gap: 4px; border-radius: var(--radius-sm);" title="Re-configure Segmentation">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">splitscreen</span>
+                  <span data-i18n="btnEditSegmentationText">تعديل التقسيم</span>
+                </button>
+              </div>
+
+              <!-- Code-Editor Style Cover Text Input -->
+              <div class="cover-editor" id="imgCoverEditorWrap">
+                <!-- Line Numbers Gutter -->
+                <div class="cover-editor__gutter" id="imgCoverGutter" aria-hidden="true">
+                  <div class="cover-editor__gutter-inner" id="imgCoverGutterInner">
+                    <span class="cover-editor__line-num cover-editor__line-num--active">1</span>
+                  </div>
+                </div>
+                <!-- Textarea -->
+                <textarea class="cover-editor__textarea" id="imgEmbedCover"
+                  data-i18n-placeholder="imgPlaceholderCoverText"
+                  placeholder="اكتب رسالتك هنا، واضغط Enter للانتقال للرسالة التالية..."
+                  spellcheck="false" autocomplete="off"></textarea>
+              </div>
+
+              <!-- Dynamic Message Counter -->
+              <p class="cover-editor__counter" id="imgCoverCounter" style="display: none;">
+                تم كتابة <span class="counter-written">0</span> من أصل <span class="counter-required">0</span> رسائل مطلوبة
+              </p>
+            </div>
+
+            <!-- Image Upload Zone -->
+            <div>
+              <div class="label-row" id="imgUploadHeaderRow" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-sm); width: 100%;">
+                <div style="display: flex; align-items: center; gap: var(--space-xs);">
+                  <label class="form-label text-label-md" style="margin-bottom:0" data-i18n="imgDropzoneTitle">Attach
+                    Secret Image</label>
+                  <span class="badge badge--encrypted text-label-md">
+                    <span class="material-symbols-outlined">image</span> <span data-i18n="badgeSecretImage">Image
+                      Payload</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Hidden file input (placed outside to prevent click bubbling loops) -->
+              <input type="file" id="imgEmbedFileInput" accept=".jpg,.jpeg,.webp,.avif,.png" style="display:none;" />
+
+              <!-- Premium File Upload Card -->
+              <div class="file-upload" id="imgEmbedUploadArea">
+                <span class="material-symbols-outlined" id="imgUploadIcon">cloud_upload</span>
+                <p class="text-body-md file-upload__title" id="imgUploadTitle" data-i18n="imgDropzoneHint">Drag &amp;
+                  drop your secret image here or click to browse</p>
+                <p class="text-body-sm file-upload__hint" id="imgUploadHint" data-i18n="imgDropzoneLimits"
+                  style="margin-top: 4px; color: var(--color-on-surface-variant);">Allowed: JPEG, WebP, Avif, PNG · Max
+                  size: 2MB</p>
+              </div>
+            </div>
+
+          </div><!-- /split-grid -->
+
+
+          <!-- 2.5. METADATA DELETION PROOF DIAGNOSTICS (full-width, hidden by default) -->
+          <div class="diag-accordion" id="imgMetadataDiagnosticsPanel" style="display: none; margin-top: var(--space-md);">
+            <!-- Trigger button -->
+            <button type="button" class="diag-accordion__trigger" id="imgMetadataDiagTrigger" onclick="toggleImgMetadataDetails()">
+              <span class="diag-accordion__icon material-symbols-outlined" style="color: var(--color-secondary);">lock_reset</span>
+              <div class="diag-accordion__text-wrap">
+                <div style="display: flex; align-items: center; gap: var(--space-xs); flex-wrap: wrap;">
+                  <span class="diag-accordion__title" data-i18n="imgMetadataDiagTitle">Metadata Deletion & Safety Diagnostics</span>
+                  <span class="badge badge--encrypted text-label-md" data-i18n="imgMetadataDiagVerifiedBadge">Verified Clean</span>
+                </div>
+              </div>
+              <span class="material-symbols-outlined diag-accordion__chevron">expand_more</span>
+            </button>
+
+            <!-- Accordion Body -->
+            <div class="diag-accordion__body" id="imgMetadataDiagBody">
+              <div style="box-sizing: border-box; width: 100%;">
+                <p style="font-size: 0.8125rem; color: var(--color-on-surface-variant); margin-bottom: 16px; line-height: 1.5;"
+                  data-i18n="imgMetadataDiagDesc">
+                  The following private metadata blocks/markers were discovered in the uploaded raw carrier image and have been successfully stripped. Discarding this data protects your device privacy (GPS coordinates, camera identifiers, software) and significantly reduces payload size.
+                </p>
+                
+                <!-- Two Columns Layout (Grid) -->
+                <div class="split-grid" style="gap: var(--space-md); margin-bottom: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: stretch;">
+                  
+                  <!-- Left Column: MetaData details list (NO SCROLLING) -->
+                  <div style="display: flex; flex-direction: column;">
+                    <div style="background: var(--color-surface-container-low); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-lg); padding: var(--space-md); font-family: monospace; font-size: 0.75rem; color: var(--color-on-surface-variant); box-sizing: border-box; flex: 1;">
+                      <div id="imgMetadataDiagList" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+                        <!-- Filled dynamically with keys and values -->
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right Column: Map "if found" + "Open in Google Maps" button -->
+                  <div id="imgMetadataDiagRightCol" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+                    <!-- Map stretches to fill all remaining space above the button -->
+                    <div id="imgMetadataDiagMapContainer"
+                      style="display: none; border-radius: var(--radius-lg); border: 1px solid var(--color-outline-variant); overflow: hidden; flex: 1; min-height: 200px; box-shadow: 0 2px 12px rgba(0,0,0,0.12); width: 100%;">
+                      <iframe id="imgMetadataDiagMap" style="width: 100%; height: 100%; border: none;" src="about:blank" allowfullscreen
+                        loading="lazy"></iframe>
+                    </div>
+                    <!-- Open in Google Maps button (Premium redesign) -->
+                    <a id="btnOpenInGoogleMaps" href="" target="_blank" class="btn-open-map" style="display: none; flex-shrink: 0;">
+                      <span class="material-symbols-outlined">location_on</span>
+                      <span data-i18n="btnOpenGoogleMaps">Open in Google Maps</span>
+                    </a>
+                  </div>
+
+                </div><!-- /split-grid -->
+
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. CONFIGURATION INPUTS (full-width stacked) -->
+          <div class="config-stack">
+
+            <!-- Pre-Shared / AES key -->
+            <div>
+              <div class="label-row">
+                <label class="form-label text-label-md" for="imgEmbedKey" style="margin-bottom:0"
+                  data-i18n="imgLabelAesKey">AES-CTR Key (Required)</label>
+                <span class="badge badge--encrypted text-label-md">
+                  <span class="material-symbols-outlined">key</span> CTR Key
+                </span>
+                <span class="text-label-md" id="img-key-counter"
+                  style="margin-inline-start: auto; color: var(--color-on-surface-variant);">0 chars</span>
+              </div>
+              <div class="input-eye-wrap">
+                <input class="form-input" id="imgEmbedKey" type="password" data-i18n-placeholder="imgPlaceholderAesKey"
+                  placeholder="Enter key for AES-CTR Encryption Algorithm..." />
+                <button class="eye-toggle-btn" id="img-eye-toggle-btn" type="button" aria-label="Toggle key visibility">
+                  <span class="material-symbols-outlined" id="img-eye-icon">visibility</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Strip Metadata toggle removed — dynamic prompt interceptor modal handles this -->
+
+          </div><!-- /config-stack -->
+
+          <!-- 4. ACTION BUTTONS -->
+          <div class="btn-group">
+            <button class="btn btn--primary" id="btnImgHideData">
+              <span class="material-symbols-outlined" style="font-size:18px">visibility_off</span>
+              <span data-i18n="imgBtnHide">Embed Image</span>
+            </button>
+          </div>
+
+        </div><!-- /stack-xl -->
+      </section><!-- /img-embed-panel -->
+
+      <!-- ══════════════════════════════════════════
+           IMAGE RESULTS CARD — shown after embedding
+           ══════════════════════════════════════════ -->
+      <section class="card" id="img-embed-results-panel" style="display:none; margin-top: var(--space-lg);">
+        <h2 class="text-headline-md card__title" data-i18n="embedResultsTitle">Embedding Results</h2>
+
+        <div class="stack-xl">
+
+          <!-- 5. OUTPUT (Steganographic Output — bottom of panel) -->
+          <div id="img-output-section" class="result-card">
+
+            <!-- Success Header -->
+            <div class="success-header">
+              <div class="success-header__icon-wrap">
+                <span class="material-symbols-outlined" style="font-size:24px">check_circle</span>
+              </div>
+              <div>
+                <div class="success-header__title" data-i18n="imgSuccessTitle">Image Hidden Successfully!</div>
+                <div class="success-header__subtitle" data-i18n="imgSuccessSubtitle">Your secret image is now securely
+                  embedded in the cover text. Copy the output below.</div>
+              </div>
+            </div>
+            <!-- Image Embedding / Compression Time Taken Card Grid -->
+            <div id="imgTimeTakenGrid" class="metric-cards-grid" style="display: none; margin-bottom: var(--space-md);">
+              <div id="imgEmbedTimeCard" class="metric-card" style="display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                  <span class="metric-card__label" data-i18n="metricEmbedTime">Embedding Duration</span>
+                </div>
+                <span class="metric-card__value" id="imgEmbedTimeVal">0 ms</span>
+                <span class="metric-card__badge metric-card__badge--primary" data-i18n="badgeOptimal">Optimized</span>
+              </div>
+              <div id="imgCompressTimeCard" class="metric-card" style="display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                  <span class="metric-card__label" data-i18n="metricCompressTime">Compression Duration</span>
+                </div>
+                <span class="metric-card__value" id="imgCompressTimeVal">0 ms</span>
+                <span class="metric-card__badge metric-card__badge--amber" data-i18n="badgeCompressed">AVIF WASM</span>
+              </div>
+              <div id="imgMetadataCard" class="metric-card" style="display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                  <span class="metric-card__label" data-i18n="metricMetadataStatus">Metadata Status</span>
+                </div>
+                <span class="metric-card__value" id="imgMetadataSavedVal">0.00 KB</span>
+                <span class="metric-card__badge metric-card__badge--primary" id="imgMetadataBadge" data-i18n="badgeMetadataRemoved">EXIF Removed</span>
+              </div>
+            </div>
+
+            <!-- ── Compression Before / After Accordion ── -->
+            <!-- Stego-Text Output Container -->
+            <div style="margin-top: var(--space-md); display: flex; flex-direction: column; gap: var(--space-md);" id="imgDistributedOutputContainer">
+              <!-- Dynamic distributed blocks will be injected here by JS -->
+            </div>
+
+            <!-- Compression Before / After Accordion (shown last, closed by default) -->
+            <div class="diag-accordion" id="imgCompressionComparePanel" style="margin-top: var(--space-md);">
+              <button type="button" class="diag-accordion__trigger" onclick="toggleImgCompressionCompare()">
+                <span class="diag-accordion__icon material-symbols-outlined">compress</span>
+                <div class="diag-accordion__text-wrap">
+                  <div style="display: flex; align-items: center; gap: var(--space-xs); flex-wrap: wrap;">
+                    <span class="diag-accordion__title" data-i18n="compressionCompareTitle">Compression Report</span>
+                    <span class="badge badge--encrypted text-label-md" id="imgCompressionSavingsBadge">— Saved</span>
+                  </div>
+                </div>
+                <span class="material-symbols-outlined diag-accordion__chevron">expand_more</span>
+              </button>
+              <div class="diag-accordion__body" id="imgCompressionCompareBody">
+                <div style="width: 100%; box-sizing: border-box; display: flex; flex-direction: column; min-height: 0;">
+                  <!-- Before / After image grid -->
+                  <div class="img-compression-grid">
+
+                    <!-- Before Card -->
+                    <div style="background: var(--color-surface-container-low); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; box-sizing: border-box;">
+                      <div style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--color-outline-variant);">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-on-surface-variant);">photo_library</span>
+                        <span style="font-family: var(--font-label); font-size: var(--fs-label-md); font-weight: 700; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.6px;">Before</span>
+                      </div>
+                      <div id="imgBeforePreviewWrap"
+                        onclick="openImgLightbox('imgBeforePreview')"
+                        style="position: relative; width: 100%; aspect-ratio: 4/3; overflow: hidden; cursor: zoom-in; background: var(--color-surface-container); display: flex; align-items: center; justify-content: center;">
+                        <!-- Blurred background image -->
+                        <img id="imgBeforePreviewBlur" src="" alt=""
+                          style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.45); opacity: 0.85; pointer-events: none;" draggable="false" />
+                        <!-- Main crisp image -->
+                        <img id="imgBeforePreview" class="img-crisp-preview" src="" alt="Original image before compression"
+                          style="position: relative; max-width: 100%; max-height: 100%; object-fit: contain; display: block; z-index: 1; transition: transform 0.35s ease;" draggable="false" />
+                        <div class="img-preview-zoom-overlay" style="z-index: 2;">
+                          <span class="material-symbols-outlined" style="font-size: 28px;">zoom_in</span>
+                          <span style="font-size: var(--fs-body-sm); font-weight: 600;">Click to Zoom</span>
+                        </div>
+                      </div>
+                      <div class="img-compression-card__details">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <span style="font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">Format</span>
+                          <span id="imgBeforeFormat" style="font-family: monospace; font-size: var(--fs-body-sm); font-weight: 600; color: var(--color-on-surface);">JPEG</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <span style="font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">File Size</span>
+                          <span id="imgBeforeSize" style="font-family: monospace; font-size: var(--fs-body-sm); font-weight: 700; color: var(--color-error);">—</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- After Card -->
+                    <div style="background: var(--color-surface-container-low); border: 1px solid rgba(187, 209, 0, 0.3); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; box-sizing: border-box;">
+                      <div style="display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-sm) var(--space-md); border-bottom: 1px solid rgba(187, 209, 0, 0.2); background: rgba(187, 209, 0, 0.04);">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary);">auto_awesome</span>
+                        <span style="font-family: var(--font-label); font-size: var(--fs-label-md); font-weight: 700; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.6px;">After</span>
+                      </div>
+                      <div id="imgAfterPreviewWrap"
+                        onclick="openImgLightbox('imgAfterPreview')"
+                        style="position: relative; width: 100%; aspect-ratio: 4/3; overflow: hidden; cursor: zoom-in; background: var(--color-surface-container); display: flex; align-items: center; justify-content: center;">
+                        <!-- Blurred background image -->
+                        <img id="imgAfterPreviewBlur" src="" alt=""
+                          style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.45); opacity: 0.85; pointer-events: none;" draggable="false" />
+                        <!-- Main crisp image -->
+                        <img id="imgAfterPreview" class="img-crisp-preview" src="" alt="Compressed image after AVIF conversion"
+                          style="position: relative; max-width: 100%; max-height: 100%; object-fit: contain; display: block; z-index: 1; transition: transform 0.35s ease;" draggable="false" />
+                        <div class="img-preview-zoom-overlay" style="z-index: 2;">
+                          <span class="material-symbols-outlined" style="font-size: 28px;">zoom_in</span>
+                          <span style="font-size: var(--fs-body-sm); font-weight: 600;">Click to Zoom</span>
+                        </div>
+                      </div>
+                      <div class="img-compression-card__details">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <span style="font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">Format</span>
+                          <span id="imgAfterFormat" style="font-family: monospace; font-size: var(--fs-body-sm); font-weight: 600; color: var(--color-primary);">AVIF</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <span style="font-size: var(--fs-body-sm); color: var(--color-on-surface-variant);">File Size</span>
+                          <span id="imgAfterSize" style="font-family: monospace; font-size: var(--fs-body-sm); font-weight: 700; color: var(--color-primary);">—</span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <!-- Compact Savings Summary Bar -->
+                  <div class="img-savings-bar-wrapper">
+                    <div class="img-savings-bar">
+                      <div class="img-savings-flow">
+                        <div class="img-savings-item">
+                          <span class="img-savings-label">Before</span>
+                          <span id="imgSummaryBeforeSize" class="img-savings-val img-savings-val--error">—</span>
+                        </div>
+                        <span class="material-symbols-outlined img-savings-arrow">arrow_forward</span>
+                        <div class="img-savings-item">
+                          <span class="img-savings-label">After</span>
+                          <span id="imgSummaryAfterSize" class="img-savings-val img-savings-val--primary">—</span>
+                        </div>
+                      </div>
+                      <span class="img-savings-divider"></span>
+                      <div class="img-savings-result">
+                        <span class="img-savings-label">Saved</span>
+                        <span id="imgCompressionSavingsText" class="img-savings-total">—</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              </div>
+            </div>
+
+            <!-- Output action buttons -->
+            <div class="share-row"
+              style="border-top: 1px solid var(--color-outline-variant); padding-top: var(--space-md); margin-top: var(--space-xs); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-md); width: 100%;">
+              <div style="display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap; flex-grow: 1;">
+                <span class="share-row__label" data-i18n="labelShareOutput">Share Output:</span>
+                <div style="display:flex; flex-wrap:wrap; gap:var(--space-sm);">
+                  <button type="button" class="btn--share-circle" id="img-share-whatsapp" title="Send to WhatsApp">
+                    <svg viewBox="0 0 24 24" fill="#25D366">
+                      <path
+                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                    </svg>
+                  </button>
+                  <button type="button" class="btn--share-circle" id="img-share-facebook" title="Send to Facebook">
+                    <svg viewBox="0 0 24 24" fill="#1877F2">
+                      <path
+                        d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    </svg>
+                  </button>
+                  <button type="button" class="btn--share-circle" id="img-share-instagram" title="Copy for Instagram">
+                    <svg viewBox="0 0 24 24">
+                      <defs>
+                        <linearGradient id="img-ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                          <stop offset="0%" stop-color="#feda75" />
+                          <stop offset="25%" stop-color="#fa7e1e" />
+                          <stop offset="50%" stop-color="#d62976" />
+                          <stop offset="75%" stop-color="#962fbf" />
+                          <stop offset="100%" stop-color="#4f5bd5" />
+                        </linearGradient>
+                      </defs>
+                      <path fill="url(#img-ig-grad)"
+                        d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                    </svg>
+                  </button>
+                  <button type="button" class="btn--share-circle" id="img-share-x" title="Send to X">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                  </button>
+                  <button type="button" class="btn--share-circle" id="img-share-snapchat" title="Send to Snapchat">
+                    <svg viewBox="0 0 16 16">
+                      <path fill="#FFFFFF" stroke="#000000" stroke-width="1.2" stroke-linejoin="round" d="M15.943 11.526c-.111-.303-.323-.465-.564-.599a1.416 1.416 0 0 0-.123-.064l-.219-.111c-.752-.399-1.339-.902-1.746-1.498a3.387 3.387 0 0 1-.3-.531c-.034-.1-.032-.156-.008-.207a.338.338 0 0 1 .097-.1c.129-.086.262-.173.352-.231c.162-.104.289-.187.371-.245.309-.216.525-.446.66-.702a1.397 1.397 0 0 0 .069-1.16c-.205-.538-.713-.872-1.329-.872a1.829 1.829 0 0 0-.487.065c.006-.368-.002-.757-.035-1.139-.116-1.344-.587-2.048-1.077-2.61a4.294 4.294 0 0 0-1.095-.881C9.764.216 8.92 0 7.999 0c-.92 0-1.76.216-2.505.641-.412.232-.782.53-1.097.883-.49.562-.96 1.267-1.077 2.61-.033.382-.04.772-.036 1.138a1.83 1.83 0 0 0-.487-.065c-.615 0-1.124.335-1.328.873a1.398 1.398 0 0 0 .067 1.161c.136.256.352.486.66.701.082.058.21.14.371.246l.339.221a.38.38 0 0 1 .109.11c.026.053.027.11-.012.217a3.363 3.363 0 0 1-.295.52c-.398.583-.968 1.077-1.696 1.472-.385.204-.786.34-.955.8-.128.348-.044.743.28 1.075.119.125.257.23.409.31a4.43 4.43 0 0 0 1 .4.66.66 0 0 1 .202.09c.118.104.102.26.259.488.079.118.18.22.296.3.33.229.701.243 1.095.258.355.014.758.03 1.217.18.19.064.389.186.618.328.55.338 1.305.802 2.566.802 1.262 0 2.02-.466 2.576-.806.227-.14.424-.26.609-.321.46-.152.863-.168 1.218-.181.393-.015.764-.03 1.095-.258a1.14 1.14 0 0 0 .336-.368c.114-.192.11-.327.217-.42a.625.625 0 0 1 .19-.087 4.446 4.446 0 0 0 .004-.002Z"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="btn--share-circle" id="img-share-messenger" title="Send to Messenger">
+                    <svg viewBox="0 0 24 24" fill="#00B2FF">
+                      <path
+                        d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.469 8.654V24l4.088-2.242c1.092.3 2.246.464 3.443.464 6.627 0 12-4.974 12-11.111C24 4.974 18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26 6.559-6.962 3.13 3.26 5.888-3.26-6.559 6.962z" />
+                    </svg>
+                  </button>
+                  <button type="button" class="btn--share-circle" id="img-share-telegram" title="Send to Telegram">
+                    <svg viewBox="0 0 24 24" fill="#26A5E4">
+                      <path
+                        d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+                    </svg>
+                  </button>
+                  <button type="button" class="btn--share-circle" id="img-share-youtube" title="Copy for YouTube">
+                    <svg viewBox="0 0 16 16" fill="#FF0000">
+                      <path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.01 2.01 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.01 2.01 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31 31 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.01 2.01 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A100 100 0 0 1 7.858 2zM6.4 5.209v4.818l4.157-2.408z"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="btn--share-circle" id="img-share-linkedin" title="Copy for LinkedIn">
+                    <svg viewBox="0 0 16 16" fill="#0077B5">
+                      <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="btn--share-circle" id="img-share-tiktok" title="Copy for TikTok">
+                    <svg viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M9 0h1.98c.144.715.54 1.617 1.235 2.512C12.895 3.389 13.797 4 15 4v2c-1.753 0-3.07-.814-4-1.829V11a5 5 0 1 1-5-5v2a3 3 0 1 0 3 3V0Z"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="btn--share-circle" id="img-share-wechat" title="Copy for WeChat">
+                    <svg viewBox="0 0 16 16" fill="#07C160">
+                      <path d="M11.176 14.429c-2.665 0-4.826-1.8-4.826-4.018 0-2.22 2.159-4.02 4.824-4.02S16 8.191 16 10.411c0 1.21-.65 2.301-1.666 3.036a.324.324 0 0 0-.12.366l.218.81a.616.616 0 0 1 .029.117.166.166 0 0 1-.162.162.177.177 0 0 1-.092-.03l-1.057-.61a.519.519 0 0 0-.256-.074.509.509 0 0 0-.142.021 5.668 5.668 0 0 1-1.576.22ZM9.064 9.542a.647.647 0 1 0 .557-1 .645.645 0 0 0-.646.647.615.615 0 0 0 .09.353Zm3.232.001a.646.646 0 1 0 .546-1 .645.645 0 0 0-.644.644.627.627 0 0 0 .098.356Z"/>
+                      <path d="M0 6.826c0 1.455.781 2.765 2.001 3.656a.385.385 0 0 1 .143.439l-.161.6-.1.373a.499.499 0 0 0-.032.14.192.192 0 0 0 .193.193c.039 0 .077-.01.111-.029l1.268-.733a.622.622 0 0 1 .308-.088c.058 0 .116.009.171.025a6.83 6.83 0 0 0 1.625.26 4.45 4.45 0 0 1-.177-1.251c0-2.936 2.785-5.02 5.824-5.02.05 0 .1 0 .15.002C10.587 3.429 8.392 2 5.796 2 2.596 2 0 4.16 0 6.826Zm4.632-1.555a.77.77 0 1 1-1.54 0 .77.77 0 0 1 1.54 0Zm3.875 0a.77.77 0 1 1-1.54 0 .77.77 0 0 1 1.54 0Z"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /img-output-section -->
+
+        </div><!-- /stack-xl -->
+      </section><!-- /img-embed-results-panel -->
+    </div><!-- /tab-image -->
+
+  </main>
+
+  <!-- Footer Placeholder -->
+  <div id="footer-placeholder"></div>
+
+  <!-- Inline UI Helpers moved to js/features/embed-controller.js -->
+
+  <!-- ═══ Brotli WASM & Web Cryptography modules ═══ -->
+  <script src="js/core/compression/wasm-engine.js"></script>
+  <script src="js/core/compression/wasm-bridge.js"></script>
+  <script src="js/core/compression/brotli-service.js"></script>
+  <script src="js/core/crypto/sha256.js"></script>
+  <script src="js/core/crypto/aes-ctr.js"></script>
+
+  <!-- ═══ Stego Core Logic Steps ═══ -->
+  <script src="js/shared/text_codec.js"></script>
+  <script src="js/shared/ui-helpers.js"></script>
+  <script src="js/core/stego/payload-codec.js"></script>
+  <script src="js/core/stego/prng-generator.js"></script>
+  <script src="js/core/stego/xor-mask.js"></script>
+  <script src="js/core/stego/vs-codec.js"></script>
+  <script src="js/core/stego/multi-message-protocol.js"></script>
+  <script src="js/core/stego/stego-composer.js"></script>
+
+  <!-- ═══ UI Features & Controllers ═══ -->
+  <script src="js/features/F_stego_capacity.js"></script>
+  <script src="js/features/F_stego_hint.js"></script>
+  <script src="js/features/F_stego_analysis.js"></script>
+  <script src="js/features/embed-controller.js"></script>
+  <script src="js/features/image-embed-controller.js"></script>
+
+  <!-- ═══ Dynamic Templates Loader ═══ -->
+  <script src="js/shared/template-loader.js"></script>
+
+  <!-- ═══ AVIF WASM Compression modules ═══ -->
+  <script src="js/core/compression/avif/avif-engine.js"></script>
+  <script src="js/core/compression/avif/avif-bridge.js"></script>
+  <script src="js/core/compression/avif/avif-service.js"></script>
+
+
+  </script>
+
+  <!-- Image Embedding Engine moved to js/features/image-embed-controller.js -->
+
+  <!-- Event listeners bound in features controllers -->
+
+
+  <!-- Platform Guard Warning Modal -->
+  <div class="stego-modal-backdrop" id="platform-warning-modal-backdrop"></div>
+  <div class="stego-modal" id="platform-warning-modal" role="dialog" aria-modal="true">
+    <div class="stego-modal__header">
+      <div class="stego-modal__icon-wrap">
+        <span class="material-symbols-outlined" style="font-size:24px;">warning</span>
+      </div>
+      <div class="stego-modal__title" data-i18n="warnModalTitle">Platform Limit Exceeded!</div>
+    </div>
+    <div class="stego-modal__body">
+      <p id="platform-warning-modal-desc">
+        <!-- Will be filled dynamically -->
+      </p>
+      <p
+        style="margin-top: 12px; font-size: 0.8125rem; color: var(--color-on-surface-variant); display: flex; align-items: center; gap: 6px;">
+        <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary);">info</span>
+        <span data-i18n="warnModalTechnicalInfo">Notice: Invisible steganography characters count in the final length
+          limit.</span>
+      </p>
+    </div>
+    <div class="stego-modal__footer">
+      <button type="button" class="btn btn--secondary" id="platform-warning-modal-cancel"
+        data-i18n="warnModalCancel">Cancel & Edit</button>
+      <button type="button" class="btn btn--primary" id="platform-warning-modal-proceed"
+        data-i18n="warnModalProceed">Proceed Anyway</button>
+    </div>
+  </div>
+
+  <!-- Metadata Stripping Interceptor Modal -->
+  <div class="stego-modal-backdrop" id="img-metadata-modal-backdrop"></div>
+  <div class="stego-modal" id="img-metadata-modal" role="dialog" aria-modal="true">
+    <div class="stego-modal__header">
+      <div class="stego-modal__icon-wrap" style="background: rgba(125, 163, 0, 0.1); color: var(--color-secondary);">
+        <span class="material-symbols-outlined" style="font-size:24px;">security</span>
+      </div>
+      <div class="stego-modal__title" data-i18n="imgMetadataModalTitle">Carrier Image Selected</div>
+    </div>
+    <div class="stego-modal__body">
+      <p id="img-metadata-modal-desc" data-i18n="imgMetadataModalDesc">
+        Do you want to strip EXIF/Metadata from this image before compression? (Recommended for maximum security &
+        smaller payload size)
+      </p>
+    </div>
+    <div class="stego-modal__footer">
+      <button type="button" class="btn btn--secondary" id="img-metadata-modal-keep" data-i18n="imgMetadataModalNo">No,
+        Keep It</button>
+      <button type="button" class="btn btn--primary" id="img-metadata-modal-strip" data-i18n="imgMetadataModalYes">Yes,
+        Strip Metadata</button>
+    </div>
+  </div>
+
+  <!-- Smart Segmentation Interceptor Modal -->
+  <div class="stego-modal-backdrop" id="img-segmentation-modal-backdrop"></div>
+  <div class="stego-modal stego-modal--wide" id="img-segmentation-modal" role="dialog" aria-modal="true">
+    <div class="stego-modal__header">
+      <div class="stego-modal__icon-wrap" style="background: rgba(187, 209, 0, 0.12); color: var(--color-primary);">
+        <span class="material-symbols-outlined" style="font-size:24px;">splitscreen</span>
+      </div>
+      <div>
+        <div class="stego-modal__title" data-i18n="imgSegModalTitle">Smart Message Segmentation</div>
+        <div style="font-size: 0.75rem; color: var(--color-on-surface-variant); margin-top: 2px;">WhatsApp &amp; Social Platforms "Read More" Prevention System</div>
+      </div>
+    </div>
+
+    <div class="stego-modal__body" style="display: flex; flex-direction: column; gap: 16px;">
+      <p id="img-segmentation-modal-desc" data-i18n="imgSegModalDesc">
+        To prevent the 'Read More' fold on platforms like WhatsApp, your secret image payload should be distributed across multiple messages. Here is the recommended breakdown:
+      </p>
+
+      <!-- Stats Summary Card -->
+      <div class="seg-modal-stats-card">
+        <div class="seg-modal-stat-item">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--color-on-surface-variant);">inventory_2</span>
+            <span data-i18n="imgSegPayloadInfo">Compressed Payload:</span>
+          </div>
+          <strong id="imgSegPayloadValue" style="color: var(--color-on-surface); font-family: monospace;">- KB</strong>
+        </div>
+        <div class="seg-modal-stat-item seg-modal-stat-item--highlight">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="font-size: 20px; color: var(--color-primary);">auto_awesome</span>
+            <span data-i18n="imgSegRecommendedBadge">Recommended:</span>
+          </div>
+          <strong id="imgSegRecommendedValue" style="color: var(--color-primary); font-size: 1.1rem; font-weight: 800;">12 Messages</strong>
+        </div>
+      </div>
+
+      <!-- Custom Input Section -->
+      <div class="seg-modal-custom-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label for="imgSegCustomInput" style="font-weight: 600; font-size: 0.85rem;" data-i18n="imgSegLabelCustomCount">Custom Message Count:</label>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="seg-stepper-wrap">
+              <button type="button" class="seg-stepper-btn" id="imgSegBtnMinus" title="Decrease" aria-label="Decrease messages">
+                <span class="material-symbols-outlined" style="font-size: 16px;">remove</span>
+              </button>
+              <input type="text" inputmode="numeric" pattern="[0-9]*" id="imgSegCustomInput" value="12" class="seg-stepper-input" autocomplete="off" spellcheck="false" />
+              <button type="button" class="seg-stepper-btn" id="imgSegBtnPlus" title="Increase" aria-label="Increase messages">
+                <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+              </button>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 600; color: var(--color-on-surface-variant);" data-i18n="imgSegMsgsLabel">msgs</span>
+          </div>
+        </div>
+        <!-- Scientific Capacity & Segment Risk Gauge Bar -->
+        <div class="seg-gauge-box" id="imgSegGaugeBox">
+          <div class="seg-gauge-header">
+            <div class="seg-gauge-metric">
+              <span class="seg-gauge-label" data-i18n="imgSegGaugeAvgLabel">Avg Chars / Msg:</span>
+              <strong id="imgSegGaugeAvgVal" class="seg-gauge-value">~320 chars</strong>
+            </div>
+            <div class="seg-gauge-metric" style="text-align: right;">
+              <span class="seg-gauge-label" data-i18n="imgSegGaugeRatioLabel">Capacity Safety:</span>
+              <strong id="imgSegGaugeRatioVal" class="seg-gauge-value">100% Optimal</strong>
+            </div>
+          </div>
+
+          <div class="seg-gauge-track" title="Scientific Capacity Distribution Gauge">
+            <div class="seg-gauge-fill seg-gauge-fill--safe" id="imgSegGaugeFill" style="width: 100%;"></div>
+          </div>
+
+          <div class="seg-gauge-footer">
+            <span id="imgSegGaugeMinLabel">1 msg</span>
+            <span data-i18n="imgSegGaugeThresholdLabel">WhatsApp 'Read More' Threshold: ~389B/msg</span>
+            <span id="imgSegGaugeMaxLabel">500 msgs</span>
+          </div>
+        </div>
+        
+        <!-- Live Dynamic Warning / Notice -->
+        <div id="imgSegWarningNotice" class="seg-notice seg-notice--safe">
+          <span class="material-symbols-outlined notice-icon" style="font-size: 18px;">check_circle</span>
+          <span class="notice-text" data-i18n="imgSegWarnSafe">Safe — Message lengths are optimal to prevent 'Read More'.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stego-modal__footer" style="flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center;">
+      <button type="button" class="btn btn--text" id="img-segmentation-modal-skip" style="color: var(--color-on-surface-variant);" data-i18n="imgSegBtnSkip">Skip Segmentation</button>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" class="btn btn--secondary" id="img-segmentation-modal-custom" data-i18n="imgSegBtnCustom">Apply Custom Count</button>
+        <button type="button" class="btn btn--primary" id="img-segmentation-modal-accept" data-i18n="imgSegBtnAccept">Accept Recommendation</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Help/Guide Button -->
+  <button type="button" class="floating-guide-btn" data-i18n-tooltip="floatingGuideTooltip" data-tooltip="Site Guide">
+    <span class="material-symbols-outlined">help</span>
+  </button>
+  <!-- ── Image Lightbox Overlay ── -->
+  <div id="imgLightboxBackdrop" onclick="closeImgLightbox()" role="dialog" aria-modal="true" aria-label="Image Preview">
+    <button id="imgLightboxClose" onclick="closeImgLightbox()" aria-label="Close preview">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    <img id="imgLightboxImg" src="" alt="Enlarged image preview" onclick="event.stopPropagation()" draggable="false" />
+  </div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+/* ============================================================
+   STEGNOLINES MONOLITHIC REDIRECT — Modern Architecture
+   Redirects all styling to the fully refactored, modular stylesheet
+   ============================================================ */
+
+@import url('css/main.css');

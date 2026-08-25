@@ -1,0 +1,290 @@
+/* ============================================================================
+   STEGNOLINES — Chat Import Scanner: SUPPLEMENTAL Component Styles
+   All base styles inherited from ../css/main.css (tokens, cards, buttons, etc.)
+   This file ONLY adds components NOT present in Stegnolines core.
+   ============================================================================ */
+
+/* ── Platform Selector Grid ───────────────────────────────────────────────── */
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.platform-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-low);
+  color: var(--color-on-surface-variant);
+  font-family: var(--font-label);
+  font-size: var(--fs-body-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.platform-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-on-surface);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(187, 209, 0, 0.1);
+}
+
+.platform-btn.active {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  color: #1B1D00;
+  border-color: transparent;
+  box-shadow: 0 0 16px rgba(187, 209, 0, 0.25);
+  font-weight: 700;
+}
+
+.platform-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+/* ── Collapsible Options ─────────────────────────────────────────────────── */
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px var(--space-md);
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-xl);
+  color: var(--color-on-surface);
+  font-family: var(--font-label);
+  font-size: var(--fs-label-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.collapsible-header:hover {
+  border-color: var(--color-primary);
+}
+
+.collapsible-content {
+  display: none;
+  padding: var(--space-md);
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-top: none;
+  border-bottom-left-radius: var(--radius-xl);
+  border-bottom-right-radius: var(--radius-xl);
+}
+
+.collapsible-content.active {
+  display: block;
+}
+
+/* ── Filter Chips ─────────────────────────────────────────────────────────── */
+.chip {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-low);
+  color: var(--color-on-surface-variant);
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-on-surface);
+}
+
+.chip.active {
+  background: var(--color-primary);
+  color: #1B1D00;
+  border-color: var(--color-primary);
+}
+
+/* ── Message Card List ────────────────────────────────────────────────────── */
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.msg-card {
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-xl);
+  padding: var(--space-md);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  transition: var(--transition-all);
+}
+
+.msg-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 16px rgba(187, 209, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.msg-num {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-container-high);
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.msg-content-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.msg-text-preview {
+  font-size: var(--fs-body-md);
+  line-height: 1.6;
+  color: var(--color-on-surface);
+  word-break: break-word;
+}
+
+.msg-meta-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.msg-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ── Code Point Analysis Table ────────────────────────────────────────────── */
+.codepoint-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  margin-top: var(--space-xs);
+}
+
+.codepoint-table th,
+.codepoint-table td {
+  padding: var(--space-sm);
+  text-align: start;
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+.codepoint-table th {
+  color: var(--color-on-surface-variant);
+  font-weight: 600;
+  font-family: var(--font-label);
+}
+
+.codepoint-table td.code-cell {
+  font-family: monospace;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* ── Details Modal Dialog (Centered Pop-up) ────────────────────────────────── */
+.cs-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9998;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.cs-modal-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.cs-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.92);
+  z-index: 9999;
+  width: min(640px, 92vw);
+  max-height: 85vh;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--color-outline-variant);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), visibility 0.25s ease;
+  overflow: hidden;
+}
+
+.cs-modal.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.cs-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-low);
+  flex-shrink: 0;
+}
+
+.cs-modal__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-lg);
+}
+
+/* ── Filter Bar Layout ────────────────────────────────────────────────────── */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .platform-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+  .msg-card {
+    flex-direction: column;
+  }
+  .msg-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

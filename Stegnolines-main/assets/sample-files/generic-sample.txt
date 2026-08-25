@@ -1,0 +1,5 @@
+Plain text generic export sample
+Line 2 without metadata
+[10:30] Alice: Message with timestamp prefix
+[10:31] Bob: Another prefixed line
+Clean line without timestamp

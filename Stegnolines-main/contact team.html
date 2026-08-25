@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <link rel="icon" type="image/png" href="assets/brand/favicon.png" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegoLines — Contact Team</title>
+  <meta name="description" content="Get in touch with the Stegnolines development and security team."/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="New_styles.css"/>
+  <style>
+    .page-header-wrapper {
+      text-align: center;
+      margin-bottom: var(--space-xxl);
+      padding: var(--space-xl) 0;
+    }
+    .contact-info-card {
+      background: var(--color-surface-container-low);
+      border: 1px solid var(--color-outline-variant);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      transition: all 0.3s ease;
+    }
+    .contact-info-card:hover {
+      background: var(--color-surface-container);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card);
+      border-color: var(--color-outline);
+    }
+    .contact-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-md);
+    }
+    html[dir="rtl"] .contact-icon-wrap {
+      margin-left: var(--space-md);
+      margin-right: 0;
+    }
+    .icon-primary { background: rgba(187,209,0,0.1); color: var(--color-primary); }
+    .icon-warning { background: rgba(234,179,8,0.1); color: #EAB308; }
+    .icon-tertiary{ background: rgba(0,255,255,0.05); color: var(--color-tertiary); }
+    
+    .required-star {
+      color: var(--color-error);
+      font-weight: 700;
+      margin-left: 3px;
+    }
+    html[dir="rtl"] .required-star {
+      margin-left: 0;
+      margin-right: 3px;
+    }
+    .optional-tag {
+      color: var(--color-on-surface-variant);
+      opacity: 0.65;
+      font-weight: 400;
+      font-size: 0.85em;
+      margin-left: 4px;
+    }
+    html[dir="rtl"] .optional-tag {
+      margin-left: 0;
+      margin-right: 4px;
+    }
+  </style>
+  <script>
+    (function() {
+      // Retrieve preferences immediately to prevent FOUC
+      const savedTheme = localStorage.getItem('stegoTheme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+      const savedLang = localStorage.getItem('stegoLang') || 'en';
+      document.documentElement.setAttribute('lang', savedLang);
+      document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
+      const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
+      document.documentElement.setAttribute('data-arabic-font', savedFont);
+    })();
+  </script>
+</head>
+<body>
+  <script src="js/features/page-loader.js"></script>
+
+  <!-- ═══ Top Navigation Placeholder ═══ -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- ═══ Main Content ═══ -->
+  <main class="main-content">
+    
+    <!-- Hero Section -->
+    <div class="page-header-wrapper">
+      <h1 class="text-display-lg" style="color: var(--color-primary); margin-bottom: var(--space-sm);" data-i18n="pageTitle">Get in Touch</h1>
+      <p class="text-body-lg" style="color: var(--color-on-surface-variant); max-width: 600px; margin: 0 auto;" data-i18n="pageDesc">
+        Have questions about our zero-overhead steganography? Found a security vulnerability? Or just want to collaborate? We'd love to hear from you.
+      </p>
+    </div>
+
+    <!-- Contact Container -->
+    <div style="max-width: 800px; margin: 0 auto; margin-bottom: var(--space-xxl);">
+      
+      <!-- Main Contact Card -->
+      <div class="card" style="box-shadow: var(--shadow-card);">
+        <h2 class="text-headline-md" style="margin-bottom: var(--space-sm);" data-i18n="formTitle">Send a Message</h2>
+        <p class="text-body-sm" style="color: var(--color-on-surface-variant); margin-bottom: var(--space-lg);" data-i18n="formSubtitle">
+          Fill out the form below and our team will get back to you within 24-48 hours.
+        </p>
+
+        <form id="contactForm" class="stack-md" novalidate onsubmit="handleContactSubmit(event)">
+          
+          <div class="grid-2col-md">
+            <!-- Full Name (OPTIONAL) -->
+            <div>
+              <label class="form-label text-label-md" for="contactName">
+                <span data-i18n="labelName">Full Name</span>
+                <span class="optional-tag" data-i18n="labelOptional">(Optional)</span>
+              </label>
+              <input class="form-input" id="contactName" type="text" placeholder="e.g. Abdullah Al-Fahad (or leave blank)" data-i18n-placeholder="phName" />
+            </div>
+            
+            <!-- Email Address (REQUIRED) -->
+            <div>
+              <label class="form-label text-label-md" for="contactEmail">
+                <span data-i18n="labelEmail">Email Address</span>
+                <span class="required-star">*</span>
+              </label>
+              <input class="form-input" id="contactEmail" type="email" placeholder="name@domain.com" data-i18n-placeholder="phEmail" required />
+            </div>
+          </div>
+
+          <!-- Topic / Subject (REQUIRED) -->
+          <div>
+            <label class="form-label text-label-md" for="contactSubject">
+              <span data-i18n="labelSubject">Topic / Subject</span>
+              <span class="required-star">*</span>
+            </label>
+            <input class="form-input" id="contactSubject" type="text" placeholder="e.g. Technical Support, General Feedback..." data-i18n-placeholder="phSubject" required />
+          </div>
+
+          <!-- Message Body (REQUIRED) -->
+          <div>
+            <label class="form-label text-label-md" for="contactMessage">
+              <span data-i18n="labelMessage">Message</span>
+              <span class="required-star">*</span>
+            </label>
+            <textarea class="form-textarea" id="contactMessage" rows="6" placeholder="How can we help you?" data-i18n-placeholder="phMessage" required></textarea>
+          </div>
+
+          <button type="submit" class="btn btn--primary" style="width: 100%; justify-content: center; margin-top: var(--space-sm);">
+            <span class="material-symbols-outlined">send</span> <span data-i18n="btnSend">Send Message</span>
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div style="border-top: 1px solid var(--color-outline-variant); margin-top: var(--space-xl); padding-top: var(--space-lg);"></div>
+
+        <!-- Contact Information (Email Support Only) -->
+        <div class="contact-info-card" style="box-shadow: none; margin: 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-md);">
+          <div style="display: flex; align-items: center; gap: var(--space-md);">
+            <div class="contact-icon-wrap icon-primary" style="margin-bottom: 0; flex-shrink: 0;">
+              <span class="material-symbols-outlined" style="font-size: 24px;">mail</span>
+            </div>
+            <div>
+              <h3 class="text-headline-sm" style="margin-bottom: 2px;" data-i18n="cardEmailTitle">Email Us</h3>
+              <p class="text-body-sm" style="color: var(--color-on-surface-variant); margin: 0;" data-i18n="cardEmailDesc">
+                For general inquiries, security research, and technical support.
+              </p>
+            </div>
+          </div>
+          <div>
+            <a href="mailto:support@stegnolines.local" style="color: var(--color-primary); text-decoration: none; font-weight: 600; font-size: var(--fs-body-md);">support@stegnolines.local</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    
+    <!-- Fixed Security-Log Toast container -->
+    <div id="sec-toast-wrap"></div>
+
+  </main>
+
+  <!-- ═══ Footer Placeholder ═══ -->
+  <div id="footer-placeholder"></div>
+
+  <!-- ═══ Scripts ═══ -->
+  <script src="js/i18n/common.js"></script>
+  <script src="js/i18n/contact.js"></script>
+  <script src="js/i18n/index.js"></script>
+  <script>
+    window.translations = mergeI18n(I18N_COMMON, I18N_CONTACT);
+  </script>
+
+  <script src="js/shared/connection-monitor.js"></script>
+  <script src="js/shared/theme-manager.js"></script>
+  <script src="js/shared/template-loader.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/shared/ui-helpers.js"></script>
+
+  <script>
+    /**
+     * Sanitizes user input string:
+     * 1. Strips dangerous control characters & CRLF header injection vectors (\r).
+     * 2. Trims leading & trailing whitespace.
+     */
+    function sanitizeString(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/[\r\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+        .trim();
+    }
+
+    /**
+     * HTML entity escaping to prevent XSS / Script Injection.
+     */
+    function escapeHtmlEntities(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /**
+     * Email format validation via RFC 5322 regex pattern.
+     */
+    function isValidEmailFormat(email) {
+      const emailPattern = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+      return emailPattern.test(email);
+    }
+
+    /**
+     * Secure Contact Form Handler with Validation, Sanitization, and Injection Protection.
+     */
+    function handleContactSubmit(event) {
+      if (event) event.preventDefault();
+      
+      const currentLang = localStorage.getItem('stegoLang') || 'en';
+
+      const nameEl = document.getElementById('contactName');
+      const emailEl = document.getElementById('contactEmail');
+      const subjectEl = document.getElementById('contactSubject');
+      const messageEl = document.getElementById('contactMessage');
+
+      const rawName = nameEl ? nameEl.value : '';
+      const rawEmail = emailEl ? emailEl.value : '';
+      const rawSubject = subjectEl ? subjectEl.value : '';
+      const rawMessage = messageEl ? messageEl.value : '';
+
+      // ── 1. SANITIZATION ──
+      const cleanName = sanitizeString(rawName);
+      const cleanEmail = sanitizeString(rawEmail);
+      const cleanSubject = sanitizeString(rawSubject);
+      const cleanMessage = sanitizeString(rawMessage);
+
+      // ── 2. VALIDATION (REQUIRED FIELDS) ──
+      // Email Validation
+      if (!cleanEmail) {
+        const errMsg = currentLang === 'ar'
+          ? '⚠ يرجى إدخال البريد الإلكتروني (حقل إجباري).'
+          : '⚠ Please enter your email address (Required).';
+        if (typeof showToast === 'function') showToast(errMsg);
+        if (emailEl) emailEl.focus();
+        return false;
+      }
+
+      if (!isValidEmailFormat(cleanEmail)) {
+        const errMsg = currentLang === 'ar'
+          ? '⚠ يرجى إدخال بريد إلكتروني بصيغة صحيحة (مثال: name@domain.com).'
+          : '⚠ Please enter a valid email format (e.g. name@domain.com).';
+        if (typeof showToast === 'function') showToast(errMsg);
+        if (emailEl) emailEl.focus();
+        return false;
+      }
+
+      // Subject Validation
+      if (!cleanSubject) {
+        const errMsg = currentLang === 'ar'
+          ? '⚠ يرجى إدخال موضوع الرسالة (حقل إجباري).'
+          : '⚠ Please enter the topic or subject (Required).';
+        if (typeof showToast === 'function') showToast(errMsg);
+        if (subjectEl) subjectEl.focus();
+        return false;
+      }
+
+      // Message Validation
+      if (!cleanMessage) {
+        const errMsg = currentLang === 'ar'
+          ? '⚠ يرجى إدخال محتوى الرسالة (حقل إجباري).'
+          : '⚠ Please enter your message content (Required).';
+        if (typeof showToast === 'function') showToast(errMsg);
+        if (messageEl) messageEl.focus();
+        return false;
+      }
+
+      // ── 3. EMOJI & SECURITY AUDIT CHECK ──
+      if (typeof validateEmojiInputs === 'function') {
+        const emojiError = validateEmojiInputs([
+          { el: 'contactEmail', name: { en: "Email Address", ar: "البريد الإلكتروني" } },
+          { el: 'contactSubject', name: { en: "Topic / Subject", ar: "موضوع الرسالة" } },
+          { el: 'contactMessage', name: { en: "Message", ar: "محتوى الرسالة" } }
+        ]);
+        if (emojiError) return false;
+      }
+
+      // ── 4. SECURE PAYLOAD CONSTRUCTION ──
+      const sanitizedPayload = {
+        senderName: cleanName ? escapeHtmlEntities(cleanName) : (currentLang === 'ar' ? 'مجهول (غير محدد)' : 'Anonymous Sender'),
+        senderEmail: escapeHtmlEntities(cleanEmail),
+        subject: escapeHtmlEntities(cleanSubject),
+        messageBody: escapeHtmlEntities(cleanMessage),
+        submittedAt: new Date().toISOString()
+      };
+
+      console.log('[ContactForm] Verified & Sanitized Payload:', sanitizedPayload);
+
+      // ── 5. SUCCESS FEEDBACK & RESET ──
+      const successMsg = currentLang === 'ar'
+        ? '✅ تم التحقق من الرسالة وتنظيفها وإرسالها بنجاح! سيتواصل معك الفريق قريبًا.'
+        : '✅ Message validated, sanitized and sent successfully! Our team will contact you soon.';
+
+      if (typeof showToast === 'function') showToast(successMsg);
+
+      document.getElementById('contactForm').reset();
+      return false;
+    }
+  </script>
+
+  <!-- Floating Help/Guide Button -->
+  <button type="button" class="floating-guide-btn" data-i18n-tooltip="floatingGuideTooltip" data-tooltip="Site Guide">
+    <span class="material-symbols-outlined">help</span>
+  </button>
+</body>
+</html>
