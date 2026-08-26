@@ -277,86 +277,129 @@ function displayEmbeddingResults({ basePositions, xorKey, stegoText, cleanCover,
 }
 
 /**
+ * Sets the loading state for the main Hide Data button.
+ * Disables button and displays animated spinner icon with localized status text.
+ *
+ * @param {boolean} isLoading - Whether embedding is in progress.
+ */
+let _origEmbedBtnHtml = null;
+
+function setEmbeddingButtonLoading(isLoading) {
+  const btn = document.getElementById('btnGenerateMap');
+  if (!btn) return;
+
+  if (isLoading) {
+    if (_origEmbedBtnHtml === null) {
+      _origEmbedBtnHtml = btn.innerHTML;
+    }
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    const currentLang = localStorage.getItem('stegoLang') || 'en';
+    const loadingText = currentLang === 'ar' ? 'جاري إخفاء وتشفير البيانات...' : 'Hiding & Securing Data...';
+    btn.innerHTML = `
+      <span class="material-symbols-outlined spin" style="font-size:18px; animation: spin 1.2s linear infinite; display: inline-block; vertical-align: middle;">autorenew</span>
+      <span>${loadingText}</span>
+    `;
+  } else {
+    btn.disabled = false;
+    btn.removeAttribute('aria-busy');
+    if (_origEmbedBtnHtml !== null) {
+      btn.innerHTML = _origEmbedBtnHtml;
+    }
+  }
+}
+
+/**
  * Main embedding UI handler that hooks the button interaction.
  */
 async function performEmbedding() {
+  const { coverText, secretMessage, hint, stegoKey, fakeCoverText } = readEmbeddingInputs();
+
+  // ── EMOJI INPUT VALIDATION ──
+  const emojiError = validateEmojiInputs([
+    { el: 'embedCover', name: { en: "Cover Text", ar: "نص الغلاف" } },
+    { el: 'embedSecretMessage', name: { en: "Secret Message", ar: "الرسالة السرية" } },
+    { el: 'embedStegoKey', name: { en: "Pre-Shared Key", ar: "المفتاح المشترك مسبقاً" } },
+    { el: 'embedEncryptionKey', name: { en: "Encryption Key", ar: "مفتاح التشفير" } },
+    { el: 'embedHint', name: { en: "Hint", ar: "التلميح" } },
+    { el: 'embedFakeCover', name: { en: "Fake Cover", ar: "الغلاف المزيف" } }
+  ]);
+  if (emojiError) return;
+
+  if (!coverText.trim()) return showToast('⚠ Please input the cover text.');
+  if (!secretMessage) return showToast('⚠ Please input the secret message.');
+  if (!stegoKey.trim()) return showToast('⚠ Please input the Pre-Shared Key (Stego-Key).');
+
+  // Check if cover text already contains variation selectors (VS)
+  let hasVS = false;
+  for (const char of coverText) {
+    const codePoint = char.codePointAt(0);
+    if (isBaseVariationSelector(codePoint) || isSupplementaryVariationSelector(codePoint)) {
+      hasVS = true;
+      break;
+    }
+  }
+  if (hasVS) {
+    const currentLang = localStorage.getItem('stegoLang') || 'en';
+    const errMsg = currentLang === 'ar'
+      ? '⚠️ خطأ: نص الغلاف يحتوي بالفعل على أحرف مخفية (أحرف التحويل). يرجى استخدام نص غلاف نظيف.'
+      : '⚠️ Error: Cover text already contains hidden characters (Variation Selectors). Please use a clean cover text.';
+    showToast(errMsg);
+    return;
+  }
+
+  if (hint && hint.length > 60) {
+    const currentLang = localStorage.getItem('stegoLang') || 'en';
+    const errMsg = currentLang === 'ar'
+      ? '❌ خطأ: لا يمكن إخفاء البيانات لأن التلميح يتجاوز 60 حرفاً!'
+      : '❌ Error: Cannot hide data because the hint exceeds 60 characters!';
+    showToast(errMsg);
+    return;
+  }
+
+  const hasFakeCover = fakeCoverText.trim().length > 0;
+  let estimatedVsCount = secretMessage.length;
+  if (typeof getLastCompressedPayloadMetrics === 'function') {
+    const m = getLastCompressedPayloadMetrics();
+    if (m && m.finalBytesLength > 0) {
+      estimatedVsCount = m.finalBytesLength;
+    }
+  }
+  if (hasFakeCover && fakeCoverText.length < estimatedVsCount) {
+    const currentLang = localStorage.getItem('stegoLang') || 'en';
+    const errMsg = currentLang === 'ar'
+      ? `❌ خطأ: حجم الغلاف المزيف (${fakeCoverText.length} حرفاً) أقل من عدد أحرف الإخفاء المطلوبة (${estimatedVsCount} حرفاً)! يجب أن يكون أكبر من أو يساوي عدد أحرف الإخفاء.`
+      : `❌ Error: Fake Cover size (${fakeCoverText.length} chars) is less than required hidden characters (${estimatedVsCount} chars). It must be >= required hidden characters.`;
+    showToast(errMsg);
+    return;
+  }
+
+  const encryptionKeyEl = document.getElementById('embedEncryptionKey');
+  const encryptionKey = encryptionKeyEl ? encryptionKeyEl.value.trim() : "";
+
+  // Reset previous results panel visibility and clear output
+  const resultsPanel = document.getElementById('embed-results-panel');
+  if (resultsPanel) resultsPanel.style.display = 'none';
+  const stegoTextEl = document.getElementById('stegoText');
+  if (stegoTextEl) stegoTextEl.value = '';
+
+  const timeEl = document.getElementById('embedTimeTaken');
+  if (timeEl) timeEl.style.display = 'none';
+
+  // 1. Activate instant visual feedback on button
+  setEmbeddingButtonLoading(true);
+
   try {
-    // Reset previous results panel visibility and clear output
-    const resultsPanel = document.getElementById('embed-results-panel');
-    if (resultsPanel) resultsPanel.style.display = 'none';
-    const stegoTextEl = document.getElementById('stegoText');
-    if (stegoTextEl) stegoTextEl.value = '';
-
-    const timeEl = document.getElementById('embedTimeTaken');
-    if (timeEl) timeEl.style.display = 'none';
-
-    const { coverText, secretMessage, hint, stegoKey, fakeCoverText } = readEmbeddingInputs();
-
-    // ── EMOJI INPUT VALIDATION ──
-    const emojiError = validateEmojiInputs([
-      { el: 'embedCover', name: { en: "Cover Text", ar: "نص الغلاف" } },
-      { el: 'embedSecretMessage', name: { en: "Secret Message", ar: "الرسالة السرية" } },
-      { el: 'embedStegoKey', name: { en: "Pre-Shared Key", ar: "المفتاح المشترك مسبقاً" } },
-      { el: 'embedEncryptionKey', name: { en: "Encryption Key", ar: "مفتاح التشفير" } },
-      { el: 'embedHint', name: { en: "Hint", ar: "التلميح" } },
-      { el: 'embedFakeCover', name: { en: "Fake Cover", ar: "الغلاف المزيف" } }
-    ]);
-    if (emojiError) return;
-
-    if (!coverText.trim()) return showToast('⚠ Please input the cover text.');
-    if (!secretMessage) return showToast('⚠ Please input the secret message.');
-    if (!stegoKey.trim()) return showToast('⚠ Please input the Pre-Shared Key (Stego-Key).');
-
-    // Check if cover text already contains variation selectors (VS)
-    let hasVS = false;
-    for (const char of coverText) {
-      const codePoint = char.codePointAt(0);
-      if (isBaseVariationSelector(codePoint) || isSupplementaryVariationSelector(codePoint)) {
-        hasVS = true;
-        break;
-      }
-    }
-    if (hasVS) {
-      const currentLang = localStorage.getItem('stegoLang') || 'en';
-      const errMsg = currentLang === 'ar'
-        ? '⚠️ خطأ: نص الغلاف يحتوي بالفعل على أحرف مخفية (أحرف التحويل). يرجى استخدام نص غلاف نظيف.'
-        : '⚠️ Error: Cover text already contains hidden characters (Variation Selectors). Please use a clean cover text.';
-      showToast(errMsg);
-      return;
-    }
-
-    if (hint && hint.length > 60) {
-      const currentLang = localStorage.getItem('stegoLang') || 'en';
-      const errMsg = currentLang === 'ar'
-        ? '❌ خطأ: لا يمكن إخفاء البيانات لأن التلميح يتجاوز 60 حرفاً!'
-        : '❌ Error: Cannot hide data because the hint exceeds 60 characters!';
-      showToast(errMsg);
-      return;
-    }
-
-    const hasFakeCover = fakeCoverText.trim().length > 0;
-    let estimatedVsCount = secretMessage.length;
-    if (typeof getLastCompressedPayloadMetrics === 'function') {
-      const m = getLastCompressedPayloadMetrics();
-      if (m && m.finalBytesLength > 0) {
-        estimatedVsCount = m.finalBytesLength;
-      }
-    }
-    if (hasFakeCover && fakeCoverText.length < estimatedVsCount) {
-      const currentLang = localStorage.getItem('stegoLang') || 'en';
-      const errMsg = currentLang === 'ar'
-        ? `❌ خطأ: حجم الغلاف المزيف (${fakeCoverText.length} حرفاً) أقل من عدد أحرف الإخفاء المطلوبة (${estimatedVsCount} حرفاً)! يجب أن يكون أكبر من أو يساوي عدد أحرف الإخفاء.`
-        : `❌ Error: Fake Cover size (${fakeCoverText.length} chars) is less than required hidden characters (${estimatedVsCount} chars). It must be >= required hidden characters.`;
-      showToast(errMsg);
-      return;
-    }
-
-    const encryptionKeyEl = document.getElementById('embedEncryptionKey');
-    const encryptionKey = encryptionKeyEl ? encryptionKeyEl.value.trim() : "";
-
     const startTime = performance.now();
-    const trace = await composeStego(coverText, secretMessage, hint, stegoKey, encryptionKey, fakeCoverText);
-    const durationMs = performance.now() - startTime;
+
+    // 2. Offload CPU-heavy computation to Background Web Worker
+    const trace = (typeof StegoWorkerService !== 'undefined' && StegoWorkerService.composeStegoAsync)
+      ? await StegoWorkerService.composeStegoAsync(coverText, secretMessage, hint, stegoKey, encryptionKey, fakeCoverText)
+      : await composeStego(coverText, secretMessage, hint, stegoKey, encryptionKey, fakeCoverText);
+
+    const durationMs = (trace && typeof trace.durationMs === 'number')
+      ? trace.durationMs
+      : (performance.now() - startTime);
 
     displayEmbeddingResults({
       basePositions: trace.basePositions,
@@ -434,27 +477,35 @@ async function performEmbedding() {
 
   } catch (error) {
     showToast('❌ Embedding error: ' + error.message);
+  } finally {
+    // Restore button state
+    setEmbeddingButtonLoading(false);
   }
 }
 
 async function runEmbeddingPipeline() {
   await performEmbedding();
-  // Show output + VS sections after embedding
-  const stegoVal = document.getElementById('stegoText').value;
+  // Show output sections after embedding
+  const stegoVal = document.getElementById('stegoText')?.value;
   if (stegoVal) {
-    document.getElementById('embed-results-panel').style.display = 'block';
-    document.getElementById('output-section').style.display = 'block';
-    document.getElementById('toggleDetailsBtnWrap').style.display = 'block';
-    document.getElementById('btnFullReportWrap').style.display = 'block';
+    const resultsPanel = document.getElementById('embed-results-panel');
+    if (resultsPanel) resultsPanel.style.display = 'block';
+
+    const outputSection = document.getElementById('output-section');
+    if (outputSection) outputSection.style.display = 'block';
+
+    const fullReportWrap = document.getElementById('btnFullReportWrap');
+    if (fullReportWrap) fullReportWrap.style.display = 'block';
 
     // Update visual metrics again to reflect correct hint banner visibility
     updateVisualMetrics();
 
-    const vsSection = document.getElementById('vsAnalysisSection');
-    if (vsSection && document.getElementById('vsVisualization').value) {
-      vsSection.style.display = 'block';
-    }
-    setTimeout(() => document.getElementById('embed-results-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+    setTimeout(() => {
+      const panel = document.getElementById('embed-results-panel');
+      if (panel) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 100);
   }
 }
 

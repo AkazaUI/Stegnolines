@@ -123,6 +123,90 @@ function _setVsCacheEntry(key, value) {
  * @param {string} [stegoKey] - The pre-shared stego key.
  * @returns {{ fwdLut: string[], invMap: Uint8Array, isIdentity: boolean }}
  */
+/**
+ * Asynchronously generates or retrieves the key-dependent Variation Selector permutation tables
+ * using hardware-accelerated WebCrypto PBKDF2 (10,000 rounds), falling back to pure JS.
+ *
+ * @param {string} [stegoKey] - The pre-shared stego key.
+ * @returns {Promise<{ fwdLut: string[], invMap: Uint8Array, isIdentity: boolean }>}
+ */
+async function getVsPermutationAsync(stegoKey) {
+  if (!stegoKey || typeof stegoKey !== 'string' || !stegoKey.trim()) {
+    return { fwdLut: BYTE_TO_VS_LUT, invMap: IDENTITY_INV_MAP, isIdentity: true };
+  }
+
+  const cacheKey = stegoKey.trim();
+  if (_vsPermutationCache.has(cacheKey)) {
+    const cached = _vsPermutationCache.get(cacheKey);
+    _vsPermutationCache.delete(cacheKey);
+    _vsPermutationCache.set(cacheKey, cached);
+    return cached;
+  }
+
+  const cryptoObj = (typeof crypto !== 'undefined' && crypto.subtle)
+    ? crypto
+    : (typeof self !== 'undefined' && self.crypto && self.crypto.subtle ? self.crypto : null);
+
+  if (cryptoObj && cryptoObj.subtle && typeof createAes256CtrCsprng === 'function' && typeof getUnbiasedRandomInt === 'function') {
+    try {
+      const encoder = typeof TextEncoder !== 'undefined' ? new TextEncoder() : new TextEncoder();
+      const passwordBytes = encoder.encode(cacheKey);
+      const keyMaterial = await cryptoObj.subtle.importKey(
+        'raw',
+        passwordBytes,
+        'PBKDF2',
+        false,
+        ['deriveBits']
+      );
+      const derivedBits = await cryptoObj.subtle.deriveBits(
+        {
+          name: 'PBKDF2',
+          salt: _VS_DOMAIN_SALT_BYTES,
+          iterations: 10000,
+          hash: 'SHA-256'
+        },
+        keyMaterial,
+        256
+      );
+      const keyBytes = new Uint8Array(derivedBits);
+      const csprng = createAes256CtrCsprng(keyBytes);
+
+      const perm = new Uint8Array(256);
+      for (let i = 0; i < 256; i++) perm[i] = i;
+
+      for (let i = 255; i > 0; i--) {
+        const j = getUnbiasedRandomInt(i + 1, csprng);
+        const temp = perm[i];
+        perm[i] = perm[j];
+        perm[j] = temp;
+      }
+
+      const fwdLut = new Array(256);
+      const invMap = new Uint8Array(256);
+
+      for (let b = 0; b < 256; b++) {
+        const vsIndex = perm[b];
+        fwdLut[b] = BYTE_TO_VS_LUT[vsIndex];
+        invMap[vsIndex] = b;
+      }
+
+      const result = { fwdLut, invMap, isIdentity: false };
+      _setVsCacheEntry(cacheKey, result);
+      return result;
+    } catch (e) {
+      console.warn('[getVsPermutationAsync] WebCrypto error, falling back to pure JS:', e);
+    }
+  }
+
+  return getVsPermutation(stegoKey);
+}
+
+/**
+ * Generates or retrieves the key-dependent Variation Selector permutation tables (Synchronous).
+ *
+ * @param {string} [stegoKey] - The pre-shared stego key.
+ * @returns {{ fwdLut: string[], invMap: Uint8Array, isIdentity: boolean }}
+ */
 function getVsPermutation(stegoKey) {
   if (!stegoKey || typeof stegoKey !== 'string' || !stegoKey.trim()) {
     return { fwdLut: BYTE_TO_VS_LUT, invMap: IDENTITY_INV_MAP, isIdentity: true };
@@ -305,7 +389,7 @@ function padBinaryToByteAlignment(binaryString) {
  * @param {string} [stegoKey] - Pre-shared stego key for key-dependent VS permutation.
  * @returns {{ vsStr: string, bytesArr: number[] }}
  */
-function xorKeyToVSString(binaryKey, stegoKey) {
+function xorKeyToVSString(binaryKey, stegoKey, precomputedPerm) {
   if (typeof binaryKey !== 'string' || binaryKey.length === 0) {
     return { vsStr: '', bytesArr: [] };
   }
@@ -314,7 +398,7 @@ function xorKeyToVSString(binaryKey, stegoKey) {
   const totalBytes = paddedKey.length >> 3;
   const bytesArr = new Array(totalBytes);
   const vsChars = new Array(totalBytes);
-  const { fwdLut } = getVsPermutation(stegoKey);
+  const { fwdLut } = precomputedPerm || getVsPermutation(stegoKey);
 
   for (let i = 0; i < totalBytes; i++) {
     const base = i << 3;

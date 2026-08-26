@@ -110,6 +110,39 @@ function displayExtractionResults(secretMessage, hint) {
 }
 
 /**
+ * Sets the loading state for the main Extract button.
+ * Disables button and displays animated spinner icon with localized status text.
+ *
+ * @param {boolean} isLoading - Whether extraction is in progress.
+ */
+let _origExtractBtnHtml = null;
+
+function setExtractButtonLoading(isLoading) {
+  const btn = document.getElementById('extract-btn') || document.querySelector('.btn--extract') || extractBtn;
+  if (!btn) return;
+
+  if (isLoading) {
+    if (_origExtractBtnHtml === null) {
+      _origExtractBtnHtml = btn.innerHTML;
+    }
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    const currentLang = localStorage.getItem('stegoLang') || 'en';
+    const loadingText = currentLang === 'ar' ? 'جاري استخراج وفك التشفير...' : 'Extracting & Decrypting...';
+    btn.innerHTML = `
+      <span class="material-symbols-outlined spin" style="font-size:18px; animation: spin 1.2s linear infinite; display: inline-block; vertical-align: middle;">autorenew</span>
+      <span>${loadingText}</span>
+    `;
+  } else {
+    btn.disabled = false;
+    btn.removeAttribute('aria-busy');
+    if (_origExtractBtnHtml !== null) {
+      btn.innerHTML = _origExtractBtnHtml;
+    }
+  }
+}
+
+/**
  * Main extraction UI orchestrator.
  */
 async function performExtraction() {
@@ -133,14 +166,23 @@ async function performExtraction() {
   if (!stegoText) return showToast('⚠ Please input the stego-text.');
   if (!rawStegoKey) return showToast('⚠ Please input the Pre-Shared Key (Stego-Key).');
 
-  try {
-    const encryptionKeyEl = document.getElementById('extractEncryptionKey');
-    const encryptionKey = encryptionKeyEl ? encryptionKeyEl.value.trim() : "";
+  const encryptionKeyEl = document.getElementById('extractEncryptionKey');
+  const encryptionKey = encryptionKeyEl ? encryptionKeyEl.value.trim() : "";
 
+  // 1. Activate instant loading feedback on button
+  setExtractButtonLoading(true);
+
+  try {
     const startTime = performance.now();
-    // Run the pure business logic decompose pipeline
-    const result = await decomposeStego(stegoText, rawStegoKey, encryptionKey);
-    const durationMs = performance.now() - startTime;
+
+    // 2. Offload heavy computation to Background Web Worker
+    const result = (typeof StegoWorkerService !== 'undefined' && StegoWorkerService.decomposeStegoAsync)
+      ? await StegoWorkerService.decomposeStegoAsync(stegoText, rawStegoKey, encryptionKey)
+      : await decomposeStego(stegoText, rawStegoKey, encryptionKey);
+
+    const durationMs = (result && typeof result.durationMs === 'number')
+      ? result.durationMs
+      : (performance.now() - startTime);
 
     // Display extraction results in the DOM
     displayExtractionResults(result.secretMessage, result.hint);
@@ -184,6 +226,9 @@ async function performExtraction() {
 
   } catch (error) {
     showToast('❌ ' + error.message);
+  } finally {
+    // Restore button state
+    setExtractButtonLoading(false);
   }
 }
 

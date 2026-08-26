@@ -36,8 +36,16 @@
  * @returns {Promise<object>} Detailed metrics and output stego text structures.
  */
 async function composeStego(coverText, secretMessage, hint, stegoKey, encryptionKey, fakeCoverText) {
+  const engineStartTime = performance.now();
+
   // 1. Resolve stego key
   const { resolvedStegoKey } = await resolveStegoKey(stegoKey, coverText);
+
+  // Parallel pre-computation of cryptographic keys via hardware-accelerated WebCrypto
+  const [key256, vsPerm] = await Promise.all([
+    (typeof deriveKeyPbkdf2Async === 'function') ? deriveKeyPbkdf2Async(resolvedStegoKey) : null,
+    (typeof getVsPermutationAsync === 'function') ? getVsPermutationAsync(resolvedStegoKey) : null
+  ]);
 
   // 2. Step 1: Build payload bytes
   const payloadBytes = buildPayload(secretMessage, hint);
@@ -75,13 +83,13 @@ async function composeStego(coverText, secretMessage, hint, stegoKey, encryption
   }
 
   // 7. Step 2: Generate positions (MODERN engine — PBKDF2 + AES-256-CTR CSPRNG)
-  const basePositions = generatePositions(coverBits.length, messageBits.length, resolvedStegoKey);
+  const basePositions = generatePositions(coverBits.length, messageBits.length, resolvedStegoKey, key256);
 
   // 8. Step 3: XOR key generation
   const xorKey = generateXORKey(coverBits, basePositions, messageBits);
 
   // 9. Step 4: Convert XOR key to Variation Selector characters (with key-dependent S-Box permutation)
-  const { vsStr, bytesArr } = xorKeyToVSString(xorKey, resolvedStegoKey);
+  const { vsStr, bytesArr } = xorKeyToVSString(xorKey, resolvedStegoKey, vsPerm);
 
   // 10. Step 5: Build output
   const hasFakeCover = fakeCoverText && fakeCoverText.trim().length > 0;
@@ -94,6 +102,8 @@ async function composeStego(coverText, secretMessage, hint, stegoKey, encryption
   } else {
     stegoText = buildStegoObject(coverText, vsStr);
   }
+
+  const durationMs = performance.now() - engineStartTime;
 
   return {
     success: true,
@@ -111,7 +121,8 @@ async function composeStego(coverText, secretMessage, hint, stegoKey, encryption
     isSplitMode: hasFakeCover,
     fakeCoverText: hasFakeCover ? fakeCoverText : "",
     fakeCoverWithVS: hasFakeCover ? fakeCoverWithVS : "",
-    brotliDurationMs
+    brotliDurationMs,
+    durationMs
   };
 }
 
@@ -140,6 +151,11 @@ async function decomposeStego(stegoText, rawStegoKey, encryptionKey) {
   // 2. Resolve stego key
   const { resolvedStegoKey } = await resolveStegoKey(rawStegoKey, coverText);
 
+  // Fast pre-derivation of 256-bit PBKDF2 key via WebCrypto
+  const key256 = (typeof deriveKeyPbkdf2Async === 'function')
+    ? await deriveKeyPbkdf2Async(resolvedStegoKey)
+    : null;
+
   // 3. Convert cover text to binary
   const coverBits = stringToBinary(coverText);
   const decryptionKey = encryptionKey || resolvedStegoKey;
@@ -162,7 +178,7 @@ async function decomposeStego(stegoText, rawStegoKey, encryptionKey) {
       if (xorKeyBinary.length > coverBits.length) return null;
 
       // Regenerate PRNG positions
-      const basePositions = posFn(coverBits.length, xorKeyBinary.length, resolvedStegoKey);
+      const basePositions = posFn(coverBits.length, xorKeyBinary.length, resolvedStegoKey, key256);
 
       // Recover payload bits via XOR reversal
       const recoveredBinary = recoverPayloadBits(coverBits, basePositions, xorKeyBinary);

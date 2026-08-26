@@ -361,7 +361,7 @@ const DetailsToggle = (function () {
 
   function toggle() {
     isVisible = !isVisible;
-    const accordion = document.querySelector('.diag-accordion');
+    const accordion = document.getElementById('toggleDetailsBtnWrap');
     if (accordion) {
       accordion.classList.toggle('open', isVisible);
       
