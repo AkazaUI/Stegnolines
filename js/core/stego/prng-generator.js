@@ -194,7 +194,55 @@ const _STEGO_DOMAIN_SALT_BYTES = (function() {
 const _derivedKeyCache = new Map();
 
 /**
- * Derive a 256-bit key from a password using PBKDF2-HMAC-SHA256.
+ * Asynchronously derive a 256-bit key from a password using WebCrypto PBKDF2-HMAC-SHA256
+ * (100,000 iterations), falling back to pure JS if WebCrypto is unavailable.
+ *
+ * @param {string} passwordStr - The password string.
+ * @returns {Promise<Uint8Array>} 32-byte derived key.
+ */
+async function deriveKeyPbkdf2Async(passwordStr) {
+  if (_derivedKeyCache.has(passwordStr)) {
+    return _derivedKeyCache.get(passwordStr);
+  }
+
+  const cryptoObj = (typeof crypto !== 'undefined' && crypto.subtle)
+    ? crypto
+    : (typeof self !== 'undefined' && self.crypto && self.crypto.subtle ? self.crypto : null);
+
+  if (cryptoObj && cryptoObj.subtle) {
+    try {
+      const encoder = typeof TextEncoder !== 'undefined' ? new TextEncoder() : new TextEncoder();
+      const passwordBytes = encoder.encode(passwordStr);
+      const keyMaterial = await cryptoObj.subtle.importKey(
+        'raw',
+        passwordBytes,
+        'PBKDF2',
+        false,
+        ['deriveBits']
+      );
+      const derivedBits = await cryptoObj.subtle.deriveBits(
+        {
+          name: 'PBKDF2',
+          salt: _STEGO_DOMAIN_SALT_BYTES,
+          iterations: 100000,
+          hash: 'SHA-256'
+        },
+        keyMaterial,
+        256
+      );
+      const keyBytes = new Uint8Array(derivedBits);
+      _derivedKeyCache.set(passwordStr, keyBytes);
+      return keyBytes;
+    } catch (e) {
+      console.warn('[deriveKeyPbkdf2Async] WebCrypto error, falling back to pure JS:', e);
+    }
+  }
+
+  return deriveKeyPbkdf2(passwordStr);
+}
+
+/**
+ * Derive a 256-bit key from a password using PBKDF2-HMAC-SHA256 (Synchronous).
  *
  * Uses 100,000 iterations per NIST SP 800-132 recommendation.
  * Results are cached to avoid redundant computation.
@@ -510,15 +558,15 @@ function getUnbiasedRandomInt(range, csprng) {
  * @param {string} stegoKey  - The stego-key used to derive the CSPRNG seed.
  * @returns {number[]} An array of `count` unique position indices.
  */
-function generatePositions(maxLength, count, stegoKey) {
+function generatePositions(maxLength, count, stegoKey, precomputedKey256) {
   if (typeof maxLength !== 'number' || maxLength <= 0) return [];
   if (typeof count !== 'number' || count <= 0) return [];
-  if (!stegoKey || typeof stegoKey !== 'string' || !stegoKey.trim()) {
+  if (!precomputedKey256 && (!stegoKey || typeof stegoKey !== 'string' || !stegoKey.trim())) {
     throw new Error("Stego-key is mandatory and cannot be empty.");
   }
 
   const k = Math.min(count, maxLength);
-  const key256 = deriveKeyPbkdf2(stegoKey);
+  const key256 = precomputedKey256 || deriveKeyPbkdf2(stegoKey);
   const csprng = createAes256CtrCsprng(key256);
 
   // Lazy swap map: only stores swapped indices (O(K) memory)

@@ -530,99 +530,6 @@
             </div>
           </div>
 
-          <!-- Technical Diagnostics Accordion -->
-          <div class="diag-accordion" id="toggleDetailsBtnWrap" style="display:none; margin-top: var(--space-md);">
-            <button type="button" class="diag-accordion__trigger" id="toggleDetailsBtn" onclick="toggleDetails()">
-              <span class="diag-accordion__icon material-symbols-outlined">terminal</span>
-              <div class="diag-accordion__text-wrap">
-                <div class="diag-accordion__title" data-i18n="diagAccordionTitle">Technical Diagnostics</div>
-                <div class="diag-accordion__subtitle" data-i18n="diagAccordionSubtitle">VS Analysis · Base Map · XOR Key
-                </div>
-              </div>
-              <span class="material-symbols-outlined diag-accordion__chevron">expand_more</span>
-            </button>
-
-            <div class="diag-accordion__body">
-              <div class="diag-grid">
-
-                <!-- Deep Analytics Callout Banner -->
-                <div class="diag-panel diag-panel--full"
-                  style="background: linear-gradient(135deg, rgba(187,209,0,0.08) 0%, rgba(125,163,0,0.03) 100%); border-color: rgba(187,209,0,0.3); display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: var(--space-md); flex-wrap: wrap; padding: var(--space-md) var(--space-lg); grid-column: 1 / -1; width: 100%; box-sizing: border-box;">
-                  <div style="display: flex; align-items: center; gap: var(--space-md);">
-                    <span class="material-symbols-outlined"
-                      style="color: var(--color-primary); font-size: 28px;">insights</span>
-                    <div>
-                      <h4
-                        style="margin: 0; font-weight: 700; font-size: var(--fs-body-md); color: var(--color-on-surface);"
-                        data-i18n="deepDiagBannerTitle">Stego Analytics Dashboard</h4>
-                      <p style="margin: 2px 0 0 0; font-size: var(--fs-body-sm); color: var(--color-on-surface-variant); opacity: 0.85;"
-                        data-i18n="deepDiagBannerSub">Access a comprehensive, interactive breakdown of the encoding
-                        trace, payload stages, and bit-level mapping.</p>
-                    </div>
-                  </div>
-                  <a href="details.html" class="btn-gradient"
-                    style="text-decoration: none; padding: 10px 22px; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: var(--space-xs); font-family: var(--font-label); font-size: var(--fs-body-md); font-weight: 700; color: #1B1D00 !important; cursor: pointer; transition: var(--transition-all);"
-                    id="btn-deep-dive">
-                    <span class="material-symbols-outlined" style="font-size:18px;">analytics</span>
-                    <span data-i18n="btnDeepDive">Deep Analytics Dashboard</span>
-                  </a>
-                </div>
-
-                <!-- Panel 1: VS Hex Analysis -->
-                <div class="diag-panel diag-panel--full" id="vsAnalysisSection">
-                  <div class="diag-panel__header">
-                    <div class="diag-panel__title">
-                      <span class="material-symbols-outlined">analytics</span>
-                      <span data-i18n="labelVsHex">Visual Steganography Hex Stream</span>
-                    </div>
-                    <span class="badge badge--draft text-label-md" id="vsKeyCount">0 bytes</span>
-                  </div>
-                  <div class="progress-track" style="height:6px; margin: var(--space-xs) 0;">
-                    <div class="progress-fill" id="vsKeyMeter" style="width:0%;"></div>
-                  </div>
-                  <div class="diag-panel__viewport" id="vsVisualizationHtml">
-                    <span style="opacity:0.5; font-style:italic;">VS hex visualization will appear here...</span>
-                  </div>
-                  <!-- Hidden legacy textarea for full backward-compatibility -->
-                  <textarea class="editor-block__textarea" id="vsVisualization" style="display:none;"
-                    readonly></textarea>
-                </div>
-
-                <!-- Panel 2: PRNG Coordinate Base Map -->
-                <div class="diag-panel">
-                  <div class="diag-panel__header">
-                    <div class="diag-panel__title">
-                      <span class="material-symbols-outlined">location_on</span>
-                      <span data-i18n="labelPrngBase">PRNG Random Base Positions</span>
-                    </div>
-                  </div>
-                  <div class="diag-panel__viewport" id="baseMapHtml" style="overflow-y:auto;">
-                    <span style="opacity:0.5; font-style:italic;">Base positions will appear here...</span>
-                  </div>
-                  <!-- Hidden legacy textarea for full backward-compatibility -->
-                  <textarea class="editor-block__textarea" id="baseMapOutput" style="display:none;" readonly></textarea>
-                </div>
-
-                <!-- Panel 3: Bitwise XOR Key Mask -->
-                <div class="diag-panel">
-                  <div class="diag-panel__header">
-                    <div class="diag-panel__title">
-                      <span class="material-symbols-outlined">vpn_key</span>
-                      <span data-i18n="labelXorMask">Binary XOR Key Difference Mask</span>
-                    </div>
-                  </div>
-                  <div class="diag-panel__viewport" id="xorKeyHtml" style="overflow-y:auto;">
-                    <span style="opacity:0.5; font-style:italic;">XOR key will appear here...</span>
-                  </div>
-                  <!-- Hidden legacy textarea for full backward-compatibility -->
-                  <textarea class="editor-block__textarea" id="shiftKeyOutput" style="display:none;"
-                    readonly></textarea>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
           <!-- View Full Report Button (Interactive Diagnostic Panel) -->
           <div id="btnFullReportWrap"
             style="display:none; margin-top: var(--space-md); width: 100%; box-sizing: border-box;">
@@ -1208,6 +1115,7 @@
   <script src="js/core/stego/vs-codec.js"></script>
   <script src="js/core/stego/multi-message-protocol.js"></script>
   <script src="js/core/stego/stego-composer.js"></script>
+  <script src="js/core/stego/stego-worker-service.js"></script>
 
   <!-- ═══ UI Features & Controllers ═══ -->
   <script src="js/features/F_stego_capacity.js"></script>

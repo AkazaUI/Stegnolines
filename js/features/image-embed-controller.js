@@ -1529,6 +1529,9 @@ async function performImageEmbedding() {
     <span>${currentLang === 'ar' ? 'جاري التحسين والتضمين...' : 'Optimizing & Embedding...'}</span>
   `;
 
+  // Yield to browser event loop to paint spinner immediately
+  await new Promise(resolve => typeof requestAnimationFrame === 'function' ? requestAnimationFrame(() => setTimeout(resolve, 0)) : setTimeout(resolve, 0));
+
   try {
     if (!imgUploadedFile || !imgUploadedFile.data) {
       throw new Error(currentLang === 'ar'
