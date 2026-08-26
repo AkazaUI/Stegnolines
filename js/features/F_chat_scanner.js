@@ -296,9 +296,8 @@ async function scannerOneClick() {
   let totalDurationMs = 0;
 
   // ── Step 1: Filter ──
-  _updateProgress(1, '① Filtering messages...', 15);
-  _updateProgress(1, '① Filtering messages...', 5);
-  await _delay(100);
+  _updateProgress(1, curLang === 'ar' ? '① تصفية الرسائل...' : '① Filtering messages...', 10, curLang === 'ar' ? 'جاري تحليل وفصل الرسائل...' : 'Analyzing and filtering messages...');
+  await _delay(60);
 
   const t1 = performance.now();
   const filterSuccess = _runFilterStep(rawText);
@@ -310,12 +309,12 @@ async function scannerOneClick() {
   }
 
   _showStep1Results(false);
-  _updateProgress(1, '① Filter completed ✓', 15);
-  await _delay(100);
+  _updateProgress(1, curLang === 'ar' ? '① اكتملت التصفية ✓' : '① Filter completed ✓', 18, curLang === 'ar' ? `تم استخراج ${_scannerState.messages.length} رسالة` : `Parsed ${_scannerState.messages.length} messages`);
+  await _delay(60);
 
   // ── Step 2: Extract VS ──
-  _updateProgress(2, '② Extracting VS characters...', 20);
-  await _delay(100);
+  _updateProgress(2, curLang === 'ar' ? '② استخراج رموز VS...' : '② Extracting VS keys...', 24, curLang === 'ar' ? 'جاري فحص الأحرف المخفية...' : 'Scanning for invisible Variation Selectors...');
+  await _delay(60);
 
   const t2 = performance.now();
   _runExtractStep();
@@ -325,9 +324,9 @@ async function scannerOneClick() {
   _showStep2Results(true);
 
   if (_scannerState.carriers.length === 0) {
-    await _delay(200);
-    _updateProgress(2, '✅ Analysis completed', 100);
-    await _delay(400);
+    await _delay(150);
+    _updateProgress(2, curLang === 'ar' ? '✅ اكتمل التحليل' : '✅ Analysis completed', 100, curLang === 'ar' ? 'لم يتم الكشف عن رموز مخفية' : 'No hidden VS characters detected');
+    await _delay(350);
     await _hideProgress();
     _displayScannerTime(totalDurationMs);
 
@@ -338,12 +337,12 @@ async function scannerOneClick() {
     return;
   }
 
-  _updateProgress(2, '② VS extracted successfully ✓', 30);
-  await _delay(100);
+  _updateProgress(2, curLang === 'ar' ? '② تم استخراج الرموز بنجاح ✓' : '② VS extracted successfully ✓', 30, curLang === 'ar' ? `تم العثور على ${_scannerState.carriers.length} رسالة ناقلة` : `Detected ${_scannerState.carriers.length} carrier messages`);
+  await _delay(60);
 
   // ── Step 3: Try password ──
-  _updateProgress(3, '③ Testing candidate covers...', 30);
-  await _delay(50);
+  _updateProgress(3, curLang === 'ar' ? '③ فك التشفير والمطابقة...' : '③ Testing candidate covers...', 32, curLang === 'ar' ? 'جاري بدء الفحص السريع عبر Web Worker...' : 'Starting high-speed background matching...');
+  await _delay(40);
 
   const t3 = performance.now();
   try {
@@ -354,8 +353,8 @@ async function scannerOneClick() {
   }
   totalDurationMs += (performance.now() - t3);
 
-  _updateProgress(3, '✅ Scan completed', 100);
-  await _delay(500);
+  _updateProgress(3, curLang === 'ar' ? '✅ اكتمل الفحص' : '✅ Scan completed', 100, curLang === 'ar' ? 'اكتملت جميع العمليات بنجاح!' : 'All operations completed successfully!');
+  await _delay(400);
   await _hideProgress();
 
   _displayScannerTime(totalDurationMs);
@@ -472,14 +471,15 @@ function _runExtractStep() {
     const { vsBytes, cleanText, rawVsIndices } = extractVSFromText(messages[i].message);
     cleanMessages.push(cleanText);
 
-    if ((rawVsIndices && rawVsIndices.length > 0) || (vsBytes && vsBytes.length > 0)) {
-      const rawMsg = messages[i].message || '';
-      const vsPrefix = rawMsg.slice(0, rawMsg.length - (cleanText ? cleanText.length : 0));
+    const actualIndices = (rawVsIndices && rawVsIndices.length > 0) ? rawVsIndices : vsBytes;
+    if (actualIndices && actualIndices.length > 0) {
+      // Reconstruct the exact Unicode VS character sequence deterministically from indices
+      const vsChars = Array.from(actualIndices).map(b => (b < 16 ? String.fromCodePoint(0xFE00 + b) : String.fromCodePoint(0xE0100 + b - 16))).join('');
       carriers.push({
         index: i,
-        vsKey: vsBytes,
-        rawVsIndices: rawVsIndices || vsBytes,
-        vsPrefix: vsPrefix
+        vsKey: vsBytes || actualIndices,
+        rawVsIndices: actualIndices,
+        vsPrefix: vsChars
       });
     }
   }
@@ -523,12 +523,6 @@ async function _runTryStep() {
 
   const currentLang = localStorage.getItem('stegoLang') || 'en';
   let totalMatchesCount = 0;
-  const carrierResults = [];
-
-  const totalCarriers = carriers.length;
-  const totalWorkUnits = totalCarriers * (cleanMessages.length || 1);
-  const checkpointInterval = Math.max(1, Math.floor(totalWorkUnits / 10));
-  let processedUnits = 0;
 
   // Helper to retrieve candidate cover strings for message at index
   function getCandidateCovers(index) {
@@ -557,148 +551,56 @@ async function _runTryStep() {
     return Array.from(new Set(candidates.filter(c => c && c.length > 0)));
   }
 
-  for (let c = 0; c < carriers.length; c++) {
-    const carrier = carriers[c];
-    const carrierIndex = carrier.index;
-    const rawVsIndices = carrier.rawVsIndices || carrier.vsKey;
-    const vsKeyLength = rawVsIndices ? rawVsIndices.length : 0;
-    const requiredBits = vsKeyLength * 8;
-    const carrierMsg = _scannerState.messages[carrierIndex];
-    const vsPrefix = carrier.vsPrefix;
-
-    const matches = [];
-    let carrierMatched = false;
-
-    // 10-Step Progress Checkpoint update for current carrier (monotonically scaling from 30% to 95%)
-    const carrierPct = 30 + Math.min(65, Math.round((c / totalCarriers) * 65));
-    const carrierStatus = currentLang === 'ar'
-      ? `جاري فحص الناقل (${c + 1} من ${totalCarriers})...`
-      : `Scanning carrier (${c + 1} of ${totalCarriers})...`;
-    _updateProgress(3, null, carrierPct, carrierStatus);
-    await new Promise(r => setTimeout(r, 0));
-
-    // 1. Direct Carrier Fast Path: Try decomposeStego on the carrier message directly (Case 2)
-    for (const stKey of stegoKeys) {
-      for (const aesKey of aesKeys) {
-        try {
-          if (typeof decomposeStego === 'function' && carrierMsg && carrierMsg.message) {
-            const decResult = await decomposeStego(carrierMsg.message, stKey, aesKey);
-            if (decResult && decResult.success && decResult.secretMessage) {
-              matches.push({
-                index: carrierIndex + 1,
-                coverText: decResult.coverText || _scannerState.cleanMessages[carrierIndex],
-                secretMessage: decResult.secretMessage,
-                hint: decResult.hint,
-                type: 'carrier_fallback',
-                usedStegoKey: stKey || (currentLang === 'ar' ? 'افتراضي (بدون مفتاح)' : 'Default (No Key)')
-              });
-              carrierMatched = true;
-              break;
-            }
-          }
-        } catch (err) {}
-      }
-      if (carrierMatched) break;
-    }
-
-    // 2. If direct carrier didn't match, test candidate variations of carrier text itself
-    if (!carrierMatched) {
-      const carrierCoverCandidates = getCandidateCovers(carrierIndex);
-      for (const carrierCover of carrierCoverCandidates) {
-        // Fast Capacity Skip: Cover bits must be >= payload bits
-        if (carrierCover.length * 8 < requiredBits) continue;
-
-        const candidateStegoObject = (vsPrefix || '') + carrierCover;
-        for (const stKey of stegoKeys) {
-          for (const aesKey of aesKeys) {
-            try {
-              if (typeof decomposeStego === 'function') {
-                const decResult = await decomposeStego(candidateStegoObject, stKey, aesKey);
-                if (decResult && decResult.success && decResult.secretMessage) {
-                  matches.push({
-                    index: carrierIndex + 1,
-                    coverText: decResult.coverText || carrierCover,
-                    secretMessage: decResult.secretMessage,
-                    hint: decResult.hint,
-                    type: 'carrier_fallback',
-                    usedStegoKey: stKey || (currentLang === 'ar' ? 'افتراضي (بدون مفتاح)' : 'Default (No Key)')
-                  });
-                  carrierMatched = true;
-                  break;
-                }
-              }
-            } catch (err) {}
-          }
-          if (carrierMatched) break;
-        }
-        if (carrierMatched) break;
-      }
-    }
-
-    // 3. FAKE COVER SCANNING: Try ALL other clean & candidate messages in the chat (Cases 1, 3 & 5)
-    if (!carrierMatched) {
-      for (let i = 0; i < cleanMessages.length; i++) {
-        if (i === carrierIndex) continue;
-
-        processedUnits++;
-        // 10-Step Checkpoint Trigger: Updates only 10 times total (monotonically between 30% and 95%) with 0.00ms overhead
-        if (processedUnits % checkpointInterval === 0) {
-          const currentPct = 30 + Math.min(65, Math.round((processedUnits / totalWorkUnits) * 65));
-          const stepStatus = currentLang === 'ar'
-            ? `جاري تجربة الأغلفة... ${currentPct}%`
-            : `Testing cover combinations... ${currentPct}%`;
-          _updateProgress(3, null, currentPct, stepStatus);
-          await new Promise(r => setTimeout(r, 0));
-        }
-
-        const candidateCovers = getCandidateCovers(i);
-        let foundMatchForMsg = false;
-
-        for (const candidateCover of candidateCovers) {
-          // Fast Capacity Skip: O(1) instantaneous check before heavy crypto operations
-          if (candidateCover.length * 8 < requiredBits) continue;
-
-          const candidateStegoObject = (vsPrefix || '') + candidateCover;
-
-          for (const stKey of stegoKeys) {
-            for (const aesKey of aesKeys) {
-              try {
-                if (typeof decomposeStego === 'function') {
-                  const decResult = await decomposeStego(candidateStegoObject, stKey, aesKey);
-                  if (decResult && decResult.success && decResult.secretMessage) {
-                    const isDuplicate = matches.some(m => m.secretMessage === decResult.secretMessage);
-                    if (!isDuplicate) {
-                      matches.push({
-                        index: i + 1,
-                        coverText: decResult.coverText || candidateCover,
-                        secretMessage: decResult.secretMessage,
-                        hint: decResult.hint,
-                        type: 'normal',
-                        usedStegoKey: stKey || (currentLang === 'ar' ? 'افتراضي (بدون مفتاح)' : 'Default (No Key)')
-                      });
-                    }
-                    foundMatchForMsg = true;
-                    carrierMatched = true;
-                    break;
-                  }
-                }
-              } catch (err) {}
-            }
-            if (foundMatchForMsg) break;
-          }
-          if (foundMatchForMsg) break;
-        }
-        if (carrierMatched) break;
-      }
-    }
-
-    carrierResults.push({
-      carrierIndex,
-      vsKeyLength: rawVsIndices ? rawVsIndices.length : 0,
-      matches
-    });
-    totalMatchesCount += matches.length;
+  // Pre-calculate candidate covers map for lightning fast worker dispatch
+  const candidateCoversMap = {};
+  for (let i = 0; i < cleanMessages.length; i++) {
+    candidateCoversMap[i] = getCandidateCovers(i);
   }
+
+  const scanPayload = {
+    carriers: carriers.map(c => ({
+      index: c.index,
+      vsKey: c.vsKey,
+      rawVsIndices: c.rawVsIndices,
+      vsPrefix: c.vsPrefix,
+      carrierMessage: _scannerState.messages[c.index] ? _scannerState.messages[c.index].message : '',
+      cleanBody: _scannerState.cleanMessages[c.index] || ''
+    })),
+    cleanMessages,
+    candidateCoversMap,
+    stegoKeys,
+    aesKeys,
+    currentLang
+  };
+
+  // Execute Combinatorial Cryptographic Extraction inside Background Web Worker with Automatic Fallback
+  let scanResult = null;
+  const progressCb = ({ percent, statusDetail }) => {
+    _updateProgress(3, null, percent, statusDetail);
+  };
+
+  try {
+    if (typeof StegoWorkerService !== 'undefined' && typeof StegoWorkerService.scanChatPayloadsAsync === 'function') {
+      scanResult = await StegoWorkerService.scanChatPayloadsAsync(scanPayload, progressCb);
+    }
+  } catch (workerErr) {
+    console.warn('[Scanner] Web Worker execution failed, activating main-thread fallback:', workerErr);
+    scanResult = null;
+  }
+
+  // Fallback to local main-thread execution if Web Worker was unavailable or failed
+  if (!scanResult) {
+    if (typeof StegoWorkerService !== 'undefined' && typeof StegoWorkerService._fallbackScanChatPayloads === 'function') {
+      scanResult = await StegoWorkerService._fallbackScanChatPayloads(scanPayload, progressCb);
+    } else if (typeof _fallbackScanChatPayloads === 'function') {
+      scanResult = await _fallbackScanChatPayloads(scanPayload, progressCb);
+    } else {
+      scanResult = { carrierResults: [], totalMatchesCount: 0 };
+    }
+  }
+
+  const carrierResults = (scanResult && scanResult.carrierResults) || [];
+  totalMatchesCount = (scanResult && scanResult.totalMatchesCount) || 0;
 
   // 100% Completion Checkpoint
   _updateProgress(3, null, 100, currentLang === 'ar' ? 'اكتمل الفحص بنجاح!' : 'Scan completed successfully!');
