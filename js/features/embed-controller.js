@@ -335,11 +335,18 @@ async function performEmbedding() {
     }
 
     const hasFakeCover = fakeCoverText.trim().length > 0;
-    if (hasFakeCover && fakeCoverText.length < secretMessage.length) {
+    let estimatedVsCount = secretMessage.length;
+    if (typeof getLastCompressedPayloadMetrics === 'function') {
+      const m = getLastCompressedPayloadMetrics();
+      if (m && m.finalBytesLength > 0) {
+        estimatedVsCount = m.finalBytesLength;
+      }
+    }
+    if (hasFakeCover && fakeCoverText.length < estimatedVsCount) {
       const currentLang = localStorage.getItem('stegoLang') || 'en';
       const errMsg = currentLang === 'ar'
-        ? `❌ خطأ: حجم الغلاف المزيف (${fakeCoverText.length} حرفاً) أقل من حجم الرسالة السرية (${secretMessage.length} حرفاً)! يجب أن يكون أكبر من أو يساوي حجم الرسالة السرية.`
-        : `❌ Error: Fake Cover size (${fakeCoverText.length} chars) is less than secret message (${secretMessage.length} chars). It must be >= secret message size.`;
+        ? `❌ خطأ: حجم الغلاف المزيف (${fakeCoverText.length} حرفاً) أقل من عدد أحرف الإخفاء المطلوبة (${estimatedVsCount} حرفاً)! يجب أن يكون أكبر من أو يساوي عدد أحرف الإخفاء.`
+        : `❌ Error: Fake Cover size (${fakeCoverText.length} chars) is less than required hidden characters (${estimatedVsCount} chars). It must be >= required hidden characters.`;
       showToast(errMsg);
       return;
     }
@@ -794,9 +801,18 @@ function updateGuardValidation() {
   let vsCharsCount = 0;
   if (secretMessage.length > 0 || (hintVal && hintVal.trim())) {
     try {
-      const payload = buildPayload(secretMessage || '', hintVal || '');
-      const msgBitsLength = bytesToBinary(payload).length;
-      vsCharsCount = Math.ceil(msgBitsLength / 8);
+      if (typeof getLastCompressedPayloadMetrics === 'function') {
+        const metrics = getLastCompressedPayloadMetrics();
+        if (metrics && metrics.finalBytesLength > 0) {
+          vsCharsCount = metrics.finalBytesLength;
+        } else {
+          const payload = buildPayload(secretMessage || '', hintVal || '');
+          vsCharsCount = payload.length;
+        }
+      } else {
+        const payload = buildPayload(secretMessage || '', hintVal || '');
+        vsCharsCount = payload.length;
+      }
     } catch (e) { }
   }
 
@@ -1192,9 +1208,18 @@ document.addEventListener('DOMContentLoaded', () => {
           let vsCharsCount = 0;
           if (secretMessage.length > 0 || (hintVal && hintVal.trim())) {
             try {
-              const payload = buildPayload(secretMessage || '', hintVal || '');
-              const msgBitsLength = bytesToBinary(payload).length;
-              vsCharsCount = Math.ceil(msgBitsLength / 8);
+              if (typeof getLastCompressedPayloadMetrics === 'function') {
+                const metrics = getLastCompressedPayloadMetrics();
+                if (metrics && metrics.finalBytesLength > 0) {
+                  vsCharsCount = metrics.finalBytesLength;
+                } else {
+                  const payload = buildPayload(secretMessage || '', hintVal || '');
+                  vsCharsCount = payload.length;
+                }
+              } else {
+                const payload = buildPayload(secretMessage || '', hintVal || '');
+                vsCharsCount = payload.length;
+              }
             } catch (e) { }
           }
 
