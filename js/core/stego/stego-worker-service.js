@@ -35,6 +35,20 @@ const StegoWorkerService = (function () {
   }
 
   /**
+   * Resolve the Web Worker URL relative to the script location.
+   * Prevents broken paths if hosted on subdomains or subdirectories.
+   * @returns {string}
+   */
+  function _resolveWorkerUrl() {
+    if (typeof document !== 'undefined' && document.currentScript && document.currentScript.src) {
+      try {
+        return new URL('stego-engine.worker.js', document.currentScript.src).href;
+      } catch (_) {}
+    }
+    return 'js/core/stego/stego-engine.worker.js';
+  }
+
+  /**
    * Get or lazily initialize the Stego Engine Web Worker.
    * @returns {Worker|null}
    */
@@ -44,7 +58,7 @@ const StegoWorkerService = (function () {
     if (typeof Worker === 'undefined') return null;
 
     try {
-      _worker = new Worker('js/core/stego/stego-engine.worker.js');
+      _worker = new Worker(_resolveWorkerUrl());
 
       _worker.onmessage = function (e) {
         const { id, type, success, result, error, percent, statusDetail } = e.data || {};
@@ -118,6 +132,31 @@ const StegoWorkerService = (function () {
   }
 
   /**
+   * Execute task directly on the main UI thread with yield to avoid UI freeze.
+   */
+  function _executeMainThreadAction(action, payload, onProgress) {
+    return _yieldToMainThread().then(async () => {
+      if (action === 'COMPOSE_STEGO') {
+        if (typeof composeStego !== 'function') {
+          throw new Error('composeStego engine is not available.');
+        }
+        const { coverText, secretMessage, hint, stegoKey, encryptionKey, fakeCoverText } = payload;
+        return await composeStego(coverText, secretMessage, hint, stegoKey, encryptionKey, fakeCoverText);
+      } else if (action === 'DECOMPOSE_STEGO') {
+        if (typeof decomposeStego !== 'function') {
+          throw new Error('decomposeStego engine is not available.');
+        }
+        const { stegoText, rawStegoKey, encryptionKey } = payload;
+        return await decomposeStego(stegoText, rawStegoKey, encryptionKey);
+      } else if (action === 'SCAN_CHAT_PAYLOADS') {
+        return await _fallbackScanChatPayloads(payload, onProgress);
+      } else {
+        throw new Error(`Unknown action: ${action}`);
+      }
+    });
+  }
+
+  /**
    * Send a task message to the Web Worker, or execute via main-thread fallback.
    *
    * @param {string} action  - Action name ('COMPOSE_STEGO' | 'DECOMPOSE_STEGO' | 'SCAN_CHAT_PAYLOADS').
@@ -147,29 +186,19 @@ const StegoWorkerService = (function () {
           action,
           payload
         });
+      }).catch(async (err) => {
+        // If worker fails due to runtime script/environment issue, fall back seamlessly to main thread
+        if (err && err.message && (err.message.includes('not available') || err.message.includes('not defined') || err.message.includes('Worker'))) {
+          console.warn('[StegoWorkerService] Web Worker runtime issue, falling back to main-thread execution:', err);
+          _workerFailedPermanently = true;
+          return await _executeMainThreadAction(action, payload, onProgress);
+        }
+        throw err;
       });
     }
 
     // ── Graceful Fallback: Asynchronous execution on Main Thread ──
-    return _yieldToMainThread().then(async () => {
-      if (action === 'COMPOSE_STEGO') {
-        if (typeof composeStego !== 'function') {
-          throw new Error('composeStego engine is not available.');
-        }
-        const { coverText, secretMessage, hint, stegoKey, encryptionKey, fakeCoverText } = payload;
-        return await composeStego(coverText, secretMessage, hint, stegoKey, encryptionKey, fakeCoverText);
-      } else if (action === 'DECOMPOSE_STEGO') {
-        if (typeof decomposeStego !== 'function') {
-          throw new Error('decomposeStego engine is not available.');
-        }
-        const { stegoText, rawStegoKey, encryptionKey } = payload;
-        return await decomposeStego(stegoText, rawStegoKey, encryptionKey);
-      } else if (action === 'SCAN_CHAT_PAYLOADS') {
-        return await _fallbackScanChatPayloads(payload, onProgress);
-      } else {
-        throw new Error(`Unknown action: ${action}`);
-      }
-    });
+    return _executeMainThreadAction(action, payload, onProgress);
   }
 
   /**
