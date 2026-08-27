@@ -15,6 +15,8 @@
 
 'use strict';
 
+let _importError = null;
+
 try {
   importScripts(
     '../compression/wasm-engine.js',
@@ -31,7 +33,8 @@ try {
     'stego-composer.js'
   );
 } catch (err) {
-  console.warn('[StegoEngineWorker] Warning during importScripts:', err);
+  _importError = err;
+  console.error('[StegoEngineWorker] Error during importScripts:', err);
 }
 
 self.onmessage = async function (e) {
@@ -42,8 +45,16 @@ self.onmessage = async function (e) {
   }
 
   try {
+    if (_importError) {
+      throw new Error(`StegoEngineWorker script loading failed: ${_importError.message || _importError}`);
+    }
+
     switch (action) {
       case 'COMPOSE_STEGO': {
+        if (typeof composeStego !== 'function') {
+          throw new Error('composeStego engine is not available in Web Worker.');
+        }
+
         const {
           coverText,
           secretMessage,
@@ -71,6 +82,10 @@ self.onmessage = async function (e) {
       }
 
       case 'DECOMPOSE_STEGO': {
+        if (typeof decomposeStego !== 'function') {
+          throw new Error('decomposeStego engine is not available in Web Worker.');
+        }
+
         const {
           stegoText,
           rawStegoKey,
@@ -92,6 +107,10 @@ self.onmessage = async function (e) {
       }
 
       case 'SCAN_CHAT_PAYLOADS': {
+        if (typeof decomposeStego !== 'function') {
+          throw new Error('decomposeStego engine is not available in Web Worker for chat scanning.');
+        }
+
         const onProgress = (prog) => {
           self.postMessage({
             id,

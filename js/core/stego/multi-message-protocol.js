@@ -534,4 +534,4 @@
   exports.WHATSAPP_PROFILE = WHATSAPP_PROFILE;
   exports.computeAdaptiveChunks = computeAdaptiveChunks;
 
-})(typeof exports !== 'undefined' ? exports : (window.MultiMessageProtocol = {}));
+})(typeof exports !== 'undefined' ? exports : ((typeof self !== 'undefined' ? self : this).MultiMessageProtocol = {}));
