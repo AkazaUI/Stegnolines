@@ -788,8 +788,14 @@ document.addEventListener('DOMContentLoaded', () => {
       bindEyeToggle(eyeBtn, input);
       delBtn.addEventListener('click', () => {
         row.classList.add('removing');
-        row.addEventListener('animationend', () => row.remove());
-        setTimeout(() => row.remove(), 310);
+        row.addEventListener('animationend', () => {
+          row.remove();
+          if (typeof updateScannerOneClickButtonState === 'function') updateScannerOneClickButtonState();
+        });
+        setTimeout(() => {
+          row.remove();
+          if (typeof updateScannerOneClickButtonState === 'function') updateScannerOneClickButtonState();
+        }, 310);
       });
     });
   }
@@ -837,8 +843,14 @@ document.addEventListener('DOMContentLoaded', () => {
       bindEyeToggle(eyeBtn, input);
       delBtn.addEventListener('click', () => {
         row.classList.add('removing');
-        row.addEventListener('animationend', () => row.remove());
-        setTimeout(() => row.remove(), 310);
+        row.addEventListener('animationend', () => {
+          row.remove();
+          if (typeof updateScannerOneClickButtonState === 'function') updateScannerOneClickButtonState();
+        });
+        setTimeout(() => {
+          row.remove();
+          if (typeof updateScannerOneClickButtonState === 'function') updateScannerOneClickButtonState();
+        }, 310);
       });
     });
   }
@@ -878,4 +890,9 @@ document.addEventListener('DOMContentLoaded', () => {
       optionsEl.classList.remove('open');
     }
   });
+
+  // Initial Scan & Extract button state check
+  if (typeof updateScannerOneClickButtonState === 'function') {
+    updateScannerOneClickButtonState();
+  }
 });

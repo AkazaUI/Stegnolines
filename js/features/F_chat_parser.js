@@ -40,7 +40,11 @@ const CHAT_PLATFORMS = {
   whatsapp_android: {
     name: 'WhatsApp (Android)',
     regex: /^([^\n\-–]+?)\s*[-–]\s*([^:]+):\s*(.+)/,
-    extract: (match) => ({ sender: match[2].trim(), message: match[3].trim() }),
+    extract: (match) => ({
+      sender: match[2].trim(),
+      timestamp: match[1].trim(),
+      message: match[3].trim()
+    }),
   },
 
   // ── WhatsApp iOS ────────────────────────────────────
@@ -49,16 +53,23 @@ const CHAT_PLATFORMS = {
   whatsapp_ios: {
     name: 'WhatsApp (iOS)',
     regex: /^\[([^\]\n]+)\]\s*([^:]+):\s*(.+)/,
-    extract: (match) => ({ sender: match[2].trim(), message: match[3].trim() }),
+    extract: (match) => ({
+      sender: match[2].trim(),
+      timestamp: match[1].trim(),
+      message: match[3].trim()
+    }),
   },
 
   // ── Facebook Messenger ──────────────────────────────
   // Format: "Ahmed\nHello my friend\n12:30 PM"
-  // Format: "Ahmed\n12:30 PM\nHello my friend"
   facebook: {
     name: 'Facebook Messenger',
-    regex: /^([^:\n]{1,30})\s*(?:\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?)?\s*$/,
-    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    regex: /^([^:\n]{1,30})(?:\s+(\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?))?\s*$/,
+    extract: (match) => ({
+      sender: match[1].trim(),
+      timestamp: (match[2] || '').trim(),
+      message: ''
+    }),
     multilineBody: true,
   },
 
@@ -66,88 +77,118 @@ const CHAT_PLATFORMS = {
   // Format: "Ahmed\nHello my friend"
   instagram: {
     name: 'Instagram',
-    regex: /^([^:\n]{1,30})\s*(?:\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?)?\s*$/,
-    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    regex: /^([^:\n]{1,30})(?:\s+(\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?))?\s*$/,
+    extract: (match) => ({
+      sender: match[1].trim(),
+      timestamp: (match[2] || '').trim(),
+      message: ''
+    }),
     multilineBody: true,
   },
 
   // ── Telegram ────────────────────────────────────────
   // Exported format: "Ahmed, [12.05.26 14:30]\nMessage text"
   // Exported format: "Ahmed, [May 12, 2026 at 2:30 PM]\nMessage text"
-  // Copy-paste format: "Ahmed:\nMessage text\n\n"  (Name: on its own line)
+  // Copy-paste format: "Ahmed:\nMessage text\n\n"
   telegram: {
     name: 'Telegram',
     regex: /^([^,\[:\n]+)(?:,\s*\[([^\]]+)\]|:)\s*$/,
-    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    extract: (match) => ({
+      sender: match[1].trim(),
+      timestamp: (match[2] || '').trim(),
+      message: ''
+    }),
     multilineBody: true,
   },
 
   // ── X (Twitter) ─────────────────────────────────────
-  // Format: "Ahmed\n@ahmed_handle\nHello my friend"
   x: {
     name: 'X (Twitter)',
     regex: /^([^:\n]{1,30})(?:\s+@[a-zA-Z0-9_]{1,20})?\s*$/,
-    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    extract: (match) => ({
+      sender: match[1].trim(),
+      timestamp: '',
+      message: ''
+    }),
     multilineBody: true,
   },
 
   // ── TikTok ──────────────────────────────────────────
-  // Format: "Ahmed\nHello my friend"
   tiktok: {
     name: 'TikTok',
-    regex: /^([^:\n]{1,30})\s*(?:\d{1,2}:\d{2})?\s*$/,
-    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    regex: /^([^:\n]{1,30})(?:\s+(\d{1,2}:\d{2}))?\s*$/,
+    extract: (match) => ({
+      sender: match[1].trim(),
+      timestamp: (match[2] || '').trim(),
+      message: ''
+    }),
     multilineBody: true,
   },
 
   // ── YouTube ─────────────────────────────────────────
-  // Format: "Ahmed\n12:30 PM\nMessage text"
   youtube: {
     name: 'YouTube',
-    regex: /^([^:\n]{1,30})\s*(?:\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?)?\s*$/,
-    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    regex: /^([^:\n]{1,30})(?:\s+(\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?))?\s*$/,
+    extract: (match) => ({
+      sender: match[1].trim(),
+      timestamp: (match[2] || '').trim(),
+      message: ''
+    }),
     multilineBody: true,
   },
 
   // ── WeChat ──────────────────────────────────────────
-  // Format: "Ahmed: Message text"
-  // Format: "[12:30] Ahmed: Message text"
   wechat: {
     name: 'WeChat',
     regex: /^(?:\[([^\]\n]+)\]\s*)?([^:]{1,30}):\s*(.+)/,
-    extract: (match) => ({ sender: match[2].trim(), message: match[3].trim() }),
+    extract: (match) => ({
+      sender: match[2].trim(),
+      timestamp: (match[1] || '').trim(),
+      message: match[3].trim()
+    }),
   },
 
   // ── Snapchat ────────────────────────────────────────
-  // Format: "Ahmed\nHello my friend"
   snapchat: {
     name: 'Snapchat',
-    regex: /^([^:\n]{1,30})\s*(?:\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?)?\s*$/,
-    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    regex: /^([^:\n]{1,30})(?:\s+(\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?))?\s*$/,
+    extract: (match) => ({
+      sender: match[1].trim(),
+      timestamp: (match[2] || '').trim(),
+      message: ''
+    }),
     multilineBody: true,
   },
 
   // ── LinkedIn ────────────────────────────────────────
-  // Format: "Ahmed\n12:30 PM\nMessage text"
   linkedin: {
     name: 'LinkedIn',
-    regex: /^([^:\n]{1,30})\s*(?:\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?)?\s*$/,
-    extract: (match) => ({ sender: match[1].trim(), message: '' }),
+    regex: /^([^:\n]{1,30})(?:\s+(\d{1,2}:\d{2}\s*(?:[APap][Mm]|ص|م)?))?\s*$/,
+    extract: (match) => ({
+      sender: match[1].trim(),
+      timestamp: (match[2] || '').trim(),
+      message: ''
+    }),
     multilineBody: true,
   },
 
   // ── Manual / Simple Chat ────────────────────────────
-  // Format: "Ahmed: Message text" or "Ahmed: Message text"
-  // Format: "Ahmed - Message" or "Ahmed - Message"
-  // Format: "[Ahmed] Message" or "[Ahmed] Message"
   manual: {
     name: 'Manual Input (Name: Message)',
-    regex: /^([^:–\-\[\]\n]{1,30})\s*[:–\-]\s*(.+)$|^\[([^\]\n]{1,30})\]\s*(.+)$/,
+    regex: /^(?:\[([^\]\n]+)\]\s*)?([^:–\-\[\]\n]{1,30})\s*[:–\-]\s*(.+)$|^\[([^\]\n]{1,30})\]\s*(.+)$/,
     extract: (match) => {
-      if (match[1]) {
-        return { sender: match[1].trim(), message: match[2].trim() };
+      if (match[2]) {
+        return {
+          sender: match[2].trim(),
+          timestamp: (match[1] || '').trim(),
+          message: match[3].trim()
+        };
       } else {
-        return { sender: match[3].trim(), message: match[4].trim() };
+        return {
+          sender: match[4].trim(),
+          timestamp: '',
+          message: match[5].trim()
+        };
       }
     }
   },
@@ -195,30 +236,68 @@ function detectPlatform(rawText) {
 /**
  * Parse raw chat text into an array of structured messages.
  *
- * Handles both single-line and multi-line message formats.
- * For multi-line platforms (Telegram, Discord, iMessage), lines
- * that don't match the header pattern are appended to the
- * previous message's body.
+ * Handles both single-line and multi-line message formats with O(N) linear performance.
+ * Accurately extracts metadata: sender, timestamp, and 1-indexed lineNumber.
  *
  * @param {string} rawText  - The raw pasted chat text.
  * @param {string} platform - Platform key from detectPlatform() or manual selection.
- * @returns {{ sender: string, message: string }[]} Array of parsed messages.
+ * @returns {{ sender: string, timestamp: string, lineNumber: number, message: string, rawText: string }[]} Array of parsed messages.
  */
 function parseChat(rawText, platform) {
-  // Generic fallback — each non-empty line is a separate message
+  if (!rawText) return [];
+
+  const lines = rawText.split('\n');
+
+  // Generic fallback with lightweight inline check for common header formats
   if (platform === 'generic' || !CHAT_PLATFORMS[platform]) {
-    return rawText.split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
-      .map(line => ({ sender: '', message: line, rawText: line }));
+    const GENERIC_MSG_REGEX = /^(?:\[([^\]\n]+)\]\s*|([^\n\-–]+?)\s*[-–]\s*)?([^:]+):\s*(.+)$/;
+    const messages = [];
+
+    for (let idx = 0; idx < lines.length; idx++) {
+      const line = lines[idx];
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      const lineNum = idx + 1;
+      const cleanLine = (typeof extractVSFromText === 'function')
+        ? extractVSFromText(trimmed).cleanText
+        : trimmed;
+
+      const match = cleanLine.match(GENERIC_MSG_REGEX);
+      if (match) {
+        const rawTime = (match[1] || match[2] || '').trim();
+        const rawSender = match[3].trim();
+        const colonIdx = line.indexOf(':', line.indexOf(rawSender) + rawSender.length);
+        const msgText = colonIdx !== -1 ? line.substring(colonIdx + 1).trim() : match[4].trim();
+
+        messages.push({
+          sender: rawSender,
+          timestamp: rawTime,
+          lineNumber: lineNum,
+          message: msgText,
+          rawText: line
+        });
+      } else {
+        messages.push({
+          sender: '',
+          timestamp: '',
+          lineNumber: lineNum,
+          message: trimmed,
+          rawText: line
+        });
+      }
+    }
+    return messages;
   }
 
   const config = CHAT_PLATFORMS[platform];
-  const lines = rawText.split('\n');
   const messages = [];
   let currentMessage = null;
 
-  for (const line of lines) {
+  for (let idx = 0; idx < lines.length; idx++) {
+    const line = lines[idx];
+    const lineNum = idx + 1;
+
     const cleanLineForMatch = (typeof extractVSFromText === 'function')
       ? extractVSFromText(line).cleanText
       : line;
@@ -233,7 +312,15 @@ function parseChat(rawText, platform) {
       }
 
       // Start new message
-      currentMessage = config.extract(match);
+      const extracted = config.extract(match);
+      currentMessage = {
+        sender: extracted.sender || '',
+        timestamp: extracted.timestamp || '',
+        lineNumber: lineNum,
+        message: extracted.message || '',
+        rawText: line
+      };
+
       if (currentMessage.sender) {
         const senderIdx = line.indexOf(currentMessage.sender);
         if (senderIdx !== -1) {
@@ -243,16 +330,20 @@ function parseChat(rawText, platform) {
           }
         }
       }
-      currentMessage.rawText = line;
-
     } else {
-      // Continuation line or prefix before first match — append to current message body
+      // Continuation line or prefix before first match
       const trimmed = line.trim();
       if (trimmed) {
         if (!currentMessage) {
-          currentMessage = { sender: '', message: '', rawText: '' };
+          currentMessage = {
+            sender: '',
+            timestamp: '',
+            lineNumber: lineNum,
+            message: '',
+            rawText: ''
+          };
         }
-        currentMessage.message += (currentMessage.message ? '\n' : '') + line.trim();
+        currentMessage.message += (currentMessage.message ? '\n' : '') + trimmed;
         currentMessage.rawText += (currentMessage.rawText ? '\n' : '') + line;
       }
     }

@@ -151,6 +151,13 @@ const I18N_TOASTS = {
     zh: "请输入预共享密钥 (Stego-Key)。",
     la: "Sodes clavem prae-participatam (Stego-Key) intra."
   },
+  "Please enter at least one key (Stego-Key or AES key) to begin decryption and extraction.": {
+    en: "Please enter at least one key (Stego-Key or AES key) to begin decryption and extraction.",
+    ar: "يرجى إدخال مفتاح واحد على الأقل (مفتاح Stego-Key أو مفتاح AES) لبدء فك التشفير والاستخراج.",
+    fr: "Veuillez saisir au moins une clé (clé Stego ou clé AES) pour lancer le déchiffrement et l'extraction.",
+    zh: "请至少输入一个密钥（Stego 密钥或 AES 密钥）以开始解密和提取。",
+    la: "Quaeso intra saltem unam clavem (Stego vel AES) ad extractionem incipiendam."
+  },
   "Please input the stego-text.": {
     en: "Please input the stego-text.",
     ar: "الرجاء إدخال النص الإخفائي.",

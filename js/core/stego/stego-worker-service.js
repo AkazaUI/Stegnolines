@@ -255,11 +255,13 @@ const StegoWorkerService = (function () {
               if (decResult && decResult.success && decResult.secretMessage) {
                 matches.push({
                   index: carrierIndex + 1,
+                  carrierIndex: carrierIndex,
                   coverText: decResult.coverText || cleanMessages[carrierIndex] || carrier.cleanBody || '',
                   secretMessage: decResult.secretMessage,
                   hint: decResult.hint,
                   type: 'carrier_fallback',
-                  usedStegoKey: stKey || (currentLang === 'ar' ? 'افتراضي (بدون مفتاح)' : 'Default (No Key)')
+                  usedStegoKey: stKey || (currentLang === 'ar' ? 'افتراضي (بدون مفتاح)' : 'Default (No Key)'),
+                  usedAesKey: aesKey || ''
                 });
                 carrierMatched = true;
                 break;
@@ -284,11 +286,13 @@ const StegoWorkerService = (function () {
                   if (decResult && decResult.success && decResult.secretMessage) {
                     matches.push({
                       index: carrierIndex + 1,
+                      carrierIndex: carrierIndex,
                       coverText: decResult.coverText || carrierCover,
                       secretMessage: decResult.secretMessage,
                       hint: decResult.hint,
                       type: 'carrier_fallback',
-                      usedStegoKey: stKey || (currentLang === 'ar' ? 'افتراضي (بدون مفتاح)' : 'Default (No Key)')
+                      usedStegoKey: stKey || (currentLang === 'ar' ? 'افتراضي (بدون مفتاح)' : 'Default (No Key)'),
+                      usedAesKey: aesKey || ''
                     });
                     carrierMatched = true;
                     break;
@@ -336,11 +340,14 @@ const StegoWorkerService = (function () {
                       if (!isDuplicate) {
                         matches.push({
                           index: i + 1,
+                          carrierIndex: carrierIndex,
+                          fakeCoverIndex: i,
                           coverText: decResult.coverText || candidateCover,
                           secretMessage: decResult.secretMessage,
                           hint: decResult.hint,
                           type: 'normal',
-                          usedStegoKey: stKey || (currentLang === 'ar' ? 'افتراضي (بدون مفتاح)' : 'Default (No Key)')
+                          usedStegoKey: stKey || (currentLang === 'ar' ? 'افتراضي (بدون مفتاح)' : 'Default (No Key)'),
+                          usedAesKey: aesKey || ''
                         });
                       }
                       foundMatchForMsg = true;

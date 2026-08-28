@@ -9,7 +9,6 @@
 
 .accordion.accordion--open {
   border-color: var(--color-outline);
-  box-shadow: var(--shadow-card, 0 4px 20px rgba(0,0,0,0.15));
 }
 
 /* Glowing focus pulse animation when accordion opens */

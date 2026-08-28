@@ -33,9 +33,10 @@
   transform: translate(-50%, -50%) scale(0.94);
   z-index: 9999;
   width: min(880px, 95vw);
-  height: auto;
-  min-height: 480px;
-  max-height: 92vh;
+  height: min(600px, 88vh, 88dvh);
+  max-height: 90vh;
+  max-height: 90dvh;
+  min-height: min(520px, 85vh);
   background-color: var(--color-surface-container);
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-2xl);
@@ -56,6 +57,7 @@
 /* ── Settings Sidebar Navigation ── */
 .settings-modal__sidebar {
   width: 230px;
+  height: 100%;
   background-color: var(--color-surface-container-low);
   border-right: 1px solid var(--color-outline-variant);
   padding: var(--space-md) var(--space-md);
@@ -63,6 +65,7 @@
   flex-direction: column;
   flex-shrink: 0;
   box-sizing: border-box;
+  overflow-y: auto;
 }
 
 html[dir="rtl"] .settings-modal__sidebar {
@@ -162,7 +165,10 @@ html[dir="rtl"] .settings-nav-item {
   flex-direction: column;
   flex: 1;
   min-width: 0;
+  height: 100%;
+  min-height: 0;
   background-color: var(--color-surface-container);
+  overflow: hidden;
 }
 
 .settings-modal__header {
@@ -171,6 +177,7 @@ html[dir="rtl"] .settings-nav-item {
   justify-content: space-between;
   padding: 14px 20px 12px;
   border-bottom: 1px solid var(--color-outline-variant);
+  flex-shrink: 0;
 }
 
 .settings-modal__header-left {
@@ -215,12 +222,15 @@ html[dir="rtl"] .settings-nav-item {
 .settings-modal__body {
   padding: 16px 20px 20px;
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
   scrollbar-width: thin;
   scrollbar-color: rgba(187, 209, 0, 0.3) transparent;
+  -webkit-overflow-scrolling: touch;
 }
 
 .settings-modal__body::-webkit-scrollbar {
@@ -818,14 +828,19 @@ body.settings-modal-open {
 @media (max-width: 768px) {
   .settings-modal {
     flex-direction: column;
-    height: auto;
-    max-height: 92vh;
     width: min(520px, 94vw);
+    height: min(620px, 86dvh, 86vh);
+    max-height: 88dvh;
     border-radius: var(--radius-xl);
+    overflow: hidden;
   }
 
   .settings-modal__sidebar {
     width: 100%;
+    height: auto !important;
+    max-height: none !important;
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
     border-right: none !important;
     border-left: none !important;
     border-bottom: 1px solid var(--color-outline-variant);
@@ -835,6 +850,7 @@ body.settings-modal-open {
     justify-content: stretch;
     box-sizing: border-box;
     background-color: var(--color-surface-container-low);
+    overflow: visible;
   }
 
   html[dir="rtl"] .settings-modal__sidebar {
@@ -852,6 +868,8 @@ body.settings-modal-open {
     flex-direction: row;
     gap: 6px;
     width: 100%;
+    height: auto !important;
+    flex: none !important;
     justify-content: space-between;
     align-items: center;
     overflow: visible;
@@ -921,12 +939,19 @@ body.settings-modal-open {
   }
 
   .settings-modal__main {
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
+    height: auto !important;
+    max-height: none !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   .settings-modal__header {
+    flex-shrink: 0;
     padding: 12px 16px 10px;
+    border-bottom: 1px solid var(--color-outline-variant);
   }
 
   .settings-modal__title {
@@ -938,9 +963,15 @@ body.settings-modal-open {
   }
 
   .settings-modal__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto !important;
+    max-height: none !important;
     padding: 12px 14px 16px;
     gap: 10px;
-    max-height: calc(92vh - 120px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
   .theme-modes-grid,
