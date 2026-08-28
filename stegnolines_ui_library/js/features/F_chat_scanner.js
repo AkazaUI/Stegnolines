@@ -143,9 +143,7 @@ async function scannerOneClick() {
   await _delay(500);
   _hideProgress();
 
-  // Show all result cards (collapsed by default, Step 3 expanded)
-  _showStep1Results(false);
-  _showStep2Results(false);
+  // NOTE: Step 1 & Step 2 result cards only appear when clicking "Verify Filter"
 }
 
 

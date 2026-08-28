@@ -14,8 +14,11 @@
 
 
 // ── STATE — holds intermediate results between steps ──────────
+const STEP1_PAGE_SIZE = 15;
+let _step1RenderedCount = 0;
+
 let _scannerState = {
-  messages: [],        // [{ sender, message }]  — raw parsed messages
+  messages: [],        // [{ sender, message, timestamp, lineNumber }]  — raw parsed messages
   cleanMessages: [],   // [string]               — messages without VS
   carriers: [],        // [{ index: number, vsKey: Uint8Array }] — extracted carriers
   platform: 'generic', // detected platform key
@@ -139,7 +142,9 @@ function _updateProgress(step, label, percent, statusDetail) {
     }
   }
 
-  // Update 10-step progress track fill and percentage labels
+  // Update progress track fill, percentage labels and formatted status text
+  const cleanDetail = statusDetail ? statusDetail.replace(/\s*\.{0,3}\s*\d+%\s*$/, '...') : null;
+
   if (typeof percent === 'number') {
     const clampedPct = Math.min(100, Math.max(0, Math.round(percent)));
     const fillEl = document.getElementById('scannerProgressFill');
@@ -147,10 +152,22 @@ function _updateProgress(step, label, percent, statusDetail) {
 
     const pctTextEl = document.getElementById('scannerProgressPctText');
     if (pctTextEl) pctTextEl.textContent = clampedPct + '%';
+  }
 
-    const statusTextEl = document.getElementById('scannerProgressStatusText');
-    if (statusTextEl && statusDetail) {
-      statusTextEl.textContent = statusDetail;
+  const statusTextEl = document.getElementById('scannerProgressStatusText');
+  if (statusTextEl) {
+    if (cleanDetail) {
+      statusTextEl.textContent = cleanDetail;
+    } else if (label) {
+      statusTextEl.textContent = label;
+    } else {
+      if (step === 1) {
+        statusTextEl.textContent = currentLang === 'ar' ? 'جاري تصفية واستخراج نصوص المحادثة...' : 'Analyzing and filtering chat messages...';
+      } else if (step === 2) {
+        statusTextEl.textContent = currentLang === 'ar' ? 'جاري استخراج أحرف الـ Variation Selectors المخفية...' : 'Searching for and extracting hidden Variation Selectors...';
+      } else if (step === 3) {
+        statusTextEl.textContent = currentLang === 'ar' ? 'جاري فحص وتجربة خرائط الأغلفة والمفاتيح...' : 'Testing key combinations and resolving decryption maps...';
+      }
     }
   }
 
@@ -220,6 +237,7 @@ async function _hideProgress() {
  * Reset all scanner result cards.
  */
 function _resetScannerResults() {
+  _step1RenderedCount = 0;
   document.getElementById('scannerStep1Card').style.display = 'none';
   document.getElementById('scannerStep2Card').style.display = 'none';
   document.getElementById('scannerStep3Card').style.display = 'none';
@@ -254,6 +272,55 @@ function _delay(ms) {
 }
 
 
+/**
+ * Check if at least one Stego-Key or AES key has been entered.
+ * @returns {boolean} True if any key input contains non-empty text.
+ */
+function hasAnyScannerKeyEntered() {
+  if (typeof document === 'undefined') return false;
+  const stegoInputs = Array.from(document.querySelectorAll('.scanner-stego-key-input'));
+  const aesInputs = Array.from(document.querySelectorAll('.scanner-aes-key-input'));
+  const hasStego = stegoInputs.some(inp => inp && inp.value && inp.value.trim().length > 0);
+  const hasAes = aesInputs.some(inp => inp && inp.value && inp.value.trim().length > 0);
+  return hasStego || hasAes;
+}
+
+/**
+ * Update the visual enabled/disabled state of the Scan & Extract button in real time.
+ */
+function updateScannerOneClickButtonState() {
+  if (typeof document === 'undefined') return;
+  const btn = document.getElementById('btn-scanner-one-click');
+  if (!btn) return;
+
+  const hasKey = hasAnyScannerKeyEntered();
+  if (hasKey) {
+    btn.classList.remove('is-disabled');
+    btn.removeAttribute('aria-disabled');
+    btn.removeAttribute('title');
+  } else {
+    btn.classList.add('is-disabled');
+    btn.setAttribute('aria-disabled', 'true');
+    const curLang = localStorage.getItem('stegoLang') || 'en';
+    btn.setAttribute('title', curLang === 'ar' ? 'يرجى إدخال مفتاح واحد على الأقل للمتابعة' : 'Enter at least one key to proceed');
+  }
+}
+
+// Delegate input events on key fields to keep button state updated
+if (typeof document !== 'undefined') {
+  document.addEventListener('input', function(e) {
+    if (e.target && (e.target.matches('.scanner-stego-key-input') || e.target.matches('.scanner-aes-key-input'))) {
+      updateScannerOneClickButtonState();
+    }
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateScannerOneClickButtonState);
+  } else {
+    setTimeout(updateScannerOneClickButtonState, 0);
+  }
+}
+
 // ══════════════════════════════════════════════════════════════
 // ONE-CLICK PIPELINE: Filter → Extract → Try
 // ══════════════════════════════════════════════════════════════
@@ -263,11 +330,27 @@ function _delay(ms) {
  * Step 1 (Filter) → Step 2 (Extract VS) → Step 3 (Try password).
  */
 async function scannerOneClick() {
+  const curLang = localStorage.getItem('stegoLang') || 'en';
+
+  // ── KEY REQUIREMENT VALIDATION ──
+  if (!hasAnyScannerKeyEntered()) {
+    const noKeyMsg = curLang === 'ar'
+      ? '⚠ يرجى إدخال مفتاح واحد على الأقل (مفتاح Stego-Key أو مفتاح AES) لبدء فك التشفير والاستخراج.'
+      : '⚠ Please enter at least one key (Stego-Key or AES key) to begin decryption and extraction.';
+    showToast(noKeyMsg);
+
+    const firstKeyInput = document.getElementById('scannerPassword') || document.getElementById('scannerEncryptionKey');
+    if (firstKeyInput) {
+      firstKeyInput.focus();
+      firstKeyInput.classList.add('scanner-input-pulse');
+      setTimeout(() => firstKeyInput.classList.remove('scanner-input-pulse'), 1200);
+    }
+    return;
+  }
+
   const inputValidation = (typeof window.getScannerInputValidation === 'function')
     ? window.getScannerInputValidation()
     : { status: 'empty', text: '' };
-
-  const curLang = localStorage.getItem('stegoLang') || 'en';
 
   if (inputValidation.status === 'conflict') {
     const conflictMsg = curLang === 'ar'
@@ -308,7 +391,7 @@ async function scannerOneClick() {
     return;
   }
 
-  _showStep1Results(false);
+  // NOTE: Step 1 results card (Filtered Messages) only appears when clicking "Verify Filter"
   _updateProgress(1, curLang === 'ar' ? '① اكتملت التصفية ✓' : '① Filter completed ✓', 18, curLang === 'ar' ? `تم استخراج ${_scannerState.messages.length} رسالة` : `Parsed ${_scannerState.messages.length} messages`);
   await _delay(60);
 
@@ -320,9 +403,7 @@ async function scannerOneClick() {
   _runExtractStep();
   totalDurationMs += (performance.now() - t2);
 
-  // Render Step 2 results card (shows extracted keys or clear "No VS detected" report)
-  _showStep2Results(true);
-
+  // NOTE: Step 2 results card (Extraction Results) only appears when clicking "Verify Filter"
   if (_scannerState.carriers.length === 0) {
     await _delay(150);
     _updateProgress(2, curLang === 'ar' ? '✅ اكتمل التحليل' : '✅ Analysis completed', 100, curLang === 'ar' ? 'لم يتم الكشف عن رموز مخفية' : 'No hidden VS characters detected');
@@ -330,10 +411,10 @@ async function scannerOneClick() {
     await _hideProgress();
     _displayScannerTime(totalDurationMs);
 
-    const step2Card = document.getElementById('scannerStep2Card');
-    if (step2Card) {
-      step2Card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+    const noVsMsg = curLang === 'ar'
+      ? 'لم يتم الكشف عن أي رموز مخفية (Variation Selectors) في نص المحادثة.'
+      : 'No hidden Variation Selectors detected in the chat.';
+    showToast('ℹ ' + noVsMsg);
     return;
   }
 
@@ -359,7 +440,7 @@ async function scannerOneClick() {
 
   _displayScannerTime(totalDurationMs);
 
-  const resultsCard = document.getElementById('scannerStep3Card') || document.getElementById('scannerStep2Card');
+  const resultsCard = document.getElementById('scannerStep3Card');
   if (resultsCard) {
     resultsCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
@@ -609,39 +690,8 @@ async function _runTryStep() {
   _scannerState.carrierResults = carrierResults;
   _scannerState.totalMatchesCount = totalMatchesCount;
 
-  // Build Premium Dashboard Summary Layout
-  let html = `<div class="scanner-results-container" style="display: flex; flex-direction: column; gap: var(--space-lg); width: 100%;">`;
-
-  // 1. Metrics Grid
-  const labelCarriers = currentLang === 'ar' ? 'الناقلات المكتشفة' : 'Carriers Detected';
-  const labelDecrypted = currentLang === 'ar' ? 'الرسائل المستخرجة' : 'Decrypted Secrets';
-  const labelCombos = currentLang === 'ar' ? 'الاحتمالات المجربة' : 'Key Combos Tested';
-
-  html += `
-    <div class="scanner-dashboard-summary">
-      <div class="summary-metric-card">
-        <span class="metric-icon">🔑</span>
-        <div class="metric-info">
-          <span class="metric-value">${carriers.length}</span>
-          <span class="metric-label">${labelCarriers}</span>
-        </div>
-      </div>
-      <div class="summary-metric-card ${totalMatchesCount > 0 ? 'success' : 'warning'}">
-        <span class="metric-icon">${totalMatchesCount > 0 ? '🔓' : '🔒'}</span>
-        <div class="metric-info">
-          <span class="metric-value">${totalMatchesCount}</span>
-          <span class="metric-label">${labelDecrypted}</span>
-        </div>
-      </div>
-      <div class="summary-metric-card">
-        <span class="metric-icon">⚙️</span>
-        <div class="metric-info">
-          <span class="metric-value">${stegoKeys.length * aesKeys.length}</span>
-          <span class="metric-label">${labelCombos}</span>
-        </div>
-      </div>
-    </div>
-  `;
+  // Build Results Container Layout
+  let html = `<div class="scanner-results-container" style="display: flex; flex-direction: column; gap: var(--space-md); width: 100%;">`;
 
   // 2. Results List
   if (totalMatchesCount === 0) {
@@ -676,48 +726,20 @@ async function _runTryStep() {
     `;
   }
 
-  // Render Grid of Carriers (both matched and unmatched)
-  html += `<div class="scanner-results-grid">`;
-  for (const cr of carrierResults) {
-    const isMatched = cr.matches.length > 0;
-    const headerTitle = currentLang === 'ar' ? `رسالة الناقلة رقم #${cr.carrierIndex + 1}` : `Carrier Message #${cr.carrierIndex + 1}`;
-    const badgeText = currentLang === 'ar' ? `${cr.vsKeyLength} بايت` : `${cr.vsKeyLength} bytes VS`;
+  // Render Rows of Detected Secrets and Unmatched Carriers (Fluent Cyber Cards)
+  html += `<div class="scanner-results-rows" style="display: flex; flex-direction: column; gap: 14px; width: 100%;">`;
+  let displayCounter = 1;
 
-    if (isMatched) {
-      html += `
-        <div class="scanner-carrier-group">
-          <div class="scanner-carrier-header">
-            <div class="scanner-carrier-header-title">
-              <span class="material-symbols-outlined">lock_open</span>
-              <span>${headerTitle}</span>
-            </div>
-            <span class="badge badge--success text-label-md">${badgeText}</span>
-          </div>
-          <div class="scanner-carrier-body">
-      `;
+  for (const cr of carrierResults) {
+    if (cr.matches && cr.matches.length > 0) {
       for (const m of cr.matches) {
-        html += _buildMatchHTML(m.index, m.coverText, m.secretMessage, m.hint, m.type, m.usedStegoKey);
+        html += _buildMatchHTML(m, cr, displayCounter++);
       }
-      html += `
-          </div>
-        </div>`;
     } else {
-      // Unmatched carrier (in red, styled exactly like matched carrier group but red)
-      html += `
-        <div class="scanner-carrier-group scanner-carrier-group--error">
-          <div class="scanner-carrier-header">
-            <div class="scanner-carrier-header-title">
-              <span class="material-symbols-outlined">lock</span>
-              <span>${headerTitle}</span>
-            </div>
-            <span class="badge badge--danger text-label-md">${badgeText}</span>
-          </div>
-          <div class="scanner-carrier-body">
-            ${_buildUnmatchedHTML(cr.carrierIndex + 1, cr.vsKeyLength)}
-          </div>
-        </div>`;
+      html += _buildUnmatchedHTML(cr, displayCounter++);
     }
   }
+
   html += `</div>`;
   html += `</div>`;
 
@@ -886,107 +908,400 @@ async function _tryOneCover(candidateCover, coverBits, rawVsBytesOrIndices, reso
 
 
 /**
- * Build HTML for a matching cover result.
+ * Build HTML for a matching cover result using the Fluent Cyber Card layout.
+ * Strictly adheres to Clean Code and Clean Omission principles.
+ *
+ * @param {object} match - The match details from the cryptographic scanner.
+ * @param {object} carrierResult - The parent carrier result metadata.
+ * @param {number} displayIndex - 1-indexed display sequence number.
+ * @returns {string} Clean HTML string.
  */
-function _buildMatchHTML(msgNum, coverText, secretMessage, hint, type, usedStegoKey) {
+function _buildMatchHTML(match, carrierResult, displayIndex) {
   const currentLang = localStorage.getItem('stegoLang') || 'en';
-  
-  const copyText = currentLang === 'ar' ? 'نسخ' : 'Copy';
-  const toastMsg = currentLang === 'ar' ? '📋 تم نسخ الرسالة السرية بنجاح!' : '📋 Secret message copied successfully!';
-  const extractedLabel = currentLang === 'ar' 
-    ? `تم الاستخراج من رسالة الغلاف <strong>#${msgNum}</strong>`
-    : `Extracted from cover message <strong>#${msgNum}</strong>`;
-  const secretMsgLabel = currentLang === 'ar' ? 'الرسالة السرية' : 'Secret Message';
-  const hintLabel = currentLang === 'ar' ? 'تلميح:' : 'Hint:';
+  const isAr = currentLang === 'ar';
 
-  let typeLabel = '';
-  if (type === 'carrier_fallback') {
-    const fallbackText = currentLang === 'ar' ? '(الغلاف = الناقل)' : '(Cover = Carrier)';
-    typeLabel = `<span class="badge badge--draft text-label-sm">${fallbackText}</span>`;
+  const carrierIdx = carrierResult.carrierIndex;
+  const carrierMsg = (_scannerState.messages && _scannerState.messages[carrierIdx]) || {};
+  const carrierSender = carrierMsg.sender || '';
+  const carrierTime = carrierMsg.timestamp || '';
+  const carrierLine = carrierMsg.lineNumber || (carrierIdx + 1);
+  const carrierText = carrierMsg.message || carrierMsg.rawText || '';
+
+  const vsCount = carrierResult.vsKeyLength || 0;
+  const secretMessage = match.secretMessage || '';
+  const usedStegoKey = match.usedStegoKey || '';
+  const usedAesKey = match.usedAesKey || '';
+  const isDirect = match.type === 'carrier_fallback';
+
+  // Fake cover data (only populated when in split-mode and fakeCoverIndex exists)
+  let fakeMsg = null;
+  let fakeSender = '';
+  let fakeTime = '';
+  let fakeLine = 0;
+  let fakeText = '';
+  if (!isDirect && match.fakeCoverIndex !== undefined && match.fakeCoverIndex !== null) {
+    fakeMsg = (_scannerState.messages && _scannerState.messages[match.fakeCoverIndex]) || {};
+    fakeSender = fakeMsg.sender || '';
+    fakeTime = fakeMsg.timestamp || '';
+    fakeLine = fakeMsg.lineNumber || (match.fakeCoverIndex + 1);
+    fakeText = match.coverText || fakeMsg.message || '';
   }
 
-  let keyLabel = '';
+  // 1. Top Header Meta Tags (Clean Omission: render only what exists)
+  let metaTagsHtml = '';
+  if (carrierSender) {
+    metaTagsHtml += `
+      <span class="sender-tag">
+        <span class="material-symbols-outlined">account_circle</span>
+        <span>${escapeHtml(carrierSender)}</span>
+      </span>
+    `;
+  }
+  if (carrierSender && carrierTime) {
+    metaTagsHtml += `<span style="color:var(--color-outline-variant);">•</span>`;
+  }
+  if (carrierTime) {
+    metaTagsHtml += `
+      <span class="time-tag">
+        <span class="material-symbols-outlined">schedule</span>
+        <span>${escapeHtml(carrierTime)}</span>
+      </span>
+    `;
+  }
+
+  const idxFormatted = '#' + String(displayIndex).padStart(2, '0');
+  const vsLabel = isAr ? `${vsCount} رمز VS` : `${vsCount} VS Symbols`;
+
+  // 2. Secret Payload Section
+  const secretTitle = isAr ? 'الرسالة السرية المستخرجة' : 'Extracted Secret Message';
+  const copyBtnText = isAr ? 'نسخ الرسالة' : 'Copy Message';
+  const toastText = isAr ? '📋 تم نسخ الرسالة السرية بنجاح!' : '📋 Secret message copied successfully!';
+
+  // 3. Security Keys Pills (Clean Omission: omit AES if not used)
+  let keysHtml = '';
   if (usedStegoKey) {
-    keyLabel = `
-      <div class="scanner-match-key-badge">
+    const stegoLabel = isAr ? 'إخفاء:' : 'Stego:';
+    keysHtml += `
+      <span class="crypto-pill">
         <span class="material-symbols-outlined">key</span>
-        <span>${escapeHtml(usedStegoKey)}</span>
-      </div>`;
+        <span>${stegoLabel} <strong>${escapeHtml(usedStegoKey)}</strong></span>
+      </span>
+    `;
+  }
+  if (usedAesKey) {
+    const encLabel = isAr ? 'تشفير:' : 'Cipher:';
+    keysHtml += `
+      <span class="crypto-pill">
+        <span class="material-symbols-outlined">shield</span>
+        <span>${encLabel} <strong>${escapeHtml(usedAesKey)}</strong></span>
+      </span>
+    `;
   }
 
-  return `
-    <div class="scanner-match-card">
-      <!-- Top info -->
-      <div class="scanner-match-header">
-        <div class="scanner-match-meta">
-          <span class="scanner-match-meta-index">#${msgNum}</span>
-          <span>${extractedLabel}</span>
-          ${typeLabel}
-        </div>
-        ${keyLabel}
-      </div>
+  // 4. Text Covers Drawer Components
+  const textCoversBtn = isAr ? 'الأغلفة النصية' : 'Text Covers';
+  const carrierCoverTitle = isAr ? 'الغلاف المستخرج منه:' : 'Carrier Cover:';
+  const fakeCoverTitle = isAr ? 'الغلاف الكاذب (Fake Cover):' : 'Fake Cover:';
+  const lineLabel = isAr ? 'السطر' : 'Line';
 
-      <!-- Secret Message Box -->
-      <div class="scanner-match-secret-container">
-        <div class="scanner-match-secret-label-row">
-          <span class="scanner-match-secret-label">${secretMsgLabel}</span>
-          <button class="btn btn-copy-secret" data-secret="${escapeHtml(secretMessage)}" onclick="navigator.clipboard.writeText(this.getAttribute('data-secret')); showToast('${toastMsg}');">
-            <span class="material-symbols-outlined">content_copy</span>
-            <span>${copyText}</span>
-          </button>
-        </div>
-        <div class="scanner-match-secret-text" dir="auto">${escapeHtml(secretMessage)}</div>
-      </div>
+  let carrierDrawerBadges = '';
+  if (carrierSender) {
+    carrierDrawerBadges += `
+      <span class="forensic-tag">
+        <span class="material-symbols-outlined">account_circle</span>
+        <span>${escapeHtml(carrierSender)}</span>
+      </span>
+    `;
+  }
+  carrierDrawerBadges += `
+    <span class="forensic-tag">
+      <span class="material-symbols-outlined">format_list_numbered</span>
+      <span>${lineLabel} ${carrierLine}</span>
+    </span>
+  `;
+  if (carrierTime) {
+    carrierDrawerBadges += `
+      <span class="forensic-tag">
+        <span class="material-symbols-outlined">schedule</span>
+        <span>${escapeHtml(carrierTime)}</span>
+      </span>
+    `;
+  }
 
-      <!-- Hint (if present) -->
-      ${hint ? `
-      <div class="scanner-hint-box">
+  let fakeDrawerHtml = '';
+  if (!isDirect && fakeText) {
+    let fakeDrawerBadges = '';
+    if (fakeSender) {
+      fakeDrawerBadges += `
+        <span class="forensic-tag">
+          <span class="material-symbols-outlined" style="color:var(--color-secondary)">account_circle</span>
+          <span>${escapeHtml(fakeSender)}</span>
+        </span>
+      `;
+    }
+    fakeDrawerBadges += `
+      <span class="forensic-tag">
+        <span class="material-symbols-outlined" style="color:var(--color-secondary)">format_list_numbered</span>
+        <span>${lineLabel} ${fakeLine}</span>
+      </span>
+    `;
+    if (fakeTime) {
+      fakeDrawerBadges += `
+        <span class="forensic-tag">
+          <span class="material-symbols-outlined" style="color:var(--color-secondary)">schedule</span>
+          <span>${escapeHtml(fakeTime)}</span>
+        </span>
+      `;
+    }
+
+    fakeDrawerHtml = `
+      <div class="forensic-field">
+        <div class="forensic-field-header">
+          <span class="forensic-field-title" style="color:var(--color-secondary)">
+            <span class="material-symbols-outlined" style="font-size:13px">theater_comedy</span>
+            <span>${fakeCoverTitle}</span>
+          </span>
+          <div class="forensic-meta-badges">
+            ${fakeDrawerBadges}
+          </div>
+        </div>
+        <div class="forensic-field-box" style="color:var(--color-secondary); border-color:rgba(125,163,0,0.25);" dir="auto">
+          "${escapeHtml(fakeText)}"
+        </div>
+      </div>
+    `;
+  }
+
+  // 5. Optional Hint Box
+  let hintHtml = '';
+  if (match.hint) {
+    const hintLabel = isAr ? 'تلميح:' : 'Hint:';
+    hintHtml = `
+      <div class="scanner-hint-box" style="margin-top: 10px;">
         <span class="material-symbols-outlined hint-icon">lightbulb</span>
         <div class="scanner-hint-content">
           <div class="scanner-hint-title">${hintLabel}</div>
-          <div class="scanner-hint-text" dir="auto">${escapeHtml(hint)}</div>
+          <div class="scanner-hint-text" dir="auto">${escapeHtml(match.hint)}</div>
         </div>
-      </div>` : ''}
+      </div>
+    `;
+  }
 
-    </div>`;
+  return `
+    <article class="cyber-card-row">
+      <div class="cyber-card-header">
+        <div class="header-info-group">
+          <span class="idx-pill">${idxFormatted}</span>
+          ${metaTagsHtml}
+        </div>
+        <span class="vs-count-badge" title="${isAr ? 'عدد رموز Variation Selectors' : 'Detected Variation Selectors'}">
+          <span class="material-symbols-outlined">fingerprint</span>
+          <span>${vsLabel}</span>
+        </span>
+      </div>
+
+      <div class="cyber-payload-box">
+        <div class="payload-top-bar">
+          <span class="payload-label">
+            <span class="material-symbols-outlined" style="font-size:14px">lock_open</span>
+            <span>${secretTitle}</span>
+          </span>
+          <button type="button" class="btn-copy-action" data-secret="${escapeHtml(secretMessage)}" onclick="navigator.clipboard.writeText(this.getAttribute('data-secret')); showToast('${toastText}');">
+            <span class="material-symbols-outlined">content_copy</span>
+            <span>${copyBtnText}</span>
+          </button>
+        </div>
+        <div class="payload-content-text" dir="auto">${escapeHtml(secretMessage)}</div>
+        ${hintHtml}
+      </div>
+
+      <div class="cyber-card-footer">
+        <div class="keys-group">
+          ${keysHtml}
+        </div>
+        <button type="button" class="btn-forensics-toggle" onclick="_toggleScannerForensics(this)">
+          <span class="material-symbols-outlined" style="font-size:15px">description</span>
+          <span>${textCoversBtn}</span>
+          <span class="material-symbols-outlined chevron">expand_more</span>
+        </button>
+      </div>
+
+      <div class="forensic-drawer">
+        <div class="forensic-field">
+          <div class="forensic-field-header">
+            <span class="forensic-field-title">
+              <span class="material-symbols-outlined" style="font-size:13px">description</span>
+              <span>${carrierCoverTitle}</span>
+            </span>
+            <div class="forensic-meta-badges">
+              ${carrierDrawerBadges}
+            </div>
+          </div>
+          <div class="forensic-field-box" dir="auto">
+            "${escapeHtml(carrierText)}"
+          </div>
+        </div>
+        ${fakeDrawerHtml}
+      </div>
+    </article>
+  `;
 }
 
 
 /**
- * Build HTML for an unmatched cover result.
+ * Build HTML for an unmatched / corrupted carrier result.
+ * Shows visual indicators (soft red outline, red badge) with clean omission of filler text.
+ *
+ * @param {object} carrierResult - Carrier result metadata.
+ * @param {number} displayIndex - 1-indexed display sequence number.
+ * @returns {string} Clean HTML string.
  */
-function _buildUnmatchedHTML(msgNum, vsKeyLength) {
+function _buildUnmatchedHTML(carrierResult, displayIndex) {
   const currentLang = localStorage.getItem('stegoLang') || 'en';
-  
-  const unresolvedLabel = currentLang === 'ar' ? 'لا يوجد مطابقة' : 'No Match';
-  const label = currentLang === 'ar' 
-    ? `تم الكشف عن رموز مخفية (${vsKeyLength} رموز VS)، ولكن لم يتم فك التشفير.` 
-    : `Detected hidden Variation Selectors (${vsKeyLength} VS), but decryption failed.`;
-  const desc = currentLang === 'ar'
-    ? 'يرجى التحقق من المفتاح المشترك (Stego-Key) أو مفتاح AES، والتأكد من نسخ النص كاملاً بدون نقصان.'
-    : 'Please verify the shared key (Stego-Key) or AES key, and ensure the stego-text was pasted completely.';
+  const isAr = currentLang === 'ar';
+
+  const carrierIdx = carrierResult.carrierIndex;
+  const carrierMsg = (_scannerState.messages && _scannerState.messages[carrierIdx]) || {};
+  const carrierSender = carrierMsg.sender || '';
+  const carrierTime = carrierMsg.timestamp || '';
+  const carrierLine = carrierMsg.lineNumber || (carrierIdx + 1);
+  const carrierText = carrierMsg.message || carrierMsg.rawText || '';
+  const vsCount = carrierResult.vsKeyLength || 0;
+
+  // Header meta tags (Clean Omission: render only what exists)
+  let metaTagsHtml = '';
+  if (carrierSender) {
+    metaTagsHtml += `
+      <span class="sender-tag">
+        <span class="material-symbols-outlined">account_circle</span>
+        <span>${escapeHtml(carrierSender)}</span>
+      </span>
+    `;
+  }
+  if (carrierSender && carrierTime) {
+    metaTagsHtml += `<span style="color:var(--color-outline-variant);">•</span>`;
+  }
+  if (carrierTime) {
+    metaTagsHtml += `
+      <span class="time-tag">
+        <span class="material-symbols-outlined">schedule</span>
+        <span>${escapeHtml(carrierTime)}</span>
+      </span>
+    `;
+  }
+
+  const idxFormatted = '#' + String(displayIndex).padStart(2, '0');
+  const vsLabel = isAr ? `${vsCount} رمز VS` : `${vsCount} VS Symbols`;
+  const resultTitle = isAr ? 'نتيجة الفحص' : 'Scan Result';
+  const failedNotice = isAr
+    ? `[تعذر فك التشفير]: تم رصد (${vsCount}) رمز مخفي ولكن لم تتطابق المفاتيح المدخلة أو حدث تشويش في النص.`
+    : `[DECRYPTION_MISMATCH]: Detected (${vsCount}) hidden VS symbols, but keys did not match or payload is corrupted.`;
+  const textCoversBtn = isAr ? 'الأغلفة النصية' : 'Text Covers';
+  const carrierCoverTitle = isAr ? 'الغلاف المستخرج منه:' : 'Carrier Cover:';
+  const lineLabel = isAr ? 'السطر' : 'Line';
+
+  let carrierDrawerBadges = '';
+  if (carrierSender) {
+    carrierDrawerBadges += `
+      <span class="forensic-tag">
+        <span class="material-symbols-outlined">account_circle</span>
+        <span>${escapeHtml(carrierSender)}</span>
+      </span>
+    `;
+  }
+  carrierDrawerBadges += `
+    <span class="forensic-tag">
+      <span class="material-symbols-outlined">format_list_numbered</span>
+      <span>${lineLabel} ${carrierLine}</span>
+    </span>
+  `;
+  if (carrierTime) {
+    carrierDrawerBadges += `
+      <span class="forensic-tag">
+        <span class="material-symbols-outlined">schedule</span>
+        <span>${escapeHtml(carrierTime)}</span>
+      </span>
+    `;
+  }
 
   return `
-    <div class="scanner-match-card scanner-match-card--error">
-      <!-- Top info -->
-      <div class="scanner-match-header">
-        <div class="scanner-match-meta">
-          <span class="scanner-match-meta-index">#${msgNum}</span>
-          <span class="scanner-unmatched-status">
-            <span class="material-symbols-outlined">error</span>
-            <span>${unresolvedLabel}</span>
+    <article class="cyber-card-row is-corrupted">
+      <div class="cyber-card-header">
+        <div class="header-info-group">
+          <span class="idx-pill">${idxFormatted}</span>
+          ${metaTagsHtml}
+        </div>
+        <span class="vs-count-badge" title="${isAr ? 'عدد رموز Variation Selectors' : 'Detected Variation Selectors'}">
+          <span class="material-symbols-outlined">fingerprint</span>
+          <span>${vsLabel}</span>
+        </span>
+      </div>
+
+      <div class="cyber-payload-box" style="border-color: rgba(229,115,115,0.25); background: rgba(229,115,115,0.03);">
+        <div class="payload-top-bar">
+          <span class="payload-label">
+            <span class="material-symbols-outlined" style="font-size:14px">lock</span>
+            <span>${resultTitle}</span>
           </span>
+        </div>
+        <div class="corrupted-block">
+          <div class="corrupted-raw-text">${escapeHtml(failedNotice)}</div>
         </div>
       </div>
 
-      <!-- Error Content Box -->
-      <div class="scanner-match-secret-container">
-        <div class="scanner-unmatched-explanation">
-          <strong>${label}</strong>
-          <span>${desc}</span>
+      <div class="cyber-card-footer">
+        <div class="keys-group">
+          <span class="crypto-pill">
+            <span class="material-symbols-outlined" style="color:#E57373">warning</span>
+            <span>${isAr ? 'بيانات غير مطابقة' : 'Unmatched Payload'}</span>
+          </span>
+        </div>
+        <button type="button" class="btn-forensics-toggle" onclick="_toggleScannerForensics(this)">
+          <span class="material-symbols-outlined" style="font-size:15px">description</span>
+          <span>${textCoversBtn}</span>
+          <span class="material-symbols-outlined chevron">expand_more</span>
+        </button>
+      </div>
+
+      <div class="forensic-drawer">
+        <div class="forensic-field">
+          <div class="forensic-field-header">
+            <span class="forensic-field-title">
+              <span class="material-symbols-outlined" style="font-size:13px">description</span>
+              <span>${carrierCoverTitle}</span>
+            </span>
+            <div class="forensic-meta-badges">
+              ${carrierDrawerBadges}
+            </div>
+          </div>
+          <div class="forensic-field-box" dir="auto">
+            "${escapeHtml(carrierText)}"
+          </div>
         </div>
       </div>
-    </div>`;
+    </article>
+  `;
+}
+
+
+/**
+ * Interactive toggle for expanding/collapsing the Text Covers drawer.
+ * @param {HTMLElement} btn - The clicked button element.
+ */
+function _toggleScannerForensics(btn) {
+  btn.classList.toggle('expanded');
+  const card = btn.closest('.cyber-card-row');
+  if (card) {
+    const drawer = card.querySelector('.forensic-drawer');
+    if (drawer) {
+      drawer.classList.toggle('open');
+    }
+  }
+}
+
+// Expose toggle globally to ensure inline onclick operates reliably
+if (typeof window !== 'undefined') {
+  window._toggleScannerForensics = _toggleScannerForensics;
 }
 
 
@@ -1025,47 +1340,197 @@ function _buildSkippedHTML(msgNum) {
  * Show Step 1 results card (filtered messages).
  * @param {boolean} expanded - Whether to show the body expanded.
  */
+/**
+ * Build HTML row for a single Step 1 message.
+ * @param {Object} msg - Parsed message object.
+ * @param {number} i - 0-based index.
+ * @returns {string} HTML string.
+ */
+function _buildStep1MessageRow(msg, i) {
+  const senderLabel = msg.sender ? `<span class="stego-table__sender" style="margin-right: var(--space-xs); font-weight: 600;">${escapeHtml(msg.sender)}:</span>` : '';
+  const timeLabel = msg.timestamp ? `<span class="stego-table__timestamp" style="font-size: 11px; opacity: 0.65; margin-inline-start: var(--space-xs); font-family: monospace;">${escapeHtml(msg.timestamp)}</span>` : '';
+  const lineLabel = msg.lineNumber ? `<span class="stego-table__line" style="font-size: 10px; opacity: 0.5; margin-inline-start: auto; font-family: monospace;">L${msg.lineNumber}</span>` : '';
+
+  return `
+    <div class="stego-table__row">
+      <div class="stego-table__cell" dir="ltr">
+        <div class="stego-table__meta">
+          <div class="stego-table__title-row" style="width: 100%; display: flex; align-items: center;">
+            <span class="stego-table__index">#${i + 1}</span>
+            ${senderLabel}
+            ${timeLabel}
+            ${lineLabel}
+          </div>
+        </div>
+        <div class="stego-table__content" dir="auto">${escapeHtml(msg.message)}</div>
+      </div>
+    </div>`;
+}
+
+/**
+ * Get pagination info text in the current language.
+ * @param {number} current - Currently displayed count.
+ * @param {number} total - Total messages.
+ * @param {string} curLang - 'ar' or 'en'.
+ * @returns {string} Formatted text.
+ */
+function _getStep1PaginationInfoText(current, total, curLang) {
+  if (current >= total) {
+    return curLang === 'ar'
+      ? `✓ تم عرض جميع الرسائل (${total} رسالة)`
+      : `✓ All ${total} messages displayed`;
+  }
+  return curLang === 'ar'
+    ? `يتم عرض أول ${current} من أصل ${total} رسالة`
+    : `Showing first ${current} of ${total} messages`;
+}
+
+/**
+ * Show Step 1 results card (filtered messages).
+ * Displays the first 15 messages initially to prevent browser lag on large chats.
+ * @param {boolean} expanded - Whether to show the body expanded.
+ */
 function _showStep1Results(expanded) {
-  const messages = _scannerState.messages;
+  const messages = _scannerState.messages || [];
   const platform = _scannerState.platform;
   const platformLabel = CHAT_PLATFORMS[platform]?.name || 'Plain Text';
+  const curLang = localStorage.getItem('stegoLang') || 'en';
 
-  // Build HTML
+  _step1RenderedCount = Math.min(STEP1_PAGE_SIZE, messages.length);
+
   const container = document.getElementById('scannerFilteredList');
+  if (!container) return;
+
+  if (messages.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding: var(--space-md); color: var(--color-on-surface-variant);">${curLang === 'ar' ? 'لا توجد رسائل مستخرجة' : 'No messages parsed'}</div>`;
+    document.getElementById('scannerStep1Count').textContent = `(📱 ${platformLabel} — 0)`;
+    document.getElementById('scannerStep1Card').style.display = 'block';
+    toggleScannerResult('scannerStep1Body', expanded);
+    return;
+  }
+
+  let rowsHtml = '';
+  for (let i = 0; i < _step1RenderedCount; i++) {
+    rowsHtml += _buildStep1MessageRow(messages[i], i);
+  }
+
   let html = `
     <div class="stego-table" style="margin-top: 0;">
-      <div class="stego-table__body">`;
+      <div class="stego-table__body" id="scannerFilteredTableBody">
+        ${rowsHtml}
+      </div>
+    </div>`;
 
-  for (let i = 0; i < messages.length; i++) {
-    const msg = messages[i];
-    const senderLabel = msg.sender ? `<span class="stego-table__sender" style="margin-right: var(--space-xs);">${escapeHtml(msg.sender)}:</span>` : '';
+  // Add Pagination / Load More Controls if total messages exceed 15
+  if (messages.length > STEP1_PAGE_SIZE) {
+    const nextBatch = Math.min(STEP1_PAGE_SIZE, messages.length - _step1RenderedCount);
     html += `
-      <div class="stego-table__row">
-        <div class="stego-table__cell" dir="ltr">
-          <div class="stego-table__meta">
-            <div class="stego-table__title-row">
-              <span class="stego-table__index">#${i + 1}</span>
-              ${senderLabel}
-            </div>
-          </div>
-          <div class="stego-table__content" dir="auto">${escapeHtml(msg.message)}</div>
+      <div class="scanner-step1-pagination" id="scannerStep1Pagination">
+        <div class="scanner-step1-pagination-info" id="scannerStep1PaginationInfo">
+          ${_getStep1PaginationInfoText(_step1RenderedCount, messages.length, curLang)}
+        </div>
+        <div class="scanner-step1-pagination-actions" id="scannerStep1PaginationActions">
+          <button type="button" class="btn-scanner-pagination" onclick="scannerStep1LoadMore()">
+            <span class="material-symbols-outlined" style="font-size: 16px;">expand_more</span>
+            <span id="btnScannerStep1LoadMoreText">${curLang === 'ar' ? `عرض المزيد (+${nextBatch})` : `Load More (+${nextBatch})`}</span>
+          </button>
+          <button type="button" class="btn-scanner-pagination btn-scanner-pagination--all" onclick="scannerStep1ShowAll()">
+            <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+            <span id="btnScannerStep1ShowAllText">${curLang === 'ar' ? `عرض كل الرسائل (${messages.length})` : `Show All Messages (${messages.length})`}</span>
+          </button>
         </div>
       </div>`;
   }
 
-  html += `
-      </div>
-    </div>`;
   container.innerHTML = html; // SECURITY: All dynamic values are escaped via escapeHtml()
 
   // Update count badge
-  document.getElementById('scannerStep1Count').textContent = `(📱 ${platformLabel} — ${messages.length} messages)`;
+  const countBadgeText = curLang === 'ar'
+    ? `(📱 ${platformLabel} — ${messages.length} رسالة)`
+    : `(📱 ${platformLabel} — ${messages.length} messages)`;
+  document.getElementById('scannerStep1Count').textContent = countBadgeText;
 
   // Show card & toggle body visibility with smooth animation & focus
   const card = document.getElementById('scannerStep1Card');
   card.style.display = 'block';
 
   toggleScannerResult('scannerStep1Body', expanded);
+}
+
+/**
+ * Load the next batch of 15 messages in Step 1 (Filtered Messages).
+ */
+function scannerStep1LoadMore() {
+  const messages = _scannerState.messages || [];
+  const curLang = localStorage.getItem('stegoLang') || 'en';
+  const tableBody = document.getElementById('scannerFilteredTableBody');
+  const paginationInfo = document.getElementById('scannerStep1PaginationInfo');
+  const paginationActions = document.getElementById('scannerStep1PaginationActions');
+  const loadMoreBtnText = document.getElementById('btnScannerStep1LoadMoreText');
+
+  if (!tableBody || _step1RenderedCount >= messages.length) return;
+
+  const startIndex = _step1RenderedCount;
+  const endIndex = Math.min(_step1RenderedCount + STEP1_PAGE_SIZE, messages.length);
+
+  let newRowsHtml = '';
+  for (let i = startIndex; i < endIndex; i++) {
+    newRowsHtml += _buildStep1MessageRow(messages[i], i);
+  }
+
+  tableBody.insertAdjacentHTML('beforeend', newRowsHtml);
+  _step1RenderedCount = endIndex;
+
+  if (paginationInfo) {
+    paginationInfo.textContent = _getStep1PaginationInfoText(_step1RenderedCount, messages.length, curLang);
+  }
+
+  if (_step1RenderedCount >= messages.length) {
+    if (paginationActions) paginationActions.style.display = 'none';
+  } else {
+    if (loadMoreBtnText) {
+      const remainingNext = Math.min(STEP1_PAGE_SIZE, messages.length - _step1RenderedCount);
+      loadMoreBtnText.textContent = curLang === 'ar' ? `عرض المزيد (+${remainingNext})` : `Load More (+${remainingNext})`;
+    }
+  }
+}
+
+/**
+ * Load all remaining messages in Step 1 (Filtered Messages).
+ */
+function scannerStep1ShowAll() {
+  const messages = _scannerState.messages || [];
+  const curLang = localStorage.getItem('stegoLang') || 'en';
+  const tableBody = document.getElementById('scannerFilteredTableBody');
+  const paginationInfo = document.getElementById('scannerStep1PaginationInfo');
+  const paginationActions = document.getElementById('scannerStep1PaginationActions');
+
+  if (!tableBody || _step1RenderedCount >= messages.length) return;
+
+  const startIndex = _step1RenderedCount;
+  const endIndex = messages.length;
+
+  let newRowsHtml = '';
+  for (let i = startIndex; i < endIndex; i++) {
+    newRowsHtml += _buildStep1MessageRow(messages[i], i);
+  }
+
+  tableBody.insertAdjacentHTML('beforeend', newRowsHtml);
+  _step1RenderedCount = endIndex;
+
+  if (paginationInfo) {
+    paginationInfo.textContent = _getStep1PaginationInfoText(_step1RenderedCount, messages.length, curLang);
+  }
+
+  if (paginationActions) {
+    paginationActions.style.display = 'none';
+  }
+}
+
+// Expose on window for inline handlers
+if (typeof window !== 'undefined') {
+  window.scannerStep1LoadMore = scannerStep1LoadMore;
+  window.scannerStep1ShowAll = scannerStep1ShowAll;
 }
 
 
@@ -1191,9 +1656,17 @@ function isPrintableText(text) {
 
 /**
  * Escape HTML special characters to prevent XSS.
+ * Optimized for high performance and universal environment execution.
+ *
+ * @param {string} text - Raw string to escape.
+ * @returns {string} Escaped HTML string.
  */
 function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  if (text == null) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }

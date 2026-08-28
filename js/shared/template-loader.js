@@ -804,6 +804,10 @@
         const section = document.getElementById('section-' + target);
         if (section) section.classList.add('active');
 
+        // Reset scroll position to top when switching tabs
+        const modalBody = document.querySelector('.settings-modal__body');
+        if (modalBody) modalBody.scrollTop = 0;
+
         // Dynamically update the header title for mobile clarity
         const titleEl = document.getElementById('settings-current-title');
         if (titleEl && tabTitleKeys[target]) {
