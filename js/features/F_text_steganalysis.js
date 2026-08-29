@@ -54,6 +54,31 @@
 
     // ── Mongolian Vowel Separator ──
     0x180E: { name: 'Mongolian Vowel Separator', category: 'zeroWidth' },
+
+    // ── Invisible Mathematical Operators (U+2060 - U+2064) ──
+    0x2060: { name: 'Word Joiner',               category: 'zeroWidth' },
+    0x2061: { name: 'Function Application',      category: 'zeroWidth' },
+    0x2062: { name: 'Invisible Times',           category: 'zeroWidth' },
+    0x2063: { name: 'Invisible Separator',       category: 'zeroWidth' },
+    0x2064: { name: 'Invisible Plus',            category: 'zeroWidth' },
+
+    // ── Deprecated Formatting Controls (U+206A - U+206F) ──
+    0x206A: { name: 'Inhibit Symmetric Swapping', category: 'directional' },
+    0x206B: { name: 'Activate Symmetric Swapping', category: 'directional' },
+    0x206C: { name: 'Inhibit Arabic Form Shaping', category: 'directional' },
+    0x206D: { name: 'Activate Arabic Form Shaping', category: 'directional' },
+    0x206E: { name: 'National Digit Shapes',     category: 'directional' },
+    0x206F: { name: 'Nominal Digit Shapes',      category: 'directional' },
+
+    // ── Directional Isolates (U+2066 - U+2069) ──
+    0x2066: { name: 'Left-To-Right Isolate',     category: 'directional' },
+    0x2067: { name: 'Right-To-Left Isolate',     category: 'directional' },
+    0x2068: { name: 'First Strong Isolate',      category: 'directional' },
+    0x2069: { name: 'Pop Directional Isolate',   category: 'directional' },
+
+    // ── Special Symbols Used in Steganography Research ──
+    0x2205: { name: 'Empty Set Symbol',          category: 'zeroWidth' },
+    0x00AD: { name: 'Soft Hyphen',               category: 'zeroWidth' },
   };
 
   // ── HOMOGRAPH (HOMOGLYPH) LOOKUP DICTIONARY ─────────────────
@@ -102,12 +127,31 @@
     0x03A1: { name: "Greek Capital Letter Rho Ρ (Homograph of 'P')", canonical: 'P', category: 'homograph' },
     0x03A4: { name: "Greek Capital Letter Tau Τ (Homograph of 'T')", canonical: 'T', category: 'homograph' },
     0x03A7: { name: "Greek Capital Letter Chi Χ (Homograph of 'X')", canonical: 'X', category: 'homograph' },
-    0x03A5: { name: "Greek Capital Letter Upsilon Υ (Homograph of 'Y')", canonical: 'Y', category: 'homograph' }
+    0x03A5: { name: "Greek Capital Letter Upsilon Υ (Homograph of 'Y')", canonical: 'Y', category: 'homograph' },
+
+    // ── Latin & Punctuation Homoglyphs (Watermarking / Spoofing) ──
+    0x2010: { name: "Hyphen ‐ (Homoglyph of ASCII Hyphen-Minus '-')", canonical: '-', category: 'homograph' },
+    0x037E: { name: "Greek Question Mark ; (Homoglyph of Semicolon ';')", canonical: ';', category: 'homograph' },
+    0x216D: { name: "Roman Numeral One Hundred Ⅽ (Homoglyph of 'C')", canonical: 'C', category: 'homograph' },
+    0x216E: { name: "Roman Numeral Five Hundred Ⅾ (Homoglyph of 'D')", canonical: 'D', category: 'homograph' },
+    0x212A: { name: "Kelvin Sign K (Homoglyph of 'K')", canonical: 'K', category: 'homograph' },
+    0x216C: { name: "Roman Numeral Fifty Ⅼ (Homoglyph of 'L')", canonical: 'L', category: 'homograph' },
+    0x216F: { name: "Roman Numeral One Thousand Ⅿ (Homoglyph of 'M')", canonical: 'M', category: 'homograph' },
+    0x2164: { name: "Roman Numeral Five Ⅴ (Homoglyph of 'V')", canonical: 'V', category: 'homograph' },
+    0x2169: { name: "Roman Numeral Ten Ⅹ (Homoglyph of 'X')", canonical: 'X', category: 'homograph' },
+    0x217D: { name: "Small Roman Numeral One Hundred ⅽ (Homoglyph of 'c')", canonical: 'c', category: 'homograph' },
+    0x217E: { name: "Small Roman Numeral Five Hundred ⅾ (Homoglyph of 'd')", canonical: 'd', category: 'homograph' },
+    0x2170: { name: "Small Roman Numeral One ⅰ (Homoglyph of 'i')", canonical: 'i', category: 'homograph' },
+    0x0458: { name: "Cyrillic Small Letter Je ј (Homoglyph of 'j')", canonical: 'j', category: 'homograph' },
+    0x217C: { name: "Small Roman Numeral Fifty ⅼ (Homoglyph of 'l')", canonical: 'l', category: 'homograph' },
+    0x2174: { name: "Small Roman Numeral Five ⅴ (Homoglyph of 'v')", canonical: 'v', category: 'homograph' },
+    0x2179: { name: "Small Roman Numeral Ten ⅹ (Homoglyph of 'x')", canonical: 'x', category: 'homograph' }
   };
 
   const CANONICAL_SUBSTITUTABLE = new Set([
     0x0061, 0x0065, 0x006F, 0x0070, 0x0063, 0x0078, 0x0079, 0x0069, 0x0073, 0x0064, 0x0076, 0x0075,
-    0x0041, 0x0042, 0x0045, 0x004B, 0x004D, 0x0048, 0x004F, 0x0050, 0x0043, 0x0054, 0x0058, 0x0059, 0x005A, 0x0049, 0x004E
+    0x0041, 0x0042, 0x0045, 0x004B, 0x004D, 0x0048, 0x004F, 0x0050, 0x0043, 0x0054, 0x0058, 0x0059, 0x005A, 0x0049, 0x004E,
+    0x002D, 0x003B, 0x006A, 0x006C
   ]);
 
   // ── RANGE-BASED DETECTION GROUPS ────────────────────────────
@@ -155,9 +199,8 @@
     if (CHAR_MAP[cp] && CHAR_MAP[cp].category === 'space') {
       return ' ';
     }
-    // Zero width & variation selectors -> stripped
-    if (CHAR_MAP[cp] && CHAR_MAP[cp].category === 'zeroWidth') return '';
-    if (CHAR_MAP[cp] && CHAR_MAP[cp].category === 'bom') return '';
+    // Zero width, directional & BOM characters -> stripped
+    if (CHAR_MAP[cp] && (CHAR_MAP[cp].category === 'zeroWidth' || CHAR_MAP[cp].category === 'directional' || CHAR_MAP[cp].category === 'bom')) return '';
     for (const range of RANGES) {
       if (cp >= range.start && cp <= range.end) {
         if (range.category === 'variationSelector' || range.category === 'mongolianFVS') return '';
@@ -184,6 +227,23 @@
     const chars = [...inputText];
     const n = chars.length;
 
+    // 0. Pre-scan line-ending trailing whitespace (SNOW / whitespace steganography)
+    const trailingWsIndices = new Set();
+    const lineRegex = /([^\r\n]*?)((?:[ \t]+)?)(?:\r?\n|$)/g;
+    let lm;
+    while ((lm = lineRegex.exec(inputText)) !== null) {
+      if (lm[0].length === 0 && lm.index === inputText.length) break;
+      const lineContent = lm[1];
+      const trailing = lm[2];
+      if (trailing && trailing.length > 0) {
+        const startCharIdx = [...inputText.slice(0, lm.index + lineContent.length)].length;
+        const trailingLen = [...trailing].length;
+        for (let i = 0; i < trailingLen; i++) {
+          trailingWsIndices.add(startCharIdx + i);
+        }
+      }
+    }
+
     // 1. Backward pass for contextAfter
     const nextVisible = new Array(n);
     let activeNext = [];
@@ -208,7 +268,23 @@
 
       let match = null;
 
-      if (CHAR_MAP[cp]) {
+      if (trailingWsIndices.has(position)) {
+        if (cp === 0x0009) {
+          match = {
+            codePoint: 0x0009,
+            hexCode: 'U+0009',
+            name: 'Trailing Tab (SNOW / Whitespace Carrier)',
+            category: 'space'
+          };
+        } else if (cp === 0x0020) {
+          match = {
+            codePoint: 0x0020,
+            hexCode: 'U+0020',
+            name: 'Trailing Space (SNOW / Whitespace Carrier)',
+            category: 'space'
+          };
+        }
+      } else if (CHAR_MAP[cp]) {
         match = {
           codePoint: cp,
           hexCode: 'U+' + cp.toString(16).toUpperCase().padStart(4, '0'),
@@ -281,6 +357,15 @@
       techniques.push({ id: 'BIDI', nameKey: 'techniqueBiDi', count: categoriesMap.directional + categoriesMap.bom });
     }
 
+    // 4. Natural Linguistic Baseline Evaluation (Arabic / Persian / Oriental ligatures)
+    const linguisticEval = evaluateLinguisticBaseline(results, inputText);
+
+    // 5. Strict Exact Signature Matching (Tools / Research / Watermarks)
+    const matchedSignatures = matchStegoSignatures(results, inputText, linguisticEval.isNatural);
+
+    // 6. Compute Unique Deduplicated Symbols Inventory
+    const uniqueSymbols = computeUniqueSymbols(results);
+
     const t1 = performance.now();
 
     return {
@@ -289,7 +374,10 @@
       distinctTypes: typesSet.size,
       computationTimeMs: parseFloat((t1 - t0).toFixed(2)),
       inputText: inputText,
-      techniques: techniques
+      techniques: techniques,
+      linguisticEval: linguisticEval,
+      matchedSignatures: matchedSignatures,
+      uniqueSymbols: uniqueSymbols
     };
   }
 
@@ -304,7 +392,10 @@
 
 
   // ── RISK CLASSIFICATION ─────────────────────────────────────
-  function classifyRisk(total) {
+  function classifyRisk(total, linguisticEval) {
+    if (linguisticEval && linguisticEval.isNatural) {
+      return { level: 'low', i18nKey: 'riskLow', cssClass: 'risk--low', isNatural: true };
+    }
     if (total === 0) return { level: 'clean', i18nKey: 'riskClean', cssClass: 'risk--clean' };
     if (total <= 3) return { level: 'low', i18nKey: 'riskLow', cssClass: 'risk--low' };
     if (total <= 10) return { level: 'medium', i18nKey: 'riskMedium', cssClass: 'risk--medium' };
@@ -322,6 +413,651 @@
     bom: 'catBOM',
     homograph: 'catHomograph'
   };
+
+  // ── PREDEFINED STEGANOGRAPHY SIGNATURES REGISTRY (PDF TABLES) ──
+  const STEGO_SIGNATURES_REGISTRY = [
+    // ── 1. Tools (الأدوات) ──
+    {
+      id: 'tool_stego_tools',
+      type: 'tool',
+      name: 'steganography-tools',
+      titleAr: 'أداة steganography-tools (priyansh-15)',
+      titleEn: 'steganography-tools (priyansh-15)',
+      url: 'https://github.com/priyansh-15/steganography-tools',
+      exactSymbols: [0x200C, 0x202C, 0x200E, 0x202D],
+      minCount: 4,
+      encodingTable: [
+        { charName: 'Zero Width Non-Joiner (ZWNJ)', hex: 'U+200C', bits: '00', desc: 'Zero Width Non-Joiner' },
+        { charName: 'Pop Directional Formatting (PDF)', hex: 'U+202C', bits: '01', desc: 'Pop Directional Formatting' },
+        { charName: 'Left-to-Right Mark (LRM)', hex: 'U+200E', bits: '10', desc: 'Left-to-Right Mark' },
+        { charName: 'Left-to-Right Override (LRO)', hex: 'U+202D', bits: '11', desc: 'Left-to-Right Override' }
+      ]
+    },
+    {
+      id: 'tool_snow',
+      type: 'tool',
+      name: 'SNOW Tool',
+      titleAr: 'أداة SNOW (darkside.com.au)',
+      titleEn: 'SNOW Steganography Tool',
+      url: 'https://darkside.com.au/snow/',
+      isSnow: true,
+      minCount: 2,
+      encodingTable: [
+        { charName: 'Tab', hex: 'U+0009', bits: '000 (0)', desc: 'Tab (0)' },
+        { charName: 'Tab + 1 space', hex: 'U+0009 + 0x0020', bits: '001 (1)', desc: 'Tab + 1 space (1)' },
+        { charName: 'Tab + 2 spaces', hex: 'U+0009 + 2x0x0020', bits: '010 (2)', desc: 'Tab + 2 spaces (2)' },
+        { charName: 'Tab + 3 spaces', hex: 'U+0009 + 3x0x0020', bits: '011 (3)', desc: 'Tab + 3 spaces (3)' },
+        { charName: 'Tab + 4 spaces', hex: 'U+0009 + 4x0x0020', bits: '100 (4)', desc: 'Tab + 4 spaces (4)' },
+        { charName: 'Tab + 5 spaces', hex: 'U+0009 + 5x0x0020', bits: '101 (5)', desc: 'Tab + 5 spaces (5)' },
+        { charName: 'Tab + 6 spaces', hex: 'U+0009 + 6x0x0020', bits: '110 (6)', desc: 'Tab + 6 spaces (6)' },
+        { charName: 'Tab + 7 spaces', hex: 'U+0009 + 7x0x0020', bits: '111 (7)', desc: 'Tab + 7 spaces (7)' }
+      ]
+    },
+    {
+      id: 'tool_doublespeak',
+      type: 'tool',
+      name: 'Doublespeak',
+      titleAr: 'أداة Doublespeak (dblspk)',
+      titleEn: 'Doublespeak Covert Text Web-App',
+      url: 'https://github.com/dblspk/web-app',
+      exactSymbols: [
+        0x200C, 0x200D, 0x2060, 0x2061, 0x2062, 0x2063, 0x2064,
+        0x206A, 0x206B, 0x206C, 0x206D, 0x206E, 0x206F, 0xFE00, 0xFE01, 0xFEFF
+      ],
+      minCount: 4,
+      encodingTable: [
+        { charName: 'zero-width non-joiner', hex: 'U+200C', bits: '0000 (0 / 0x0)', desc: 'Zero-Width Non-Joiner' },
+        { charName: 'zero-width joiner', hex: 'U+200D', bits: '0001 (1 / 0x1)', desc: 'Zero-Width Joiner' },
+        { charName: 'word joiner', hex: 'U+2060', bits: '0010 (2 / 0x2)', desc: 'Word Joiner' },
+        { charName: 'function application', hex: 'U+2061', bits: '0011 (3 / 0x3)', desc: 'Function Application' },
+        { charName: 'invisible times', hex: 'U+2062', bits: '0100 (4 / 0x4)', desc: 'Invisible Times' },
+        { charName: 'invisible separator', hex: 'U+2063', bits: '0101 (5 / 0x5)', desc: 'Invisible Separator' },
+        { charName: 'invisible plus', hex: 'U+2064', bits: '0110 (6 / 0x6)', desc: 'Invisible Plus' },
+        { charName: 'inhibit symmetric swapping', hex: 'U+206A', bits: '0111 (7 / 0x7)', desc: 'Inhibit Symmetric Swapping' },
+        { charName: 'activate symmetric swapping', hex: 'U+206B', bits: '1000 (8 / 0x8)', desc: 'Activate Symmetric Swapping' },
+        { charName: 'inhibit Arabic form shaping', hex: 'U+206C', bits: '1001 (9 / 0x9)', desc: 'Inhibit Arabic Form Shaping' },
+        { charName: 'activate Arabic form shaping', hex: 'U+206D', bits: '1010 (10 / 0xA)', desc: 'Activate Arabic Form Shaping' },
+        { charName: 'national digit shapes', hex: 'U+206E', bits: '1011 (11 / 0xB)', desc: 'National Digit Shapes' },
+        { charName: 'nominal digit shapes', hex: 'U+206F', bits: '1100 (12 / 0xC)', desc: 'Nominal Digit Shapes' },
+        { charName: 'variation selector-1', hex: 'U+FE00', bits: '1101 (13 / 0xD)', desc: 'Variation Selector-1' },
+        { charName: 'variation selector-2', hex: 'U+FE01', bits: '1110 (14 / 0xE)', desc: 'Variation Selector-2' },
+        { charName: 'zero-width non-breaking space', hex: 'U+FEFF', bits: '1111 (15 / 0xF)', desc: 'ZWNBSP / BOM' }
+      ]
+    },
+    {
+      id: 'tool_stegzero_3bit',
+      type: 'tool',
+      name: 'StegZero (3-bit)',
+      titleAr: 'أداة StegZero (نظام 3 بت)',
+      titleEn: 'StegZero (3-bit Mode)',
+      url: 'https://stegzero.com/',
+      exactSymbols: [0x200B, 0x200C, 0x200D, 0x2060, 0x2062, 0x2063, 0x2064, 0xFEFF],
+      minCount: 4,
+      encodingTable: [
+        { charName: 'Zero-Width Space (ZWSP)', hex: 'U+200B', bits: '000', desc: 'Zero-Width Space' },
+        { charName: 'Zero-Width Non-Joiner (ZWNJ)', hex: 'U+200C', bits: '001', desc: 'Zero-Width Non-Joiner' },
+        { charName: 'Zero-Width Joiner (ZWJ)', hex: 'U+200D', bits: '010', desc: 'Zero-Width Joiner' },
+        { charName: 'Word Joiner (WJ)', hex: 'U+2060', bits: '011', desc: 'Word Joiner' },
+        { charName: 'Invisible Times', hex: 'U+2062', bits: '100', desc: 'Invisible Times' },
+        { charName: 'Invisible Separator', hex: 'U+2063', bits: '101', desc: 'Invisible Separator' },
+        { charName: 'Invisible Plus', hex: 'U+2064', bits: '110', desc: 'Invisible Plus' },
+        { charName: 'Zero-Width No-Break Space / BOM', hex: 'U+FEFF', bits: '111', desc: 'ZWNBS / BOM' }
+      ]
+    },
+    {
+      id: 'tool_stegzero_1bit',
+      type: 'tool',
+      name: 'StegZero (1-bit)',
+      titleAr: 'أداة StegZero (نظام 1 بت الثنائي)',
+      titleEn: 'StegZero (1-bit Binary Mode)',
+      url: 'https://stegzero.com/',
+      exactSymbols: [0x200B, 0x200C],
+      minCount: 4,
+      encodingTable: [
+        { charName: 'Zero-Width Space (ZWSP)', hex: 'U+200B', bits: '0', desc: 'Zero-Width Space' },
+        { charName: 'Zero-Width Non-Joiner (ZWNJ)', hex: 'U+200C', bits: '1', desc: 'Zero-Width Non-Joiner' }
+      ]
+    },
+    {
+      id: 'tool_stegoline_emoji',
+      type: 'tool',
+      name: 'Stegoline – Emoji encoder',
+      titleAr: 'Stegoline – مشفر الرموز التعبيرية (Emoji Encoder)',
+      titleEn: 'Stegoline – Emoji Encoder',
+      url: 'https://stegnolines.com/',
+      secondaryUrl: 'https://emoji-encoder.vercel.app/?mode=encode',
+      isVariationSelectorScheme: true,
+      minCount: 2,
+      encodingTable: [
+        { charName: 'Basic variation selectors (VS1–VS16)', hex: 'U+FE00 – U+FE0F', bits: '16 characters (4-bit nibble)', desc: 'Basic Variation Selectors' },
+        { charName: 'Variation selectors supplement (VS17–VS256)', hex: 'U+E0100 – U+E01EF', bits: '240 characters (8-bit byte)', desc: 'Variation Selectors Supplement' }
+      ]
+    },
+
+    // ── 2. Academic Research Papers (الأبحاث بالرموز المخفية) ──
+    {
+      id: 'research_multilayer_huffman',
+      type: 'research',
+      name: 'Multilayer Encoding & Huffman (IJACSA 2022)',
+      titleAr: 'بحث الإخفاء متعدد الطبقات وتشفير هافمان (IJACSA 2022)',
+      titleEn: 'Multilayer Encoding with Format-Preserving Encryption & Huffman Coding',
+      doi: '10.14569/IJACSA.2022.0131222',
+      url: 'https://doi.org/10.14569/IJACSA.2022.0131222',
+      exactSymbols: [0x200B, 0x200D, 0x200C, 0x2064, 0x2063, 0x206A, 0x2205, 0x202A],
+      altExactSymbols: [0x200B, 0x200D, 0x200C, 0x2064, 0x2063, 0x206A, 0x202A],
+      minCount: 4,
+      encodingTable: [
+        { charName: 'Zero width character (ZWC)', hex: 'U+200B', bits: '000', desc: 'Zero-Width Character' },
+        { charName: 'Zero width joiner (ZWJ)', hex: 'U+200D', bits: '001', desc: 'Zero-Width Joiner' },
+        { charName: 'Zero width no-joiner (ZWNJ)', hex: 'U+200C', bits: '010', desc: 'Zero-Width Non-Joiner' },
+        { charName: 'Invisible plus (IP)', hex: 'U+2064', bits: '011', desc: 'Invisible Plus' },
+        { charName: 'Invisible separator (IS)', hex: 'U+2063', bits: '100', desc: 'Invisible Separator' },
+        { charName: 'Inhibit Symmetric Swapping (ISS)', hex: 'U+206A', bits: '101', desc: 'Inhibit Symmetric Swapping' },
+        { charName: 'Empty string (∅)', hex: 'U+2205', bits: '110', desc: 'Empty String Symbol' },
+        { charName: 'Left-To-Right Embedding (LRE)', hex: 'U+202A', bits: '111', desc: 'Left-To-Right Embedding' }
+      ]
+    },
+    {
+      id: 'research_aitsteg',
+      type: 'research',
+      name: 'AITSteg: Text Steganography via Social Media (IEEE ACCESS 2018)',
+      titleAr: 'بحث AITSteg للإخفاء عبر وسائل التواصل (IEEE ACCESS 2018)',
+      titleEn: 'AITSteg: Innovative Technique for Hidden Transmission via Social Media',
+      doi: '10.1109/ACCESS.2018.2866063',
+      url: 'https://doi.org/10.1109/ACCESS.2018.2866063',
+      exactSymbols: [0x200C, 0x202C, 0x202D, 0x200E],
+      minCount: 4,
+      encodingTable: [
+        { charName: 'ZWNJ - Zero Width Non-Joiner', hex: 'U+200C', bits: '00', desc: 'Zero-Width Non-Joiner' },
+        { charName: 'PDF - Pop Directional Formatting', hex: 'U+202C', bits: '01', desc: 'Pop Directional Formatting' },
+        { charName: 'LRO - Left-to-Right Override', hex: 'U+202D', bits: '10', desc: 'Left-to-Right Override' },
+        { charName: 'LRM - Left-to-Right Mark', hex: 'U+200E', bits: '11', desc: 'Left-to-Right Mark' }
+      ]
+    },
+    {
+      id: 'research_pos_fpe',
+      type: 'research',
+      name: 'Text Steganography Based on POS Tagging & FPE',
+      titleAr: 'بحث الإخفاء بوسم أقسام الكلام والتشفير المحافظ على التنسيق (POS & FPE)',
+      titleEn: 'Text Steganography Based on Part-of-Speech Tagging & FPE',
+      url: 'https://scholar.google.com/scholar?q=New+Text+Steganography+Technique+Based+on+Part-of-Speech+Tagging+and+Format-Preserving+Encryption',
+      exactSymbols: [
+        0x200B, 0x200D, 0x200C, 0x2064, 0x2063, 0x206A, 0x2062,
+        0x2205, 0x202A, 0x202D, 0x202C, 0x2060, 0x2066, 0x2068
+      ],
+      minCount: 4,
+      encodingTable: [
+        { charName: 'Zero width space (ZWS)', hex: 'U+200B', bits: '0000', desc: 'Zero Width Space' },
+        { charName: 'Zero width joiner (ZWJ)', hex: 'U+200D', bits: '0001', desc: 'Zero Width Joiner' },
+        { charName: 'Zero width no-joiner (ZWNJ)', hex: 'U+200C', bits: '0010', desc: 'Zero Width Non-Joiner' },
+        { charName: 'Invisible plus (IP)', hex: 'U+2064', bits: '0011', desc: 'Invisible Plus' },
+        { charName: 'Invisible separator (IS)', hex: 'U+2063', bits: '0100', desc: 'Invisible Separator' },
+        { charName: 'Inhibit Symmetric Swapping (ISS)', hex: 'U+206A', bits: '0101', desc: 'Inhibit Symmetric Swapping' },
+        { charName: 'Invisible Time (IT)', hex: 'U+2062', bits: '0110', desc: 'Invisible Time' },
+        { charName: 'Empty string (\'\'\'\')', hex: 'U+2205', bits: '0111', desc: 'Empty String Symbol' },
+        { charName: 'Left-To-Right Embedding (LRE)', hex: 'U+202A', bits: '1000', desc: 'Left-To-Right Embedding' },
+        { charName: 'Left-To-Right Override (LRO)', hex: 'U+202D', bits: '1001', desc: 'Left-To-Right Override' },
+        { charName: 'Pop Directional Formatting (PDF)', hex: 'U+202C', bits: '1010', desc: 'Pop Directional Formatting' },
+        { charName: 'Word Joiner (WJ)', hex: 'U+2060', bits: '1011', desc: 'Word Joiner' },
+        { charName: 'Left-To-Right Isolate (LRI)', hex: 'U+2066', bits: '1100', desc: 'Left-To-Right Isolate' },
+        { charName: 'First Strong Isolate (FSI)', hex: 'U+2068', bits: '1101', desc: 'First Strong Isolate' }
+      ]
+    },
+    {
+      id: 'research_lisat_2015',
+      type: 'research',
+      name: 'Highly efficient novel text steganography algorithms (LISAT 2015)',
+      titleAr: 'بحث خوارزميات الإخفاء النصي عالية الكفاءة (IEEE LISAT 2015)',
+      titleEn: 'Highly Efficient Novel Text Steganography Algorithms (IEEE LISAT 2015)',
+      doi: '10.1109/LISAT.2015.7160209',
+      url: 'https://doi.org/10.1109/LISAT.2015.7160209',
+      exactSymbols: [0x200C, 0x200E, 0x200F, 0x200D],
+      minCount: 4,
+      encodingTable: [
+        { charName: 'Zero-Width-Non-Joiner (ZWNJ)', hex: 'U+200C', bits: 'Decimal 8204', desc: 'Zero-Width Non-Joiner' },
+        { charName: 'Left-To-Right Mark (LRM)', hex: 'U+200E', bits: 'Decimal 8206', desc: 'Left-To-Right Mark' },
+        { charName: 'Right-To-Left Mark (RLM)', hex: 'U+200F', bits: 'Decimal 8207', desc: 'Right-To-Left Mark' },
+        { charName: 'Zero-Width-Joiner (ZWJ)', hex: 'U+200D', bits: 'Decimal 8205', desc: 'Zero-Width Joiner' }
+      ]
+    },
+
+    // ── 3. Watermarking Research (أبحاث العلامات المائية) ──
+    {
+      id: 'watermark_homoglyphs_sub',
+      type: 'watermark',
+      name: 'Content-preserving Text Watermarking through Unicode Homoglyph Substitution',
+      titleAr: 'بحث العلامة المائية المحافظة على المحتوى عبر متجانسات يونيكود (ACM 2016)',
+      titleEn: 'Content-preserving Text Watermarking through Unicode Homoglyph Substitution',
+      doi: '10.1145/2938503.2938510',
+      url: 'https://doi.org/10.1145/2938503.2938510',
+      isWatermark: true,
+      exactSymbols: [0x2010, 0x037E, 0x216D, 0x216E, 0x212A, 0x216C, 0x216F, 0x2164, 0x2169, 0x217D, 0x217E, 0x2170, 0x0458, 0x217C, 0x2174, 0x2179],
+      minCount: 3,
+      encodingTable: [
+        { charName: 'Hyphen (‐)', hex: '0x2010 (vs 0x002D)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'الواصلة' },
+        { charName: 'Greek Question Mark (;)', hex: '0x037E (vs 0x003B)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'الفاصلة المنقوطة' },
+        { charName: 'Roman Numeral C (Ⅽ)', hex: '0x216D (vs 0x0043)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'C كبير' },
+        { charName: 'Roman Numeral D (Ⅾ)', hex: '0x216E (vs 0x0044)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'D كبير' },
+        { charName: 'Kelvin Sign (K)', hex: '0x212A (vs 0x004B)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'K كبير' },
+        { charName: 'Roman Numeral L (Ⅼ)', hex: '0x216C (vs 0x004C)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'L كبير' },
+        { charName: 'Roman Numeral M (Ⅿ)', hex: '0x216F (vs 0x004D)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'M كبير' },
+        { charName: 'Roman Numeral V (Ⅴ)', hex: '0x2164 (vs 0x0056)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'V كبير' },
+        { charName: 'Roman Numeral X (Ⅹ)', hex: '0x2169 (vs 0x0058)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'X كبير' },
+        { charName: 'Small Roman Numeral c (ⅽ)', hex: '0x217D (vs 0x0063)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'c صغير' },
+        { charName: 'Small Roman Numeral d (ⅾ)', hex: '0x217E (vs 0x0064)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'd صغير' },
+        { charName: 'Small Roman Numeral i (ⅰ)', hex: '0x2170 (vs 0x0069)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'i صغير' },
+        { charName: 'Cyrillic Small Je (ј)', hex: '0x0458 (vs 0x006A)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'j صغير' },
+        { charName: 'Small Roman Numeral l (ⅼ)', hex: '0x217C (vs 0x006C)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'l صغير' },
+        { charName: 'Small Roman Numeral v (ⅴ)', hex: '0x2174 (vs 0x0076)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'v صغير' },
+        { charName: 'Small Roman Numeral x (ⅹ)', hex: '0x2179 (vs 0x0078)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'x صغير' }
+      ]
+    },
+    {
+      id: 'watermark_social_media',
+      type: 'watermark',
+      name: 'Text Watermarking in Social Media (ACM 2017)',
+      titleAr: 'بحث العلامات المائية النصية في وسائل التواصل (ACM 2017)',
+      titleEn: 'Text Watermarking in Social Media (ACM 2017)',
+      doi: '10.1145/3110025.3116203',
+      url: 'https://doi.org/10.1145/3110025.3116203',
+      isWatermark: true,
+      exactSymbols: [0x2010, 0x216D, 0x216E, 0x216C, 0x216F, 0x2164, 0x2169, 0x217D, 0x217E, 0x2170, 0x0458, 0x217C, 0x2174, 0x2179],
+      minCount: 3,
+      encodingTable: [
+        { charName: 'Hyphen (‐)', hex: '0x2010 (vs 0x002D)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'الواصلة' },
+        { charName: 'Roman Numeral C (Ⅽ)', hex: '0x216D (vs 0x0043)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'C كبير' },
+        { charName: 'Roman Numeral D (Ⅾ)', hex: '0x216E (vs 0x0044)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'D كبير' },
+        { charName: 'Roman Numeral L (Ⅼ)', hex: '0x216C (vs 0x004C)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'L كبير' },
+        { charName: 'Roman Numeral M (Ⅿ)', hex: '0x216F (vs 0x004D)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'M كبير' },
+        { charName: 'Roman Numeral V (Ⅴ)', hex: '0x2164 (vs 0x0056)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'V كبير' },
+        { charName: 'Roman Numeral X (Ⅹ)', hex: '0x2169 (vs 0x0058)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'X كبير' },
+        { charName: 'Small Roman Numeral c (ⅽ)', hex: '0x217D (vs 0x0063)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'c صغير' },
+        { charName: 'Small Roman Numeral d (ⅾ)', hex: '0x217E (vs 0x0064)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'd صغير' },
+        { charName: 'Small Roman Numeral i (ⅰ)', hex: '0x2170 (vs 0x0069)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'i صغير' },
+        { charName: 'Cyrillic Small Je (ј)', hex: '0x0458 (vs 0x006A)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'j صغير' },
+        { charName: 'Small Roman Numeral l (ⅼ)', hex: '0x217C (vs 0x006C)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'l صغير' },
+        { charName: 'Small Roman Numeral v (ⅴ)', hex: '0x2174 (vs 0x0076)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'v صغير' },
+        { charName: 'Small Roman Numeral x (ⅹ)', hex: '0x2179 (vs 0x0078)', bits: 'Bit 1 (Alt) vs Bit 0 (Orig)', desc: 'x صغير' }
+      ]
+    }
+  ];
+
+  // ── EVALUATE LINGUISTIC BASELINE (FALSE POSITIVE PREVENTION) ──
+  function evaluateLinguisticBaseline(results, text) {
+    if (!results || results.length === 0) return { isNatural: false };
+
+    // Standard Arabic/Persian ligatures and bidi directionals
+    const NATURAL_SET = new Set([0x200C, 0x200D, 0x200E, 0x200F]);
+    const foundSet = new Set(results.map(r => r.codePoint));
+
+    let allInNaturalSet = true;
+    for (const cp of foundSet) {
+      if (!NATURAL_SET.has(cp)) {
+        allInNaturalSet = false;
+        break;
+      }
+    }
+
+    if (!allInNaturalSet) {
+      return { isNatural: false };
+    }
+
+    // Check for clustering (consecutive hidden characters)
+    let hasConsecutive = false;
+    for (let i = 0; i < results.length - 1; i++) {
+      if (results[i + 1].position === results[i].position + 1) {
+        hasConsecutive = true;
+        break;
+      }
+    }
+
+    // Natural occurrence is isolated and small in quantity (<= 3 in total)
+    const isNatural = !hasConsecutive && results.length <= 3;
+    return {
+      isNatural: isNatural,
+      reason: isNatural ? 'isolatedTypographic' : 'excessiveOrClustered'
+    };
+  }
+
+  // ── STRICT EXACT SIGNATURE MATCHING (NO EXTRA, NO MISSING) ──
+  function matchStegoSignatures(results, text, isNatural) {
+    if (isNatural) return [];
+    if (!results || results.length === 0) return [];
+
+    const foundSet = new Set(results.map(r => r.codePoint));
+    const totalFound = results.length;
+    const matched = [];
+
+    // Check SNOW pattern specifically (line-end trailing tab + spaces)
+    const snowMatches = text ? text.match(/\t[ ]{0,7}(?:\r?\n|$)/g) : null;
+    const hasSnowPattern = snowMatches && snowMatches.length >= 2;
+
+    for (const sig of STEGO_SIGNATURES_REGISTRY) {
+      if (sig.isSnow) {
+        const hasTab = foundSet.has(0x0009);
+        const onlyWhitespace = Array.from(foundSet).every(cp => cp === 0x0009 || cp === 0x0020);
+        if (hasTab && onlyWhitespace && totalFound >= sig.minCount) {
+          matched.push(sig);
+        }
+        continue;
+      }
+
+      if (sig.isVariationSelectorScheme) {
+        let onlyVS = true;
+        for (const cp of foundSet) {
+          const isVS = (cp >= 0xFE00 && cp <= 0xFE0F) || (cp >= 0xE0100 && cp <= 0xE01EF);
+          if (!isVS) {
+            onlyVS = false;
+            break;
+          }
+        }
+        if (onlyVS && totalFound >= sig.minCount) {
+          matched.push(sig);
+        }
+        continue;
+      }
+
+      if (sig.exactSymbols) {
+        // Strict set equality check (دون زيادة أو نقصان)
+        const sigSet = new Set(sig.exactSymbols);
+        let exactMatch = (foundSet.size === sigSet.size);
+        if (exactMatch) {
+          for (const cp of sigSet) {
+            if (!foundSet.has(cp)) {
+              exactMatch = false;
+              break;
+            }
+          }
+        }
+
+        if (!exactMatch && sig.altExactSymbols) {
+          const altSet = new Set(sig.altExactSymbols);
+          if (foundSet.size === altSet.size) {
+            let altMatch = true;
+            for (const cp of altSet) {
+              if (!foundSet.has(cp)) {
+                altMatch = false;
+                break;
+              }
+            }
+            if (altMatch) exactMatch = true;
+          }
+        }
+
+        if (exactMatch && totalFound >= sig.minCount) {
+          matched.push(sig);
+        }
+      }
+    }
+
+    return matched;
+  }
+
+  // ── COMPUTE UNIQUE DEDUPLICATED SYMBOLS INVENTORY ────────────
+  function computeUniqueSymbols(results) {
+    if (!results || results.length === 0) return [];
+    const countsMap = new Map();
+    for (const r of results) {
+      if (!countsMap.has(r.codePoint)) {
+        countsMap.set(r.codePoint, {
+          codePoint: r.codePoint,
+          hexCode: r.hexCode,
+          name: r.name,
+          category: r.category,
+          count: 0
+        });
+      }
+      countsMap.get(r.codePoint).count++;
+    }
+
+    const total = results.length;
+    const list = Array.from(countsMap.values());
+    list.sort((a, b) => b.count - a.count || a.codePoint - b.codePoint);
+
+    const n = list.length;
+    list.forEach((item, idx) => {
+      item.percentage = ((item.count / total) * 100).toFixed(1) + '%';
+      if (n === 2) {
+        item.suggestedBit = idx === 0 ? '0' : '1';
+      } else if (n <= 4) {
+        item.suggestedBit = idx.toString(2).padStart(2, '0');
+      } else if (n <= 8) {
+        item.suggestedBit = idx.toString(2).padStart(3, '0');
+      } else if (n <= 16) {
+        item.suggestedBit = idx.toString(2).padStart(4, '0') + ` (${idx.toString(16).toUpperCase()})`;
+      } else {
+        item.suggestedBit = `Symbol #${idx + 1}`;
+      }
+    });
+
+    return list;
+  }
+
+  function getVisualSymbolBadge(cp) {
+    if (cp === 0x0020) return '<span class="stego-glyph-badge stego-glyph--space">[Space]</span>';
+    if (cp === 0x0009) return '<span class="stego-glyph-badge stego-glyph--space">[Tab]</span>';
+    if (HOMOGRAPH_MAP[cp]) return `<span class="stego-glyph-badge stego-glyph--visible">${String.fromCodePoint(cp)}</span>`;
+    if (cp === 0x200B) return '<span class="stego-glyph-badge stego-glyph--zwc">ZWSP</span>';
+    if (cp === 0x200C) return '<span class="stego-glyph-badge stego-glyph--zwc">ZWNJ</span>';
+    if (cp === 0x200D) return '<span class="stego-glyph-badge stego-glyph--zwc">ZWJ</span>';
+    if (cp === 0xFEFF) return '<span class="stego-glyph-badge stego-glyph--zwc">BOM</span>';
+    if (cp === 0x200E) return '<span class="stego-glyph-badge stego-glyph--bidi">LRM</span>';
+    if (cp === 0x200F) return '<span class="stego-glyph-badge stego-glyph--bidi">RLM</span>';
+    if (cp === 0x202A) return '<span class="stego-glyph-badge stego-glyph--bidi">LRE</span>';
+    if (cp === 0x202C) return '<span class="stego-glyph-badge stego-glyph--bidi">PDF</span>';
+    if (cp === 0x202D) return '<span class="stego-glyph-badge stego-glyph--bidi">LRO</span>';
+    if (cp === 0x2060) return '<span class="stego-glyph-badge stego-glyph--zwc">WJ</span>';
+    if (cp === 0x2061) return '<span class="stego-glyph-badge stego-glyph--op">FA</span>';
+    if (cp === 0x2062) return '<span class="stego-glyph-badge stego-glyph--op">IT</span>';
+    if (cp === 0x2063) return '<span class="stego-glyph-badge stego-glyph--op">IS</span>';
+    if (cp === 0x2064) return '<span class="stego-glyph-badge stego-glyph--op">IP</span>';
+    if (cp === 0x206A) return '<span class="stego-glyph-badge stego-glyph--op">ISS</span>';
+    if (cp === 0x206B) return '<span class="stego-glyph-badge stego-glyph--op">ASS</span>';
+    if (cp === 0x206C) return '<span class="stego-glyph-badge stego-glyph--op">IAFS</span>';
+    if (cp === 0x206D) return '<span class="stego-glyph-badge stego-glyph--op">AAFS</span>';
+    if (cp === 0x206E) return '<span class="stego-glyph-badge stego-glyph--op">NDS</span>';
+    if (cp === 0x206F) return '<span class="stego-glyph-badge stego-glyph--op">NODS</span>';
+    if (cp === 0x2205) return '<span class="stego-glyph-badge stego-glyph--op">∅</span>';
+    if (cp >= 0xFE00 && cp <= 0xFE0F) return `<span class="stego-glyph-badge stego-glyph--vs">VS${cp - 0xFE00 + 1}</span>`;
+    if (cp >= 0xE0100 && cp <= 0xE01EF) return `<span class="stego-glyph-badge stego-glyph--vs">VS${cp - 0xE0100 + 17}</span>`;
+    return '<span class="stego-glyph-badge">◌</span>';
+  }
+
+  // ── RENDER MATCHED SIGNATURES SECTION ────────────────────────
+  function renderMatchedSignaturesSection(matchedSignatures, analysis) {
+    const curLang = localStorage.getItem('stegoLang') || document.documentElement.lang || 'en';
+
+    let cardsHtml = '';
+    const hasAmbiguity = matchedSignatures.length > 1;
+
+    matchedSignatures.forEach((sig) => {
+      const isAr = curLang === 'ar';
+      const title = isAr ? (sig.titleAr || sig.name) : (sig.titleEn || sig.name);
+      const typeLabel = sig.type === 'tool'
+        ? t('signatureTypeTool')
+        : (sig.type === 'watermark' ? t('signatureTypeWatermark') : t('signatureTypeResearch'));
+
+      const typeIcon = sig.type === 'tool' ? 'build' : (sig.type === 'watermark' ? 'verified' : 'menu_book');
+      const badgeClass = sig.type === 'tool' ? 'badge--primary' : (sig.type === 'watermark' ? 'badge--info' : 'badge--encrypted');
+
+      let tableRows = '';
+      sig.encodingTable.forEach(row => {
+        tableRows += `
+          <tr>
+            <td style="font-weight: 600; color: var(--color-on-surface);">${escSafe(row.charName)}</td>
+            <td><code class="code-tag">${escSafe(row.hex)}</code></td>
+            <td><span class="stego-bit-badge">${escSafe(row.bits)}</span></td>
+            <td style="color: var(--color-on-surface-variant); font-size: 0.85rem;">${escSafe(row.desc)}</td>
+          </tr>
+        `;
+      });
+
+      let noticeHtml = '';
+      if (sig.isWatermark) {
+        noticeHtml = `
+          <div class="stego-notice-banner stego-notice--watermark">
+            <span class="material-symbols-outlined">info</span>
+            <span>${t('signatureWatermarkNotice')}</span>
+          </div>
+        `;
+      }
+
+      cardsHtml += `
+        <div class="stego-signature-card" id="sig-card-${sig.id}">
+          <div class="stego-signature-card__header">
+            <div class="stego-signature-card__title-wrap">
+              <div class="stego-signature-card__icon-wrap">
+                <span class="material-symbols-outlined">${typeIcon}</span>
+              </div>
+              <div>
+                <div class="stego-signature-card__title">${escSafe(title)}</div>
+                <div class="stego-signature-card__tags">
+                  <span class="badge ${badgeClass} text-label-xs">${typeLabel}</span>
+                  <span class="badge badge--success text-label-xs">
+                    <span class="material-symbols-outlined" style="font-size: 13px;">check_circle</span>
+                    ${t('signatureExactBadge')}
+                  </span>
+                </div>
+              </div>
+            </div>
+            ${sig.url ? `
+              <a href="${sig.url}" target="_blank" rel="noopener noreferrer" class="btn btn--outline stego-signature-card__link-btn">
+                <span>${t('signatureOpenLink')}</span>
+                <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span>
+              </a>
+            ` : ''}
+          </div>
+
+          ${noticeHtml}
+
+          <div class="stego-signature-table-wrap">
+            <div class="stego-signature-table__title">
+              <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary);">table_chart</span>
+              <span>${t('signatureEncodingTableTitle')}</span>
+            </div>
+            <div class="steganalysis-table-container">
+              <table class="stego-signature-table">
+                <thead>
+                  <tr>
+                    <th>${t('signatureColChar')}</th>
+                    <th>${t('signatureColHex')}</th>
+                    <th>${t('signatureColBits')}</th>
+                    <th>${t('signatureColDesc')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${tableRows}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    let ambiguityAlert = '';
+    if (hasAmbiguity) {
+      ambiguityAlert = `
+        <div class="stego-notice-banner stego-notice--ambiguity">
+          <span class="material-symbols-outlined">balance</span>
+          <span>${t('signatureAmbiguityNotice')}</span>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="stego-signature-section">
+        <div class="stego-section-header">
+          <div class="stego-section-header__title-wrap">
+            <span class="material-symbols-outlined" style="color: var(--color-primary); font-size: 1.4rem;">fingerprint</span>
+            <h3 class="stego-section-header__title">${t('signatureMatchedTitle')}</h3>
+          </div>
+          <p class="stego-section-header__subtitle">${t('signatureMatchedSubtitle')}</p>
+        </div>
+        ${ambiguityAlert}
+        <div class="stego-signatures-grid">
+          ${cardsHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  // ── RENDER UNIQUE SYMBOLS INVENTORY (FALLBACK WHEN NO MATCH) ──
+  function renderUniqueSymbolsInventorySection(uniqueSymbols, isNatural) {
+    if (!uniqueSymbols || uniqueSymbols.length === 0) return '';
+
+    let naturalAlert = '';
+    if (isNatural) {
+      naturalAlert = `
+        <div class="stego-notice-banner stego-notice--natural">
+          <span class="material-symbols-outlined">spellcheck</span>
+          <span>${t('naturalFormattingNotice')}</span>
+        </div>
+      `;
+    }
+
+    let rowsHtml = '';
+    uniqueSymbols.forEach((item, idx) => {
+      const catKey = CATEGORY_I18N[item.category] || item.category;
+      const catLabel = t(catKey);
+      const glyphBadge = getVisualSymbolBadge(item.codePoint);
+
+      rowsHtml += `
+        <tr>
+          <td style="text-align: center;"><span class="stego-table__index">#${idx + 1}</span></td>
+          <td style="text-align: center;">${glyphBadge}</td>
+          <td><code class="code-tag">${escSafe(item.hexCode)}</code></td>
+          <td style="font-weight: 600; color: var(--color-on-surface);">${escSafe(item.name)}</td>
+          <td><span class="steganalysis-cat-chip steganalysis-cat--${item.category}">${escSafe(catLabel)}</span></td>
+          <td style="text-align: center; font-weight: 700; color: var(--color-primary);">${item.count}</td>
+          <td style="text-align: center;"><span class="stego-pct-badge">${escSafe(item.percentage)}</span></td>
+          <td><code class="stego-suggested-bit">${escSafe(item.suggestedBit)}</code></td>
+        </tr>
+      `;
+    });
+
+    return `
+      <div class="stego-inventory-section">
+        ${naturalAlert}
+        <div class="stego-section-header">
+          <div class="stego-section-header__title-wrap">
+            <span class="material-symbols-outlined" style="color: var(--color-primary); font-size: 1.4rem;">dataset</span>
+            <h3 class="stego-section-header__title">${t('inventoryTableTitle')}</h3>
+          </div>
+          <p class="stego-section-header__subtitle">${t('inventoryTableSubtitle')}</p>
+        </div>
+
+        <div class="steganalysis-table-container">
+          <table class="stego-inventory-table">
+            <thead>
+              <tr>
+                <th style="width: 50px; text-align: center;">#</th>
+                <th style="width: 80px; text-align: center;">${t('inventoryColVisual')}</th>
+                <th style="width: 110px;">${t('inventoryColHex')}</th>
+                <th>${t('inventoryColName')}</th>
+                <th style="width: 140px;">${t('inventoryColCategory')}</th>
+                <th style="width: 100px; text-align: center;">${t('inventoryColCount')}</th>
+                <th style="width: 100px; text-align: center;">${t('inventoryColPercentage')}</th>
+                <th style="width: 160px;">${t('inventoryColSuggestedBit')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // ── ROUTER FOR SIGNATURE VS INVENTORY RENDERING ───────────────
+  function renderSignatureOrInventorySection(analysis) {
+    if (!analysis) return '';
+    if (analysis.matchedSignatures && analysis.matchedSignatures.length > 0) {
+      return renderMatchedSignaturesSection(analysis.matchedSignatures, analysis);
+    }
+    return renderUniqueSymbolsInventorySection(analysis.uniqueSymbols, analysis.linguisticEval && analysis.linguisticEval.isNatural);
+  }
 
   // ── FILE UPLOAD STATE & CONTROLLER ───────────────────────────
   let _currentSteganalysisFile = null;
@@ -955,7 +1691,7 @@
       setTimeout(() => {
         currentAnalysis = analyzeText(text);
         currentPage = 1;
-        const risk = classifyRisk(currentAnalysis.totalFound);
+        const risk = classifyRisk(currentAnalysis.totalFound, currentAnalysis.linguisticEval);
 
         if (resultsPanel) resultsPanel.style.display = '';
 
@@ -1200,9 +1936,11 @@
     });
 
     const techniquesBannerHtml = renderTechniquesBanner(analysis);
+    const signatureOrInventoryHtml = renderSignatureOrInventorySection(analysis);
 
     container.innerHTML = `
       ${techniquesBannerHtml}
+      ${signatureOrInventoryHtml}
 
       <div class="steganalysis-visual-map">
         <div class="visual-map__title">
@@ -1372,6 +2110,12 @@
     if (summaryText) {
       if (analysis.totalFound === 0) {
         summaryText.textContent = t('steganalysisSummaryClean');
+      } else if (analysis.linguisticEval && analysis.linguisticEval.isNatural) {
+        summaryText.textContent = t('naturalFormattingNotice');
+      } else if (analysis.matchedSignatures && analysis.matchedSignatures.length > 0) {
+        const curLang = localStorage.getItem('stegoLang') || document.documentElement.lang || 'en';
+        const names = analysis.matchedSignatures.map(s => curLang === 'ar' ? (s.titleAr || s.name) : (s.titleEn || s.name)).join(' / ');
+        summaryText.textContent = `${analysis.totalFound} ${t('steganalysisSummaryFound')} ${analysis.distinctTypes} ${t('steganalysisSummaryTypes')} — [${t('signatureMatchedTitle')}: ${names}]`;
       } else {
         summaryText.textContent = `${analysis.totalFound} ${t('steganalysisSummaryFound')} ${analysis.distinctTypes} ${t('steganalysisSummaryTypes')}`;
       }

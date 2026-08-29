@@ -913,3 +913,323 @@ html.light .visual-underscore-spacer.underscore--success {
 .visual-underscore-spacer.underscore--error:hover {
   border-bottom-width: 3.5px;
 }
+
+/* ============================================================
+   SIGNATURE ATTRIBUTION & UNIQUE SYMBOLS INVENTORY STYLES
+   ============================================================ */
+
+.stego-signature-section,
+.stego-inventory-section {
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.stego-section-header {
+  margin-bottom: var(--space-md);
+}
+
+.stego-section-header__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: 4px;
+}
+
+.stego-section-header__title {
+  font-family: var(--font-headline);
+  font-size: var(--fs-headline-sm);
+  font-weight: 700;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.stego-section-header__subtitle {
+  font-family: var(--font-body);
+  font-size: var(--fs-body-sm);
+  color: var(--color-on-surface-variant);
+  margin: 0;
+}
+
+/* ── Signature Cards Grid ── */
+.stego-signatures-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.stego-signature-card {
+  background: var(--color-surface-container, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--color-outline-variant, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-md);
+  box-shadow: var(--elevation-1);
+  transition: var(--transition-all);
+}
+
+.stego-signature-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--elevation-2);
+}
+
+.stego-signature-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-outline-variant, rgba(255, 255, 255, 0.08));
+  margin-bottom: var(--space-md);
+}
+
+.stego-signature-card__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.stego-signature-card__icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md, 8px);
+  background: rgba(187, 209, 0, 0.12);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+html.light .stego-signature-card__icon-wrap {
+  background: rgba(95, 116, 32, 0.12);
+  color: var(--color-tertiary);
+}
+
+.stego-signature-card__title {
+  font-family: var(--font-headline);
+  font-size: var(--fs-body-lg);
+  font-weight: 700;
+  color: var(--color-on-surface);
+  margin-bottom: 4px;
+}
+
+.stego-signature-card__tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.stego-signature-card__link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: var(--fs-label-md);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-primary);
+  border: 1px solid rgba(187, 209, 0, 0.35);
+  background: rgba(187, 209, 0, 0.06);
+  transition: var(--transition-all);
+}
+
+.stego-signature-card__link-btn:hover {
+  background: var(--color-primary);
+  color: #000;
+}
+
+html.light .stego-signature-card__link-btn {
+  color: var(--color-tertiary);
+  border-color: rgba(95, 116, 32, 0.35);
+  background: rgba(95, 116, 32, 0.06);
+}
+
+html.light .stego-signature-card__link-btn:hover {
+  background: var(--color-tertiary);
+  color: #fff;
+}
+
+/* ── Notice Banners ── */
+.stego-notice-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--fs-body-sm);
+  line-height: 1.5;
+  margin-bottom: var(--space-md);
+}
+
+.stego-notice-banner .material-symbols-outlined {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.stego-notice--watermark {
+  background: rgba(2, 136, 209, 0.1);
+  border: 1px solid rgba(2, 136, 209, 0.3);
+  color: #29B6F6;
+}
+html.light .stego-notice--watermark {
+  background: rgba(2, 136, 209, 0.08);
+  color: #0277BD;
+}
+
+.stego-notice--ambiguity {
+  background: rgba(255, 179, 0, 0.1);
+  border: 1px solid rgba(255, 179, 0, 0.3);
+  color: #FFB300;
+}
+html.light .stego-notice--ambiguity {
+  background: rgba(255, 179, 0, 0.08);
+  color: #E65100;
+}
+
+.stego-notice--natural {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  color: #4CAF50;
+}
+html.light .stego-notice--natural {
+  background: rgba(46, 125, 50, 0.08);
+  color: #2E7D32;
+}
+
+/* ── Signature Table ── */
+.stego-signature-table-wrap {
+  margin-top: var(--space-xs);
+}
+
+.stego-signature-table__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: var(--fs-body-sm);
+  color: var(--color-on-surface);
+  margin-bottom: var(--space-xs);
+}
+
+.stego-signature-table,
+.stego-inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-body-sm);
+}
+
+.stego-signature-table th,
+.stego-inventory-table th {
+  padding: 10px 14px;
+  background: var(--color-surface-container-high, rgba(255, 255, 255, 0.04));
+  color: var(--color-on-surface-variant);
+  font-weight: 600;
+  text-align: inherit;
+  border-bottom: 1px solid var(--color-outline-variant, rgba(255, 255, 255, 0.08));
+}
+
+.stego-signature-table td,
+.stego-inventory-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-outline-variant, rgba(255, 255, 255, 0.05));
+  vertical-align: middle;
+}
+
+.stego-signature-table tr:hover td,
+.stego-inventory-table tr:hover td {
+  background: rgba(187, 209, 0, 0.03);
+}
+
+/* ── Badges & Chips in Tables ── */
+.stego-bit-badge {
+  display: inline-block;
+  font-family: 'Sora', monospace;
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-default);
+  background: rgba(187, 209, 0, 0.15);
+  color: var(--color-primary);
+  border: 1px solid rgba(187, 209, 0, 0.25);
+}
+
+html.light .stego-bit-badge {
+  color: var(--color-tertiary);
+  background: rgba(95, 116, 32, 0.12);
+  border-color: rgba(95, 116, 32, 0.25);
+}
+
+.stego-glyph-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: var(--radius-sm, 4px);
+  font-family: 'Sora', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-on-surface);
+}
+
+.stego-glyph--visible {
+  color: var(--color-primary);
+  font-size: 1rem;
+}
+
+.stego-glyph--zwc {
+  background: rgba(187, 209, 0, 0.12);
+  color: var(--color-primary);
+  border-color: rgba(187, 209, 0, 0.25);
+}
+
+.stego-glyph--bidi {
+  background: rgba(239, 108, 0, 0.12);
+  color: #EF6C00;
+  border-color: rgba(239, 108, 0, 0.25);
+}
+
+.stego-glyph--op {
+  background: rgba(156, 39, 176, 0.12);
+  color: #CE93D8;
+  border-color: rgba(156, 39, 176, 0.25);
+}
+
+.stego-glyph--vs {
+  background: rgba(33, 150, 243, 0.12);
+  color: #64B5F6;
+  border-color: rgba(33, 150, 243, 0.25);
+}
+
+.stego-glyph--space {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94A3B8;
+  border-color: rgba(100, 116, 139, 0.25);
+}
+
+.stego-pct-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-on-surface-variant);
+}
+
+.stego-suggested-bit {
+  font-family: 'Sora', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: rgba(187, 209, 0, 0.08);
+  padding: 2px 8px;
+  border-radius: var(--radius-default);
+}
+
