@@ -121,7 +121,33 @@ const I18N_STEGANALYSIS = {
     presetThisYear: "This Year",
     presetReset: "✕ Reset",
     dateRangeFilteredCount: "messages in range",
-    noTimestampsNotice: "No timestamps detected in chat export. All messages will be used."
+    noTimestampsNotice: "No timestamps detected in chat export. All messages will be used.",
+
+    // Signature Attribution & Unique Inventory Keys
+    signatureMatchedTitle: "Identified Steganography Signature / Tool",
+    signatureMatchedSubtitle: "The detected character set strictly matches a known tool or research paper specification without extra or missing characters.",
+    signatureTypeTool: "Software Tool",
+    signatureTypeResearch: "Academic Research Paper",
+    signatureTypeWatermark: "Digital Watermark",
+    signatureExactBadge: "Exact Match (100%)",
+    signatureOpenLink: "View Tool / Paper Source",
+    signatureEncodingTableTitle: "Official Encoding Scheme & Symbol Table",
+    signatureColChar: "Character",
+    signatureColHex: "Hex Code",
+    signatureColBits: "Bits / Value",
+    signatureColDesc: "Description",
+    signatureWatermarkNotice: "Notice: Matching watermarking tables indicates that the probability of a secret hidden message is likely low (used primarily for copyright verification or digital watermarks).",
+    signatureAmbiguityNotice: "Notice: Both the software tool and research paper share this exact 4-character set with alternate bit mappings for LRM and LRO.",
+    inventoryTableTitle: "Unique Symbols Inventory (Deduplicated)",
+    inventoryTableSubtitle: "The detected characters did not match any predefined tool or research scheme. Below is the deduplicated inventory of symbols used in the message.",
+    inventoryColVisual: "Glyph",
+    inventoryColHex: "Hex Code",
+    inventoryColName: "Character Name",
+    inventoryColCategory: "Category",
+    inventoryColCount: "Occurrences",
+    inventoryColPercentage: "Percentage",
+    inventoryColSuggestedBit: "Suggested Bit Mapping",
+    naturalFormattingNotice: "Linguistic Baseline Notice: The detected characters (e.g., ZWNJ or BiDi markers) appear in isolated, natural typographic contexts (such as Persian/Arabic ligatures or punctuation orientation). No covert message patterns were detected."
   },
 
   ar: {
@@ -233,7 +259,33 @@ const I18N_STEGANALYSIS = {
     presetThisYear: "هذه السنة",
     presetReset: "✕ إعادة تعيين",
     dateRangeFilteredCount: "رسالة في النطاق",
-    noTimestampsNotice: "لم يتم العثور على طوابع زمنية في الملف. سيتم فحص كافة الرسائل."
+    noTimestampsNotice: "لم يتم العثور على طوابع زمنية في الملف. سيتم فحص كافة الرسائل.",
+
+    // Signature Attribution & Unique Inventory Keys
+    signatureMatchedTitle: "بصمة أداة / بحث إخفاء متطابقة",
+    signatureMatchedSubtitle: "مجموعة الرموز المستخدمة في الرسالة تطابق تماماً بصمة الترميز المعتمدة لأداة أو بحث علمي دون زيادة أو نقصان.",
+    signatureTypeTool: "أداة برمجية",
+    signatureTypeResearch: "ورقة بحثية محكمة",
+    signatureTypeWatermark: "علامة مائية رقمية",
+    signatureExactBadge: "تطابق دقيق (100%)",
+    signatureOpenLink: "زيارة الأداة / البحث",
+    signatureEncodingTableTitle: "جدول الترميز المعتمد في الأداة / البحث",
+    signatureColChar: "المحرف / الرمز",
+    signatureColHex: "كود اليونيكود",
+    signatureColBits: "التمثيل الثنائي / القيمة",
+    signatureColDesc: "الوصف",
+    signatureWatermarkNotice: "تنبيه: تطابق الرموز مع جداول العلامات المائية يشير إلى أن احتمالية وجود رسالة مخفية قد يعتبر ضئيلاً (تُستخدم أساساً لإثبات الملكية أو التوقيع الرقمي).",
+    signatureAmbiguityNotice: "ملاحظة: تتطابق مجموعة الرموز الأربعة هذه في الأداة والبحث، مع اختلاف في تعيين البتات لـ LRM و LRO.",
+    inventoryTableTitle: "جدول حصر الرموز المستخدمة دون تكرار",
+    inventoryTableSubtitle: "لم تتطابق الرموز المكتشفة مع أي أداة أو بحث معروف بشكل دقيق دون زيادة أو نقصان. تم حصر كافة الرموز الفريدة المستخدمة وإحصائيات تكرارها في الجدول التالي.",
+    inventoryColVisual: "الرمز",
+    inventoryColHex: "الكود السداسي",
+    inventoryColName: "اسم المحرف",
+    inventoryColCategory: "الفئة",
+    inventoryColCount: "مرات التكرار",
+    inventoryColPercentage: "النسبة المئوية",
+    inventoryColSuggestedBit: "التمثيل الثنائي المقترح",
+    naturalFormattingNotice: "تنبيه الاستخدام اللغوي الطبيعي: الرموز المكتشفة (مثل فاصل عدم الاتصال أو علامات الاتجاه) تظهر في سياقات طباعية لغوية طبيعية ومتباعدة (مثل تصحيح اتصال الحروف في العربية والفارسية أو ضبط اتجاه الأقواس). لم يُكشف عن أي نمط لرسالة سرية."
   },
 
   fr: {
