@@ -1950,41 +1950,53 @@
       resultsMap.set(r.position, r);
     });
 
-    const hiddenClusters = new Map();
-    let currentCluster = [];
-    for (let i = 0; i <= n; i++) {
-      if (i < n && resultsMap.has(i)) {
-        currentCluster.push(resultsMap.get(i));
-      } else {
-        if (currentCluster.length > 0) {
-          hiddenClusters.set(i, currentCluster);
-          currentCluster = [];
-        }
-      }
-    }
-
     let html = '';
     const maxPreviewChars = 300000;
     const limit = Math.min(n, maxPreviewChars);
 
-    for (let i = 0; i < limit; i++) {
-      const char = chars[i];
-      const resultItem = resultsMap.get(i);
-
-      if (resultItem && resultItem.category === 'homograph') {
-        const tooltipText = `${resultItem.name} (${resultItem.hexCode})`;
-        html += `<span class="visual-underscore underscore--warning" title="${escSafe(tooltipText)}">${escSafe(char)}</span>`;
-        continue;
-      }
-
+    let i = 0;
+    while (i < limit) {
+      // 1. Check if there is a cluster of hidden characters starting at index i
       if (resultsMap.has(i)) {
+        const resultItem = resultsMap.get(i);
+
+        // If it's a homograph, it's a visible substituted character (not a zero-width hidden char)
+        if (resultItem.category === 'homograph') {
+          const char = chars[i];
+          const tooltipText = `${resultItem.name} (${resultItem.hexCode})`;
+          html += `<span class="visual-underscore underscore--warning" title="${escSafe(tooltipText)}">${escSafe(char)}</span>`;
+          i++;
+          continue;
+        }
+
+        // Collect all contiguous hidden non-homograph characters at this exact position
+        const cluster = [];
+        while (i < limit && resultsMap.has(i) && resultsMap.get(i).category !== 'homograph') {
+          cluster.push(resultsMap.get(i));
+          i++;
+        }
+
+        const count = cluster.length;
+        const clusterJson = encodeURIComponent(JSON.stringify(cluster.map(c => ({ name: c.name, hexCode: c.hexCode }))));
+
+        let statusClass = 'underscore--stego';
+        if (cluster.some(item => item.category === 'directional' || item.category === 'bom')) {
+          statusClass = 'underscore--error';
+        } else if (cluster.some(item => item.category === 'space' || item.category === 'mongolianFVS')) {
+          statusClass = 'underscore--warning';
+        }
+
+        html += `<span class="stego-marker ${statusClass}" data-stego-cluster="${clusterJson}" tabindex="0" role="button" aria-label="${count} hidden symbols"><span class="stego-visual-badge">${count}</span></span>`;
         continue;
       }
 
+      // 2. Normal visible character (clean, untouched, not wrapped or displaced)
+      const char = chars[i];
       let charHtml = '';
       if (char === '\n') {
         charHtml = '<br>';
       } else if (char === '\r') {
+        i++;
         continue;
       } else if (char === ' ') {
         charHtml = ' ';
@@ -1992,37 +2004,8 @@
         charHtml = escSafe(char);
       }
 
-      if (hiddenClusters.has(i)) {
-        const cluster = hiddenClusters.get(i);
-        const count = cluster.length;
-        const clusterJson = encodeURIComponent(JSON.stringify(cluster.map(c => ({ name: c.name, hexCode: c.hexCode }))));
-
-        let statusClass = 'underscore--stego';
-        if (cluster.some(item => item.category === 'directional' || item.category === 'bom')) {
-          statusClass = 'underscore--error';
-        } else if (cluster.some(item => item.category === 'space' || item.category === 'mongolianFVS' || item.category === 'homograph')) {
-          statusClass = 'underscore--warning';
-        }
-
-        charHtml = `<span class="visual-underscore ${statusClass}" data-stego-cluster="${clusterJson}">${charHtml}<span class="stego-visual-badge">${count}</span></span>`;
-      }
-
       html += charHtml;
-    }
-
-    if (hiddenClusters.has(n)) {
-      const cluster = hiddenClusters.get(n);
-      const count = cluster.length;
-      const clusterJson = encodeURIComponent(JSON.stringify(cluster.map(c => ({ name: c.name, hexCode: c.hexCode }))));
-
-      let statusClass = 'underscore--stego';
-      if (cluster.some(item => item.category === 'directional' || item.category === 'bom')) {
-        statusClass = 'underscore--error';
-      } else if (cluster.some(item => item.category === 'space' || item.category === 'mongolianFVS' || item.category === 'homograph')) {
-        statusClass = 'underscore--warning';
-      }
-
-      html += `<span class="visual-underscore ${statusClass}" data-stego-cluster="${clusterJson}">&nbsp;<span class="stego-visual-badge">${count}</span></span>`;
+      i++;
     }
 
     if (n > maxPreviewChars) {
@@ -2721,17 +2704,83 @@
 
   function escSafe(str) {
     if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
+
+  function applyLanguage(lang) {
+    if (!lang) lang = localStorage.getItem('stegoLang') || 'en';
+    document.documentElement.setAttribute('lang', lang);
+    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    localStorage.setItem('stegoLang', lang);
+
+    const dict = (typeof translations !== 'undefined') ? translations : ((typeof I18N_STEGANALYSIS !== 'undefined') ? I18N_STEGANALYSIS : null);
+    if (dict && dict[lang]) {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[lang][key]) {
+          const hasIcon = el.querySelector('.material-symbols-outlined');
+          if (hasIcon) {
+            el.childNodes.forEach(child => {
+              if (child.nodeType === Node.TEXT_NODE && child.textContent.trim().length > 0) {
+                child.textContent = dict[lang][key];
+              }
+            });
+          } else {
+            el.textContent = dict[lang][key];
+          }
+        }
+      });
+
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (dict[lang][key]) {
+          el.setAttribute('placeholder', dict[lang][key]);
+        }
+      });
+
+      document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (dict[lang][key]) {
+          el.setAttribute('title', dict[lang][key]);
+        }
+      });
+
+      document.querySelectorAll('[data-i18n-tooltip]').forEach(el => {
+        const key = el.getAttribute('data-i18n-tooltip');
+        if (dict[lang][key]) {
+          el.setAttribute('data-tooltip', dict[lang][key]);
+        }
+      });
+    }
+
+    // Re-render analysis results if currently present
+    if (currentAnalysis) {
+      const risk = classifyRisk(currentAnalysis.totalFound, currentAnalysis.linguisticEval);
+      renderMetrics(currentAnalysis, risk);
+      if (currentAnalysis.totalFound === 0) {
+        renderCleanState();
+      } else {
+        renderResultsTable(currentAnalysis);
+        renderSummary(currentAnalysis, risk);
+      }
+    }
+  }
+
+  window.applyLanguage = applyLanguage;
 
   window.TextSteganalysis = {
     analyzeText,
     splitChatIntoMessages,
     initSteganalysis,
     renderResultsTable,
-    _parseAndApplySteganalysisFile
+    renderVisualMap,
+    _parseAndApplySteganalysisFile,
+    applyLanguage
   };
 
   if (document.readyState === 'loading') {
