@@ -228,15 +228,24 @@
     const n = chars.length;
 
     // 0. Pre-scan line-ending trailing whitespace (SNOW / whitespace steganography)
+    // NOTE: Single spaces (' ' / 0x0020) are natural text formatting.
+    // Covert whitespace (SNOW / Whitespace Steg) requires either:
+    // 1) Contains a Tab (\t / U+0009)
+    // 2) OR contains a repeated pattern of 2 or more consecutive trailing spaces/tabs ([ \t]{2,})
     const trailingWsIndices = new Set();
-    const lineRegex = /([^\r\n]*?)((?:[ \t]+)?)(?:\r?\n|$)/g;
+    const lineRegex = /(?:^|\n)(.*?)([ \t]+)(?=\r?\n|$)/g;
     let lm;
     while ((lm = lineRegex.exec(inputText)) !== null) {
-      if (lm[0].length === 0 && lm.index === inputText.length) break;
+      const fullMatch = lm[0];
       const lineContent = lm[1];
       const trailing = lm[2];
-      if (trailing && trailing.length > 0) {
-        const startCharIdx = [...inputText.slice(0, lm.index + lineContent.length)].length;
+
+      const hasTab = trailing.includes('\t');
+      const isRepeatedOrTab = hasTab || trailing.length >= 2;
+
+      if (isRepeatedOrTab) {
+        const matchStartInInput = lm.index + (fullMatch.startsWith('\n') ? 1 : 0);
+        const startCharIdx = [...inputText.slice(0, matchStartInInput + lineContent.length)].length;
         const trailingLen = [...trailing].length;
         for (let i = 0; i < trailingLen; i++) {
           trailingWsIndices.add(startCharIdx + i);
@@ -1466,10 +1475,83 @@
     }
   }
 
+  function splitChatIntoMessages(rawText) {
+    if (!rawText) return [];
+    rawText = (rawText || '').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+    if (!rawText) return [];
+
+    if (window.ChatParsers) {
+      const P = window.ChatParsers;
+      try {
+        const wa = P.parseWhatsAppTxt(rawText);
+        if (wa && Array.isArray(wa.messages) && wa.messages.length > 1) {
+          return wa.messages.map((m, idx) => ({
+            index: idx + 1,
+            lineNumber: m.lineNumber || (idx + 1),
+            sender: m.sender || null,
+            timestamp: m.timestamp || null,
+            rawText: m.rawText || m.cleanText || '',
+            cleanText: m.cleanText || m.rawText || ''
+          }));
+        }
+
+        const gen = P.parseGenericTxt(rawText);
+        if (gen && Array.isArray(gen.messages) && gen.messages.length > 1) {
+          return gen.messages.map((m, idx) => ({
+            index: idx + 1,
+            lineNumber: m.lineNumber || (idx + 1),
+            sender: m.sender || null,
+            timestamp: m.timestamp || null,
+            rawText: m.rawText || m.cleanText || '',
+            cleanText: m.cleanText || m.rawText || ''
+          }));
+        }
+      } catch (err) {
+        console.warn('Error running ChatParsers:', err);
+      }
+    }
+
+    // Generic multi-line fallback: split lines
+    const lines = rawText.split('\n');
+    if (lines.length > 1) {
+      const msgs = [];
+      lines.forEach((line, idx) => {
+        const trimmed = line.trim();
+        if (trimmed.length > 0) {
+          let sender = null;
+          let body = line;
+          const colonMatch = line.match(/^[\u200E\u200F\s]*([A-Za-z\u0600-\u06FF0-9_\-\s]{1,30}):\s*([\s\S]*)$/);
+          if (colonMatch && !colonMatch[1].startsWith('http')) {
+            sender = colonMatch[1].trim();
+            body = colonMatch[2];
+          }
+
+          msgs.push({
+            index: msgs.length + 1,
+            lineNumber: idx + 1,
+            sender: sender,
+            timestamp: null,
+            rawText: body || line,
+            cleanText: body || line
+          });
+        }
+      });
+      if (msgs.length > 1) return msgs;
+    }
+
+    return [{
+      index: 1,
+      lineNumber: 1,
+      sender: null,
+      timestamp: null,
+      rawText: rawText,
+      cleanText: rawText
+    }];
+  }
+
   function _parseAndApplySteganalysisFile(file, rawText) {
     rawText = (rawText || '').replace(/^\uFEFF/, '').replace(/\r/g, '');
     const ext = file.name.split('.').pop().toLowerCase();
-    let parsedResult = null;
     let messageList = [];
     let formattedChatText = '';
 
@@ -1477,35 +1559,27 @@
       const P = window.ChatParsers;
       try {
         if (ext === 'json') {
-          parsedResult = P.parseTelegramJson(rawText);
-          if (!parsedResult || !parsedResult.messages || parsedResult.messages.length === 0) {
-            parsedResult = P.parseMetaJson(rawText);
-          }
-          if (!parsedResult || !parsedResult.messages || parsedResult.messages.length === 0) {
-            parsedResult = P.parseGenericJson(rawText);
-          }
+          let parsed = P.parseTelegramJson(rawText);
+          if (!parsed || !parsed.messages || parsed.messages.length === 0) parsed = P.parseMetaJson(rawText);
+          if (!parsed || !parsed.messages || parsed.messages.length === 0) parsed = P.parseGenericJson(rawText);
+          if (parsed && Array.isArray(parsed.messages)) messageList = parsed.messages;
         } else if (ext === 'csv') {
-          parsedResult = P.parseGenericCsv(rawText);
+          const parsed = P.parseGenericCsv(rawText);
+          if (parsed && Array.isArray(parsed.messages)) messageList = parsed.messages;
         } else if (ext === 'html' || ext === 'htm') {
-          parsedResult = P.parseGenericHtml(rawText);
+          const parsed = P.parseGenericHtml(rawText);
+          if (parsed && Array.isArray(parsed.messages)) messageList = parsed.messages;
         } else {
-          // .txt or generic
-          parsedResult = P.parseWhatsAppTxt(rawText);
-          if (!parsedResult || !parsedResult.messages || parsedResult.messages.length === 0) {
-            parsedResult = P.parseGenericTxt(rawText);
-          }
+          // .txt or generic file: run splitChatIntoMessages
+          messageList = splitChatIntoMessages(rawText);
         }
       } catch (err) {
         console.warn('Parser error in _parseAndApplySteganalysisFile:', err);
       }
     }
 
-    if (parsedResult) {
-      if (Array.isArray(parsedResult.messages)) {
-        messageList = parsedResult.messages;
-      } else if (Array.isArray(parsedResult)) {
-        messageList = parsedResult;
-      }
+    if (!messageList || messageList.length === 0) {
+      messageList = splitChatIntoMessages(rawText);
     }
 
     _steganalysisParsedMessages = messageList;
@@ -1664,8 +1738,12 @@
 
       if (hasFile) {
         text = _steganalysisUploadedFileText;
+        if (!_steganalysisParsedMessages || _steganalysisParsedMessages.length <= 1) {
+          _steganalysisParsedMessages = splitChatIntoMessages(text);
+        }
       } else if (hasText) {
         text = textInput.value;
+        _steganalysisParsedMessages = splitChatIntoMessages(text);
       }
 
       if (!text || text.trim().length === 0) {
@@ -1704,6 +1782,65 @@
           renderSummary(currentAnalysis, risk);
         }
 
+        // Store result for Simplified Report Page
+        try {
+          // Identify suspect messages (only messages containing stego characters)
+          let suspectMessages = [];
+          if (_steganalysisParsedMessages && _steganalysisParsedMessages.length > 0) {
+            _steganalysisParsedMessages.forEach((msg, idx) => {
+              const msgText = msg.rawText || msg.cleanText || (typeof msg === 'string' ? msg : '');
+              const msgAnalysis = analyzeText(msgText);
+              if (msgAnalysis.totalFound > 0) {
+                suspectMessages.push({
+                  index: idx + 1,
+                  sender: msg.sender || (_currentSteganalysisFile ? _currentSteganalysisFile.name : `Participant #${idx+1}`),
+                  timestamp: msg.timestamp || new Date().toLocaleString(),
+                  rawText: msgText,
+                  totalFound: msgAnalysis.totalFound,
+                  techniques: msgAnalysis.techniques,
+                  results: msgAnalysis.results,
+                  sanitizedText: (function() {
+                    if (window.StegSanitize && typeof window.StegSanitize.sanitizeText === 'function') {
+                      return window.StegSanitize.sanitizeText(msgText).sanitizedText;
+                    }
+                    return msgText.replace(/[\u{200B}-\u{200F}\u{202A}-\u{202E}\u{FE00}-\u{FE0F}\u{E0100}-\u{E01EF}]/gu, '');
+                  })()
+                });
+              }
+            });
+          }
+
+          const cleanWholeText = (function() {
+            if (window.StegSanitize && typeof window.StegSanitize.sanitizeText === 'function') {
+              return window.StegSanitize.sanitizeText(text).sanitizedText;
+            }
+            return text.replace(/[\u{200B}-\u{200F}\u{202A}-\u{202E}\u{FE00}-\u{FE0F}\u{E0100}-\u{E01EF}]/gu, '');
+          })();
+
+          const simplifiedPayload = {
+            inputText: text,
+            totalFound: currentAnalysis.totalFound,
+            distinctTypes: currentAnalysis.distinctTypes,
+            computationTimeMs: currentAnalysis.computationTimeMs,
+            techniques: currentAnalysis.techniques,
+            linguisticEval: currentAnalysis.linguisticEval,
+            matchedSignatures: currentAnalysis.matchedSignatures,
+            uniqueSymbols: currentAnalysis.uniqueSymbols,
+            rawSymbolsString: currentAnalysis.results.map(r => String.fromCodePoint(r.codePoint)).join(''),
+            sanitizedText: cleanWholeText,
+            totalConversationCount: _steganalysisParsedMessages ? _steganalysisParsedMessages.length : 1,
+            suspectMessages: suspectMessages,
+            metadata: {
+              sender: (_currentSteganalysisFile ? _currentSteganalysisFile.name : null),
+              timestamp: (_steganalysisDateFrom ? `${_steganalysisDateFrom} - ${_steganalysisDateTo}` : new Date().toLocaleString())
+            },
+            results: currentAnalysis.results
+          };
+          localStorage.setItem('stegoSimplifiedResult', JSON.stringify(simplifiedPayload));
+        } catch (storageErr) {
+          console.warn('Failed to save stegoSimplifiedResult to localStorage:', storageErr);
+        }
+
         analyzeBtn.disabled = false;
         analyzeBtn.innerHTML = `
           <span class="material-symbols-outlined" style="font-size:18px">search_insights</span>
@@ -1713,7 +1850,7 @@
         if (typeof showToast === 'function') {
           showToast('✅ ' + t('steganalysisCompleted'));
         }
-        if (resultsPanel) {
+        if (resultsPanel && typeof resultsPanel.scrollIntoView === 'function') {
           setTimeout(() => {
             resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 100);
@@ -1858,17 +1995,16 @@
       if (hiddenClusters.has(i)) {
         const cluster = hiddenClusters.get(i);
         const count = cluster.length;
-        const tooltipText = String(count);
+        const clusterJson = encodeURIComponent(JSON.stringify(cluster.map(c => ({ name: c.name, hexCode: c.hexCode }))));
 
-        let statusClass = 'underscore--success';
+        let statusClass = 'underscore--stego';
         if (cluster.some(item => item.category === 'directional' || item.category === 'bom')) {
           statusClass = 'underscore--error';
         } else if (cluster.some(item => item.category === 'space' || item.category === 'mongolianFVS' || item.category === 'homograph')) {
           statusClass = 'underscore--warning';
         }
 
-        const spacerHtml = `<span class="visual-underscore-spacer ${statusClass}" title="${escSafe(tooltipText)}">&nbsp;</span>`;
-        charHtml = spacerHtml + charHtml;
+        charHtml = `<span class="visual-underscore ${statusClass}" data-stego-cluster="${clusterJson}">${charHtml}<span class="stego-visual-badge">${count}</span></span>`;
       }
 
       html += charHtml;
@@ -1877,16 +2013,16 @@
     if (hiddenClusters.has(n)) {
       const cluster = hiddenClusters.get(n);
       const count = cluster.length;
-      const tooltipText = String(count);
+      const clusterJson = encodeURIComponent(JSON.stringify(cluster.map(c => ({ name: c.name, hexCode: c.hexCode }))));
 
-      let statusClass = 'underscore--success';
+      let statusClass = 'underscore--stego';
       if (cluster.some(item => item.category === 'directional' || item.category === 'bom')) {
         statusClass = 'underscore--error';
       } else if (cluster.some(item => item.category === 'space' || item.category === 'mongolianFVS' || item.category === 'homograph')) {
         statusClass = 'underscore--warning';
       }
 
-      html += `<span class="visual-underscore-spacer ${statusClass}" title="${escSafe(tooltipText)}">&nbsp;</span>`;
+      html += `<span class="visual-underscore ${statusClass}" data-stego-cluster="${clusterJson}">&nbsp;<span class="stego-visual-badge">${count}</span></span>`;
     }
 
     if (n > maxPreviewChars) {
@@ -1896,81 +2032,542 @@
     return html;
   }
 
+  // ── RENDER HORIZONTAL THREAT METER ─────────────────────────────
+  function renderHorizontalThreatMeter(analysis, risk) {
+    let confidencePct = 0;
+    let verdictLabel = t('riskClean');
+    let verdictColor = '#4CAF50';
+
+    if (analysis.linguisticEval && analysis.linguisticEval.isNatural) {
+      confidencePct = 15;
+      verdictLabel = t('riskLow');
+      verdictColor = '#E6A817';
+    } else if (analysis.totalFound > 0) {
+      if (analysis.matchedSignatures && analysis.matchedSignatures.length > 0) {
+        confidencePct = 99;
+      } else if (analysis.totalFound > 20) {
+        confidencePct = 95;
+      } else if (analysis.totalFound > 5) {
+        confidencePct = 85;
+      } else {
+        confidencePct = 65;
+      }
+
+      if (confidencePct > 70) {
+        verdictLabel = t('riskCritical') || 'Critical Risk';
+        verdictColor = '#B3261E';
+      } else {
+        verdictLabel = t('riskMedium') || 'Suspicious Activity';
+        verdictColor = '#E6A817';
+      }
+    }
+
+    const curLang = localStorage.getItem('stegoLang') || document.documentElement.lang || 'en';
+    const totalFoundText = curLang === 'ar' ? `${analysis.totalFound} رمز مكتشف` : `${analysis.totalFound} symbols detected`;
+
+    return `
+      <div class="threat-meter-horizontal">
+        <div class="threat-meter-header">
+          <div class="threat-meter-title-wrap">
+            <span class="material-symbols-outlined" style="color: ${verdictColor}; font-size: 22px;">speed</span>
+            <span>${t('threatMeterLabel')}</span>
+          </div>
+          <div class="threat-meter-score-wrap">
+            <span class="text-body-xs" style="color: var(--color-on-surface-variant); font-weight: 600;">${totalFoundText}</span>
+            <span class="threat-meter-score-badge" style="background: ${verdictColor}22; color: ${verdictColor}; border: 1px solid ${verdictColor}55;">
+              ${confidencePct}% • ${verdictLabel}
+            </span>
+          </div>
+        </div>
+        <div class="threat-meter-track">
+          <div class="threat-meter-fill" id="horizontalThreatFill" style="width: 0%; background: ${verdictColor};"></div>
+        </div>
+        <div class="threat-meter-ticks">
+          <span>0%</span>
+          <span>25%</span>
+          <span>50%</span>
+          <span>75%</span>
+          <span>100%</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // ── RENDER DUAL SHA-256 HASH CONSOLE (PER SUSPECT MESSAGE) ───
+  function renderDualHashConsole(cleanText, rawStegoText, sIdx) {
+    const curLang = localStorage.getItem('stegoLang') || document.documentElement.lang || 'en';
+    const copyHint = curLang === 'ar' ? 'انقر للنسخ' : 'Click to copy';
+
+    return `
+      <div class="hash-console-block hash-console-block--card">
+        <div class="hash-console-toolbar">
+          <div class="hash-console-toolbar__title">
+            <span class="material-symbols-outlined" style="color: var(--color-primary); font-size: 16px;">fingerprint</span>
+            <span>${t('hashBlockTitle')}</span>
+          </div>
+        </div>
+        <div class="hash-console-body">
+          <div class="hash-console-grid">
+            <!-- Column 1: Clean Cover Hash Tile -->
+            <div class="hash-tile hash-tile--clean btn-copy-card-clean-hash" data-idx="${sIdx}" role="button" tabindex="0" title="${copyHint}">
+              <div class="hash-tile__header">
+                <div class="hash-tile__label hash-tile__label--clean">
+                  <span class="material-symbols-outlined" style="font-size: 15px;">verified</span>
+                  <span>${t('hashCleanLabel')}</span>
+                </div>
+                <span class="hash-tile__hint">
+                  <span class="material-symbols-outlined" style="font-size: 13px;">content_copy</span>
+                  <span>${copyHint}</span>
+                </span>
+              </div>
+              <code class="hash-tile__code" id="stego-clean-hash-${sIdx}">Computing SHA-256...</code>
+            </div>
+
+            <!-- Column 2: Stego Cover Hash Tile -->
+            <div class="hash-tile hash-tile--stego btn-copy-card-stego-hash" data-idx="${sIdx}" role="button" tabindex="0" title="${copyHint}">
+              <div class="hash-tile__header">
+                <div class="hash-tile__label hash-tile__label--stego">
+                  <span class="material-symbols-outlined" style="font-size: 15px;">lock_clock</span>
+                  <span>${t('hashStegoLabel')}</span>
+                </div>
+                <span class="hash-tile__hint">
+                  <span class="material-symbols-outlined" style="font-size: 13px;">content_copy</span>
+                  <span>${copyHint}</span>
+                </span>
+              </div>
+              <code class="hash-tile__code" id="stego-stego-hash-${sIdx}">Computing SHA-256...</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ── TRIGGER ASYNC SHA-256 CALCULATION FOR A SPECIFIC SUSPECT CARD ─
+  async function computeAndFillCardHashes(cleanText, rawStegoText, sIdx) {
+    const cleanEl = document.getElementById(`stego-clean-hash-${sIdx}`);
+    const stegoEl = document.getElementById(`stego-stego-hash-${sIdx}`);
+    if (!cleanEl || !stegoEl) return;
+
+    try {
+      if (typeof sha256 === 'function') {
+        const cleanHash = await sha256(cleanText);
+        const stegoHash = await sha256(rawStegoText);
+        cleanEl.textContent = cleanHash;
+        stegoEl.textContent = stegoHash;
+      } else {
+        cleanEl.textContent = '(sha256 unavailable)';
+        stegoEl.textContent = '(sha256 unavailable)';
+      }
+    } catch (err) {
+      console.warn('Error calculating hashes for suspect card', sIdx, err);
+      cleanEl.textContent = 'Hash error';
+      stegoEl.textContent = 'Hash error';
+    }
+  }
+
+  // ── MAIN RESULTS TABLE OVERHAUL (SUSPECT MESSAGES ONLY) ────────
   function renderResultsTable(analysis) {
     const container = document.getElementById('steganalysisResultsBody');
     if (!container) return;
 
-    const startIdx = (currentPage - 1) * PAGE_SIZE;
-    const endIdx = Math.min(startIdx + PAGE_SIZE, analysis.results.length);
-    const paginatedResults = analysis.results.slice(startIdx, endIdx);
+    const curLang = localStorage.getItem('stegoLang') || document.documentElement.lang || 'en';
 
-    let tableRows = '';
-    paginatedResults.forEach((item, idx) => {
-      const catKey = CATEGORY_I18N[item.category] || item.category;
-      const catLabel = t(catKey);
-      const ctxBefore = escSafe(item.contextBefore);
-      const ctxAfter = escSafe(item.contextAfter);
-      const globalIdx = startIdx + idx + 1;
+    // 1. Determine Suspect Messages (Only messages that contain steganography)
+    let suspectMessages = [];
+    if (_steganalysisParsedMessages && _steganalysisParsedMessages.length > 0) {
+      _steganalysisParsedMessages.forEach((msg, idx) => {
+        const rawContent = msg.rawText || msg.cleanText || (typeof msg === 'string' ? msg : '');
+        const msgAnalysis = analyzeText(rawContent);
+        if (msgAnalysis.totalFound > 0) {
+          suspectMessages.push({
+            index: idx + 1,
+            lineNumber: msg.lineNumber || (idx + 1),
+            sender: msg.sender || (_currentSteganalysisFile ? _currentSteganalysisFile.name : null),
+            timestamp: msg.timestamp || '',
+            rawText: rawContent,
+            analysis: msgAnalysis,
+            sanitizedText: (function() {
+              if (window.StegSanitize && typeof window.StegSanitize.sanitizeText === 'function') {
+                return window.StegSanitize.sanitizeText(rawContent).sanitizedText;
+              }
+              return rawContent.replace(/[\u{200B}-\u{200F}\u{202A}-\u{202E}\u{FE00}-\u{FE0F}\u{E0100}-\u{E01EF}]/gu, '');
+            })()
+          });
+        }
+      });
+    }
 
-      let rowModifier = 'row--warning';
-      if (item.category === 'directional' || item.category === 'bom') {
-        rowModifier = 'row--error';
-      } else if (item.category === 'zeroWidth' || item.category === 'variationSelector') {
-        rowModifier = 'row--success';
-      }
+    // If direct text input without multiple chat messages, treat as a single suspect item if it has hidden characters
+    if (suspectMessages.length === 0 && analysis.totalFound > 0) {
+      suspectMessages.push({
+        index: 1,
+        lineNumber: 1,
+        sender: null,
+        timestamp: '',
+        rawText: analysis.inputText,
+        analysis: analysis,
+        sanitizedText: (function() {
+          if (window.StegSanitize && typeof window.StegSanitize.sanitizeText === 'function') {
+            return window.StegSanitize.sanitizeText(analysis.inputText).sanitizedText;
+          }
+          return analysis.inputText.replace(/[\u{200B}-\u{200F}\u{202A}-\u{202E}\u{FE00}-\u{FE0F}\u{E0100}-\u{E01EF}]/gu, '');
+        })()
+      });
+    }
 
-      tableRows += `
-        <tr class="${rowModifier}">
-          <td style="text-align: center;"><span class="stego-table__index">#${globalIdx}</span></td>
-          <td style="font-family: monospace; font-weight: 600;"><code style="font-family:'Sora', monospace; font-weight:600; color:var(--color-primary); background:rgba(187,209,0,0.08); padding:2px 8px; border-radius:var(--radius-default); font-size:0.75rem;">${item.hexCode}</code></td>
-          <td style="font-weight: 600; color: var(--color-on-surface);">${escSafe(item.name)}</td>
-          <td><span class="steganalysis-cat-chip steganalysis-cat--${item.category}">${catLabel}</span></td>
-          <td><span class="pos-chip">#${item.position}</span></td>
-          <td dir="ltr">
-            <span class="steganalysis-context">
-              ${ctxBefore}<span class="steganalysis-context__marker" title="${t('markerHiddenText')}"><span class="material-symbols-outlined" style="font-size: 11px; font-weight: bold; vertical-align: middle; line-height: 1;">visibility_off</span><span style="font-size: 10px; font-weight: 700; vertical-align: middle; text-transform: uppercase;">${t('markerHiddenText')}</span></span>${ctxAfter}
-            </span>
-          </td>
-        </tr>
+    // If no suspect messages found at all, render clean state
+    if (suspectMessages.length === 0) {
+      renderCleanState();
+      return;
+    }
+
+    // 2. Build Top Components (Horizontal Threat Meter ONLY - No global hash box)
+    const threatMeterHtml = renderHorizontalThreatMeter(analysis, classifyRisk(analysis.totalFound, analysis.linguisticEval));
+
+    // 3. Build Suspect Messages Cards (Scanner-like output with embedded hash & hex)
+    let suspectCardsHtml = '';
+    suspectMessages.forEach((msg, sIdx) => {
+      const msgAnalysis = msg.analysis;
+      const hexList = msgAnalysis.results.map(r => r.hexCode).join(' ');
+
+      // Visual diff for this message only
+      const msgVisualDiff = renderVisualMap(msg.rawText, msgAnalysis);
+
+      // Dual Hash Console for this message only
+      const msgDualHashHtml = renderDualHashConsole(msg.sanitizedText, msg.rawText, sIdx);
+
+      // Collapsible matching section for this message
+      const msgMatchingSection = renderSignatureOrInventorySection(msgAnalysis);
+
+      const senderSpan = msg.sender ? `<span class="suspect-sender">${escSafe(msg.sender)}</span>` : '';
+      const timeSpan = msg.timestamp ? `<span class="suspect-time"><span class="material-symbols-outlined" style="font-size:13px;">schedule</span>${escSafe(msg.timestamp)}</span>` : '';
+      const lineSpan = msg.lineNumber ? `<span class="suspect-line-badge">L${msg.lineNumber}</span>` : '';
+
+      suspectCardsHtml += `
+        <div class="suspect-message-card" id="suspect-msg-${sIdx}">
+          <!-- Header (Scanner Style) -->
+          <div class="suspect-message-header">
+            <div class="suspect-message-meta">
+              <span class="suspect-idx-badge">#${msg.index}</span>
+              ${lineSpan}
+              ${senderSpan}
+              ${timeSpan}
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="suspect-stego-badge">
+                <span class="material-symbols-outlined" style="font-size:14px; vertical-align:middle;">warning</span>
+                ${msgAnalysis.totalFound} ${curLang === 'ar' ? 'رمز مخفي' : 'hidden symbols'}
+              </span>
+            </div>
+          </div>
+
+          <!-- Visual Diff Mapped Body for this message only -->
+          <div class="suspect-message-body" dir="auto">
+            ${msgVisualDiff}
+          </div>
+
+          <!-- Dual SHA-256 Hash Console for this message only -->
+          ${msgDualHashHtml}
+
+          <!-- Hexadecimal Sequence String Box with Single-Row Hover Actions Toolbar -->
+          <div class="stego-hex-box" id="stego-hex-${sIdx}">
+            <div class="stego-hex-header">
+              <div class="stego-hex-header__title">
+                <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary);">terminal</span>
+                <span>${t('hexSequenceTitle') || 'Extracted Hexadecimal Sequence'}</span>
+              </div>
+            </div>
+            <div class="stego-hex-wrapper">
+              <div class="stego-hex-content">
+                <code>${escSafe(hexList)}</code>
+              </div>
+              <div class="stego-hex-hover-toolbar">
+                <button type="button" class="btn-action-secondary btn-copy-suspect-hex" data-idx="${sIdx}" title="${curLang === 'ar' ? 'نسخ سلسلة الأكواد السداسية' : 'Copy Hexadecimal Sequence'}">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">terminal</span>
+                  <span>${t('btnCopyHexSequence') || 'Copy Sequence'}</span>
+                </button>
+                <button type="button" class="btn-action-secondary btn-copy-suspect-clean" data-idx="${sIdx}" title="${curLang === 'ar' ? 'نسخ الرسالة بعد تنظيفها' : 'Copy Clean Sanitized Message'}">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">cleaning_services</span>
+                  <span>${t('btnCopyMessageClean') || 'Copy Clean Message'}</span>
+                </button>
+                <button type="button" class="btn-action-secondary btn-copy-suspect-stego" data-idx="${sIdx}" title="${curLang === 'ar' ? 'نسخ الرسالة مع أحرف الإخفاء' : 'Copy Raw Stego Message'}">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">lock_open</span>
+                  <span>${t('btnCopyMessageStego') || 'Copy Stego Message'}</span>
+                </button>
+                <button type="button" class="btn-action-secondary btn-copy-suspect-symbols" data-idx="${sIdx}" title="${curLang === 'ar' ? 'نسخ الرموز المخفية فقط' : 'Copy Covert Symbols Only'}">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">data_object</span>
+                  <span>${t('btnCopyMessageSymbols') || 'Copy Symbols'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collapsible Matching Table Dropdown (Only appears when clicked) -->
+          <details class="stego-matching-details">
+            <summary>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:17px;">table_chart</span>
+                <span>${t('matchingDropdownTitle')}</span>
+              </div>
+              <span class="material-symbols-outlined details-chevron" style="font-size:18px;">expand_more</span>
+            </summary>
+            <div class="stego-matching-details__body">
+              ${msgMatchingSection}
+            </div>
+          </details>
+        </div>
       `;
     });
 
-    const techniquesBannerHtml = renderTechniquesBanner(analysis);
-    const signatureOrInventoryHtml = renderSignatureOrInventorySection(analysis);
+    const totalMsgsCount = _steganalysisParsedMessages && _steganalysisParsedMessages.length > 0 ? _steganalysisParsedMessages.length : 1;
+    const filterBannerText = totalMsgsCount > 1
+      ? (t('chatFilterBannerFound') || `Steganography detected in {stegoCount} of {totalCount} messages in this conversation.`)
+          .replace('{stegoCount}', suspectMessages.length)
+          .replace('{totalCount}', totalMsgsCount)
+      : (t('chatFilterBannerSingle') || `Single input text analyzed. Hidden characters detected.`);
 
     container.innerHTML = `
-      ${techniquesBannerHtml}
-      ${signatureOrInventoryHtml}
+      ${threatMeterHtml}
 
-      <div class="steganalysis-visual-map">
-        <div class="visual-map__title">
-          <span class="material-symbols-outlined" style="color: var(--color-primary); font-size: 1.20rem; vertical-align: middle;">map</span>
-          <span>${t('visualMapTitle')}</span>
+      <div class="stego-chat-filter-banner" style="display:flex; align-items:center; justify-content:space-between; background:var(--color-surface-container); border:1px solid var(--color-outline-variant); border-radius:var(--radius-md); padding:10px 16px; margin-bottom:var(--space-md);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:20px;">filter_alt</span>
+          <span style="font-weight:600; font-size:0.9rem;">${escSafe(filterBannerText)}</span>
         </div>
-        <div class="visual-map__content" dir="auto">${renderVisualMap(analysis.inputText, analysis)}</div>
+        <span class="badge badge--primary" style="font-weight:700;">${suspectMessages.length} ${curLang === 'ar' ? 'رسائل مشتبهة' : 'suspect msgs'}</span>
       </div>
 
-      <div class="steganalysis-table-container">
-        <table class="steganalysis-table">
-          <thead>
-            <tr>
-              <th style="width: 60px; text-align: center;">${t('tableColIndex')}</th>
-              <th style="width: 110px;">${t('tableColHex')}</th>
-              <th>${t('tableColName')}</th>
-              <th style="width: 140px;">${t('tableColCategory')}</th>
-              <th style="width: 100px;">${t('tableColPosition')}</th>
-              <th>${t('tableColContext')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRows}
-          </tbody>
-        </table>
+      <div class="stego-suspects-container">
+        ${suspectCardsHtml}
       </div>
     `;
 
-    renderPagination(analysis.results.length);
-    applyScrollReveal();
+    // 4. Trigger Smooth Fill of Horizontal Threat Meter
+    setTimeout(() => {
+      const fillEl = document.getElementById('horizontalThreatFill');
+      if (fillEl) {
+        let pct = 0;
+        if (analysis.totalFound > 20) pct = 95;
+        else if (analysis.totalFound > 5) pct = 85;
+        else if (analysis.totalFound > 0) pct = 65;
+        fillEl.style.width = `${pct}%`;
+      }
+    }, 60);
+
+    // 5. Compute Hashes Asynchronously per Suspect Card
+    suspectMessages.forEach((msg, sIdx) => {
+      computeAndFillCardHashes(msg.sanitizedText, msg.rawText, sIdx);
+    });
+
+    // 6. Setup Copy Handlers for Per-Card Hashes
+    container.querySelectorAll('.btn-copy-card-clean-hash').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const sIdx = this.getAttribute('data-idx');
+        const codeEl = document.getElementById(`stego-clean-hash-${sIdx}`);
+        if (codeEl && codeEl.textContent) {
+          navigator.clipboard.writeText(codeEl.textContent).then(() => {
+            if (typeof showToast === 'function') showToast('✅ ' + t('toastHashCopied'));
+            else alert(t('toastHashCopied'));
+          });
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-copy-card-stego-hash').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const sIdx = this.getAttribute('data-idx');
+        const codeEl = document.getElementById(`stego-stego-hash-${sIdx}`);
+        if (codeEl && codeEl.textContent) {
+          navigator.clipboard.writeText(codeEl.textContent).then(() => {
+            if (typeof showToast === 'function') showToast('✅ ' + t('toastHashCopied'));
+            else alert(t('toastHashCopied'));
+          });
+        }
+      });
+    });
+
+    // 7. Setup Copy Handlers for Suspect Cards
+    container.querySelectorAll('.btn-copy-suspect-clean').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const idx = parseInt(this.getAttribute('data-idx'), 10);
+        const item = suspectMessages[idx];
+        if (item) {
+          navigator.clipboard.writeText(item.sanitizedText).then(() => {
+            if (typeof showToast === 'function') showToast('✅ ' + t('toastCopiedMessageClean'));
+            else alert(t('toastCopiedMessageClean'));
+          });
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-copy-suspect-stego').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const idx = parseInt(this.getAttribute('data-idx'), 10);
+        const item = suspectMessages[idx];
+        if (item) {
+          navigator.clipboard.writeText(item.rawText).then(() => {
+            if (typeof showToast === 'function') showToast('✅ ' + t('toastCopiedMessageStego'));
+            else alert(t('toastCopiedMessageStego'));
+          });
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-copy-suspect-symbols').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const idx = parseInt(this.getAttribute('data-idx'), 10);
+        const item = suspectMessages[idx];
+        if (item) {
+          const rawSymbols = item.analysis.results.map(r => String.fromCodePoint(r.codePoint)).join('');
+          navigator.clipboard.writeText(rawSymbols).then(() => {
+            if (typeof showToast === 'function') showToast('✅ ' + t('toastCopiedSymbols'));
+            else alert(t('toastCopiedSymbols'));
+          });
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-copy-suspect-hex').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const idx = parseInt(this.getAttribute('data-idx'), 10);
+        const item = suspectMessages[idx];
+        if (item) {
+          const hexStr = item.analysis.results.map(r => r.hexCode).join(' ');
+          navigator.clipboard.writeText(hexStr).then(() => {
+            if (typeof showToast === 'function') showToast('✅ ' + t('toastCopiedHex'));
+            else alert(t('toastCopiedHex'));
+          });
+        }
+      });
+    });
+
+    // 8. Initialize Modern Floating Stego Popovers
+    initStegoPopovers(container);
+  }
+
+  // ── Modern Floating Stego Tooltip / Popover Controller ──
+  function initStegoPopovers(container) {
+    if (!container) return;
+
+    let popover = document.getElementById('stego-floating-popover');
+    if (!popover) {
+      popover = document.createElement('div');
+      popover.id = 'stego-floating-popover';
+      popover.className = 'stego-floating-popover';
+      popover.innerHTML = `
+        <div class="stego-popover-header">
+          <div class="stego-popover-title-wrap">
+            <span class="material-symbols-outlined stego-popover-icon">shield</span>
+            <span class="stego-popover-title">موضع إخفاء سري</span>
+          </div>
+          <span class="stego-popover-count-pill" id="stego-popover-count">0</span>
+        </div>
+        <div class="stego-popover-body">
+          <div class="stego-popover-list" id="stego-popover-list"></div>
+        </div>
+        <div class="stego-popover-footer">
+          <span class="material-symbols-outlined" style="font-size: 13px; color: var(--color-primary);">info</span>
+          <span id="stego-popover-footer-text">💡 تم استخراج الرموز بدقة من هذا الموضع</span>
+        </div>
+      `;
+      document.body.appendChild(popover);
+    }
+
+    const curLang = localStorage.getItem('stegoLang') || document.documentElement.lang || 'en';
+    let hideTimeout = null;
+
+    const showPopoverFor = (targetEl) => {
+      clearTimeout(hideTimeout);
+      const rawCluster = targetEl.getAttribute('data-stego-cluster');
+      if (!rawCluster) return;
+
+      let cluster = [];
+      try {
+        cluster = JSON.parse(decodeURIComponent(rawCluster));
+      } catch (e) {
+        return;
+      }
+      if (!cluster || cluster.length === 0) return;
+
+      const titleEl = popover.querySelector('.stego-popover-title');
+      const countEl = document.getElementById('stego-popover-count');
+      const listEl = document.getElementById('stego-popover-list');
+      const footerEl = document.getElementById('stego-popover-footer-text');
+
+      if (titleEl) {
+        titleEl.textContent = curLang === 'ar' ? 'موضع إخفاء سري' : 'Hidden Stego Insertion';
+      }
+      if (countEl) {
+        countEl.textContent = curLang === 'ar' ? `${cluster.length} رمز` : `${cluster.length} symbols`;
+      }
+      if (footerEl) {
+        footerEl.textContent = curLang === 'ar' ? '💡 تم استخراج الرموز بدقة من هذا الموضع' : '💡 Forensic symbols extracted from this position';
+      }
+
+      if (listEl) {
+        let rowsHtml = '';
+        cluster.forEach((item, idx) => {
+          rowsHtml += `
+            <div class="stego-popover-item">
+              <div class="stego-popover-item-left">
+                <span class="stego-popover-item-idx">#${idx + 1}</span>
+                <span class="stego-popover-item-name">${escSafe(item.name || 'Hidden Symbol')}</span>
+              </div>
+              <code class="stego-popover-item-hex">${escSafe(item.hexCode || '')}</code>
+            </div>
+          `;
+        });
+        listEl.innerHTML = rowsHtml;
+      }
+
+      // Position Popover with collision detection
+      popover.style.display = 'block';
+      popover.style.visibility = 'hidden';
+
+      const rect = targetEl.getBoundingClientRect();
+      const popoverRect = popover.getBoundingClientRect();
+
+      let top = rect.top - popoverRect.height - 10;
+      let left = rect.left + (rect.width / 2) - (popoverRect.width / 2);
+
+      if (top < 10) {
+        top = rect.bottom + 10;
+      }
+      if (left < 12) {
+        left = 12;
+      } else if (left + popoverRect.width > window.innerWidth - 12) {
+        left = window.innerWidth - popoverRect.width - 12;
+      }
+
+      popover.style.top = `${top}px`;
+      popover.style.left = `${left}px`;
+      popover.style.visibility = 'visible';
+      popover.classList.add('is-visible');
+    };
+
+    const hidePopover = () => {
+      hideTimeout = setTimeout(() => {
+        if (popover) {
+          popover.classList.remove('is-visible');
+          setTimeout(() => {
+            if (!popover.classList.contains('is-visible')) {
+              popover.style.display = 'none';
+            }
+          }, 180);
+        }
+      }, 150);
+    };
+
+    popover.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+    popover.addEventListener('mouseleave', hidePopover);
+
+    container.querySelectorAll('[data-stego-cluster]').forEach(el => {
+      el.addEventListener('mouseenter', () => showPopoverFor(el));
+      el.addEventListener('mouseleave', hidePopover);
+      el.addEventListener('focus', () => showPopoverFor(el));
+      el.addEventListener('blur', hidePopover);
+    });
   }
 
   function applyScrollReveal() {
@@ -2128,6 +2725,14 @@
     div.textContent = str;
     return div.innerHTML;
   }
+
+  window.TextSteganalysis = {
+    analyzeText,
+    splitChatIntoMessages,
+    initSteganalysis,
+    renderResultsTable,
+    _parseAndApplySteganalysisFile
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initSteganalysis);

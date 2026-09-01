@@ -479,7 +479,41 @@ function initScrollToTop() {
   });
 }
 
-// ── DEFENSIVE UX: AUTO-LOCK TEXTAREA MIN-HEIGHT ────────────────
+// ── DYNAMIC FLEXIBLE TEXTAREA AUTO-RESIZING ────────────────────
+/**
+ * Automatically adjusts the height of a textarea to match its text content.
+ * When the text is small (e.g. 1 line), the textarea shrinks to a compact height.
+ * When the text is large, the textarea expands dynamically without unnecessary empty space.
+ *
+ * @param {HTMLTextAreaElement} textarea - The textarea element to resize.
+ * @param {number} [minHeight=48] - Minimum height in pixels.
+ * @param {number} [maxHeight=750] - Maximum height in pixels before internal scrolling begins.
+ */
+function autoResizeTextarea(textarea, minHeight = 48, maxHeight = 750) {
+  if (!textarea) return;
+  textarea.style.boxSizing = 'border-box';
+  textarea.style.height = 'auto';
+  const targetHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight);
+  textarea.style.height = `${targetHeight}px`;
+  textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
+}
+
+/**
+ * Initializes auto-resizing on all textareas across the page.
+ */
+function initFlexibleTextareas() {
+  const textareas = document.querySelectorAll('textarea');
+  textareas.forEach(textarea => {
+    const handleResize = () => autoResizeTextarea(textarea);
+    textarea.addEventListener('input', handleResize);
+    textarea.addEventListener('change', handleResize);
+    // Initial size calculation
+    if (textarea.value) {
+      setTimeout(handleResize, 50);
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize unified tab controller
   initTabController();
@@ -487,13 +521,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize Scroll to Top button
   initScrollToTop();
 
-  setTimeout(() => {
-    document.querySelectorAll('textarea').forEach(textarea => {
-      if (textarea.clientHeight > 0 && !textarea.style.minHeight) {
-        textarea.style.minHeight = textarea.clientHeight + 'px';
-      }
-    });
-  }, 100);
+  // Initialize dynamic textarea sizing
+  initFlexibleTextareas();
 
   // Hash-based Tab Routing listeners
   window.addEventListener('hashchange', selectTabFromHash);
@@ -603,5 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
 window.containsEmoji = containsEmoji;
 window.validateEmojiInputs = validateEmojiInputs;
 window.initLiveEmojiValidation = initLiveEmojiValidation;
+window.autoResizeTextarea = autoResizeTextarea;
+window.initFlexibleTextareas = initFlexibleTextareas;
 
 

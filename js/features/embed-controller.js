@@ -262,17 +262,29 @@ function displayEmbeddingResults({ basePositions, xorKey, stegoText, cleanCover,
     if (normalDiv) normalDiv.style.display = 'none';
     if (splitDiv) splitDiv.style.display = 'block';
     const splitCleanEl = document.getElementById('splitCleanCover');
-    if (splitCleanEl) splitCleanEl.value = cleanCover || '';
+    if (splitCleanEl) {
+      splitCleanEl.value = cleanCover || '';
+      if (typeof autoResizeTextarea === 'function') autoResizeTextarea(splitCleanEl);
+    }
     const splitFakeEl = document.getElementById('splitFakeCoverOutput');
-    if (splitFakeEl) splitFakeEl.value = fakeCoverWithVS || '';
+    if (splitFakeEl) {
+      splitFakeEl.value = fakeCoverWithVS || '';
+      if (typeof autoResizeTextarea === 'function') autoResizeTextarea(splitFakeEl);
+    }
     
     const stegoTextEl = document.getElementById('stegoText');
-    if (stegoTextEl) stegoTextEl.value = stegoText || '';
+    if (stegoTextEl) {
+      stegoTextEl.value = stegoText || '';
+      if (typeof autoResizeTextarea === 'function') autoResizeTextarea(stegoTextEl);
+    }
   } else {
     if (normalDiv) normalDiv.style.display = 'block';
     if (splitDiv) splitDiv.style.display = 'none';
     const stegoTextEl = document.getElementById('stegoText');
-    if (stegoTextEl) stegoTextEl.value = stegoText || '';
+    if (stegoTextEl) {
+      stegoTextEl.value = stegoText || '';
+      if (typeof autoResizeTextarea === 'function') autoResizeTextarea(stegoTextEl);
+    }
   }
 }
 
