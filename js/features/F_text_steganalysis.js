@@ -2018,12 +2018,10 @@
   // ── RENDER HORIZONTAL THREAT METER ─────────────────────────────
   function renderHorizontalThreatMeter(analysis, risk) {
     let confidencePct = 0;
-    let verdictLabel = t('riskClean');
     let verdictColor = '#4CAF50';
 
     if (analysis.linguisticEval && analysis.linguisticEval.isNatural) {
       confidencePct = 15;
-      verdictLabel = t('riskLow');
       verdictColor = '#E6A817';
     } else if (analysis.totalFound > 0) {
       if (analysis.matchedSignatures && analysis.matchedSignatures.length > 0) {
@@ -2037,40 +2035,25 @@
       }
 
       if (confidencePct > 70) {
-        verdictLabel = t('riskCritical') || 'Critical Risk';
         verdictColor = '#B3261E';
       } else {
-        verdictLabel = t('riskMedium') || 'Suspicious Activity';
         verdictColor = '#E6A817';
       }
     }
-
-    const curLang = localStorage.getItem('stegoLang') || document.documentElement.lang || 'en';
-    const totalFoundText = curLang === 'ar' ? `${analysis.totalFound} رمز مكتشف` : `${analysis.totalFound} symbols detected`;
 
     return `
       <div class="threat-meter-horizontal">
         <div class="threat-meter-header">
           <div class="threat-meter-title-wrap">
-            <span class="material-symbols-outlined" style="color: ${verdictColor}; font-size: 22px;">speed</span>
+            <span class="material-symbols-outlined" style="color: ${verdictColor}; font-size: 18px;">speed</span>
             <span>${t('threatMeterLabel')}</span>
           </div>
           <div class="threat-meter-score-wrap">
-            <span class="text-body-xs" style="color: var(--color-on-surface-variant); font-weight: 600;">${totalFoundText}</span>
-            <span class="threat-meter-score-badge" style="background: ${verdictColor}22; color: ${verdictColor}; border: 1px solid ${verdictColor}55;">
-              ${confidencePct}% • ${verdictLabel}
-            </span>
+            <span class="threat-meter-pct" id="threatMeterPercent" style="color: ${verdictColor};">${confidencePct}%</span>
           </div>
         </div>
         <div class="threat-meter-track">
           <div class="threat-meter-fill" id="horizontalThreatFill" style="width: 0%; background: ${verdictColor};"></div>
-        </div>
-        <div class="threat-meter-ticks">
-          <span>0%</span>
-          <span>25%</span>
-          <span>50%</span>
-          <span>75%</span>
-          <span>100%</span>
         </div>
       </div>
     `;
@@ -2246,7 +2229,7 @@
           </div>
 
           <!-- Visual Diff Mapped Body for this message only -->
-          <div class="suspect-message-body" dir="auto">
+          <div class="suspect-message-body" dir="auto" data-idx="${sIdx}" role="button" tabindex="0" title="${curLang === 'ar' ? 'انقر لنسخ الرسالة مع الرموز المخفية' : 'Click to copy stego message with hidden symbols'}">
             ${msgVisualDiff}
           </div>
 
@@ -2269,14 +2252,6 @@
                 <button type="button" class="btn-action-secondary btn-copy-suspect-hex" data-idx="${sIdx}" title="${curLang === 'ar' ? 'نسخ سلسلة الأكواد السداسية' : 'Copy Hexadecimal Sequence'}">
                   <span class="material-symbols-outlined" style="font-size: 14px;">terminal</span>
                   <span>${t('btnCopyHexSequence') || 'Copy Sequence'}</span>
-                </button>
-                <button type="button" class="btn-action-secondary btn-copy-suspect-clean" data-idx="${sIdx}" title="${curLang === 'ar' ? 'نسخ الرسالة بعد تنظيفها' : 'Copy Clean Sanitized Message'}">
-                  <span class="material-symbols-outlined" style="font-size: 14px;">cleaning_services</span>
-                  <span>${t('btnCopyMessageClean') || 'Copy Clean Message'}</span>
-                </button>
-                <button type="button" class="btn-action-secondary btn-copy-suspect-stego" data-idx="${sIdx}" title="${curLang === 'ar' ? 'نسخ الرسالة مع أحرف الإخفاء' : 'Copy Raw Stego Message'}">
-                  <span class="material-symbols-outlined" style="font-size: 14px;">lock_open</span>
-                  <span>${t('btnCopyMessageStego') || 'Copy Stego Message'}</span>
                 </button>
                 <button type="button" class="btn-action-secondary btn-copy-suspect-symbols" data-idx="${sIdx}" title="${curLang === 'ar' ? 'نسخ الرموز المخفية فقط' : 'Copy Covert Symbols Only'}">
                   <span class="material-symbols-outlined" style="font-size: 14px;">data_object</span>
@@ -2330,11 +2305,21 @@
     setTimeout(() => {
       const fillEl = document.getElementById('horizontalThreatFill');
       if (fillEl) {
-        let pct = 0;
-        if (analysis.totalFound > 20) pct = 95;
-        else if (analysis.totalFound > 5) pct = 85;
-        else if (analysis.totalFound > 0) pct = 65;
-        fillEl.style.width = `${pct}%`;
+        let confidencePct = 0;
+        if (analysis.linguisticEval && analysis.linguisticEval.isNatural) {
+          confidencePct = 15;
+        } else if (analysis.totalFound > 0) {
+          if (analysis.matchedSignatures && analysis.matchedSignatures.length > 0) {
+            confidencePct = 99;
+          } else if (analysis.totalFound > 20) {
+            confidencePct = 95;
+          } else if (analysis.totalFound > 5) {
+            confidencePct = 85;
+          } else {
+            confidencePct = 65;
+          }
+        }
+        fillEl.style.width = `${confidencePct}%`;
       }
     }, 60);
 
@@ -2370,29 +2355,57 @@
       });
     });
 
-    // 7. Setup Copy Handlers for Suspect Cards
-    container.querySelectorAll('.btn-copy-suspect-clean').forEach(btn => {
-      btn.addEventListener('click', function() {
+    // 7. Setup Click & Selection Copy Handlers for suspect-message-body (Copy with Cover / Stego Text)
+    container.querySelectorAll('.suspect-message-body').forEach(bodyEl => {
+      // Direct Click to Copy
+      bodyEl.addEventListener('click', function(e) {
+        // If user is selecting text, let selection copy handle it
+        const sel = window.getSelection();
+        if (sel && sel.toString().trim().length > 0) return;
+
         const idx = parseInt(this.getAttribute('data-idx'), 10);
         const item = suspectMessages[idx];
-        if (item) {
-          navigator.clipboard.writeText(item.sanitizedText).then(() => {
-            if (typeof showToast === 'function') showToast('✅ ' + t('toastCopiedMessageClean'));
-            else alert(t('toastCopiedMessageClean'));
+        if (item && item.rawText) {
+          navigator.clipboard.writeText(item.rawText).then(() => {
+            if (typeof showToast === 'function') {
+              showToast('📋 ' + (t('toastCopiedMessageStego') || 'Stego message copied to clipboard!'));
+            } else {
+              alert(t('toastCopiedMessageStego'));
+            }
           });
         }
       });
-    });
 
-    container.querySelectorAll('.btn-copy-suspect-stego').forEach(btn => {
-      btn.addEventListener('click', function() {
+      // Keyboard Access (Enter / Space)
+      bodyEl.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const idx = parseInt(this.getAttribute('data-idx'), 10);
+          const item = suspectMessages[idx];
+          if (item && item.rawText) {
+            navigator.clipboard.writeText(item.rawText).then(() => {
+              if (typeof showToast === 'function') {
+                showToast('📋 ' + (t('toastCopiedMessageStego') || 'Stego message copied to clipboard!'));
+              }
+            });
+          }
+        }
+      });
+
+      // Text Selection Copy (Ctrl+C / Right Click Copy)
+      bodyEl.addEventListener('copy', function(e) {
         const idx = parseInt(this.getAttribute('data-idx'), 10);
         const item = suspectMessages[idx];
-        if (item) {
-          navigator.clipboard.writeText(item.rawText).then(() => {
-            if (typeof showToast === 'function') showToast('✅ ' + t('toastCopiedMessageStego'));
-            else alert(t('toastCopiedMessageStego'));
-          });
+        if (item && item.rawText) {
+          e.preventDefault();
+          if (e.clipboardData) {
+            e.clipboardData.setData('text/plain', item.rawText);
+          } else if (window.clipboardData) {
+            window.clipboardData.setData('Text', item.rawText);
+          }
+          if (typeof showToast === 'function') {
+            showToast('📋 ' + (t('toastCopiedMessageStego') || 'Stego message copied to clipboard!'));
+          }
         }
       });
     });
