@@ -87,10 +87,9 @@
   }
 
   const WHATSAPP_PATTERNS = [
-    /^\[(\d{1,2}\/\d{1,2}\/\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?)\]\s+([^:]+?):\s([\s\S]*)/,
-    /^(\d{1,2}\/\d{1,2}\/\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?)\s+-\s+([^:]+?):\s([\s\S]*)/,
-    /^(\d{1,2}\.\d{1,2}\.\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?)\s+-\s+([^:]+?):\s([\s\S]*)/,
-    /^(\d{4}-\d{1,2}-\d{1,2},?\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?)\s+-\s+([^:]+?):\s([\s\S]*)/,
+    /^[\u200E\u200F\s]*\[(\d{1,2}[\/\.\-]\d{1,2}[\/\.\-]\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm]|\s*[\u0600-\u06FF]+)?)\]\s+([^:]+?):\s([\s\S]*)/,
+    /^[\u200E\u200F\s]*(\d{1,2}[\/\.\-]\d{1,2}[\/\.\-]\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm]|\s*[\u0600-\u06FF]+)?)\s+-\s+([^:]+?):\s([\s\S]*)/,
+    /^[\u200E\u200F\s]*(\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2},?\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm]|\s*[\u0600-\u06FF]+)?)\s+-\s+([^:]+?):\s([\s\S]*)/,
   ];
 
   function parseWhatsAppTxt(text) {
@@ -99,7 +98,9 @@
     let ignoredCount = 0;
     let currentMsg = null;
 
-    for (const line of lines) {
+    for (let idx = 0; idx < lines.length; idx++) {
+      const line = lines[idx];
+      const lineNum = idx + 1;
       if (!line.trim()) {
         if (currentMsg) currentMsg.rawLines.push('');
         continue;
@@ -123,7 +124,7 @@
               body = line.substring(colonIdx + 1);
             }
           }
-          matched = { timestamp, sender, body };
+          matched = { timestamp, sender, body, lineNum };
           break;
         }
       }
@@ -133,10 +134,10 @@
           const clean = currentMsg.rawLines.join('\n').trim();
           if (isSystemMessage(clean)) ignoredCount++;
           else if (clean.length > 0) {
-            messages.push(buildMsg('whatsapp', currentMsg.sender, currentMsg.timestamp, currentMsg.rawLines.join('\n'), clean));
+            messages.push(buildMsg('whatsapp', currentMsg.sender, currentMsg.timestamp, currentMsg.rawLines.join('\n'), clean, currentMsg.lineNum));
           }
         }
-        currentMsg = { timestamp: matched.timestamp, sender: matched.sender, rawLines: [matched.body] };
+        currentMsg = { timestamp: matched.timestamp, sender: matched.sender, rawLines: [matched.body], lineNum: matched.lineNum };
       } else if (currentMsg) {
         currentMsg.rawLines.push(line);
       }
@@ -146,7 +147,7 @@
       const clean = currentMsg.rawLines.join('\n').trim();
       if (isSystemMessage(clean)) ignoredCount++;
       else if (clean.length > 0) {
-        messages.push(buildMsg('whatsapp', currentMsg.sender, currentMsg.timestamp, currentMsg.rawLines.join('\n'), clean));
+        messages.push(buildMsg('whatsapp', currentMsg.sender, currentMsg.timestamp, currentMsg.rawLines.join('\n'), clean, currentMsg.lineNum));
       }
     }
 
@@ -325,6 +326,38 @@
     const messages = [];
     let ignoredCount = 0;
     let currentMsg = [];
+    let currentLineNum = 1;
+
+    // Check if ANY lines match GENERIC_PREFIX_PATTERNS
+    let hasPrefixes = false;
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const cleanLine = (typeof extractVSFromText === 'function') ? extractVSFromText(line).cleanText : line;
+      if (GENERIC_PREFIX_PATTERNS.some(p => p.test(cleanLine))) {
+        hasPrefixes = true;
+        break;
+      }
+    }
+
+    // If no standard prefixes are found in a multi-line document/conversation, treat each non-empty line as an independent message
+    if (!hasPrefixes && lines.filter(l => l.trim().length > 0).length > 1) {
+      for (let idx = 0; idx < lines.length; idx++) {
+        const line = lines[idx];
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+
+        let sender = null;
+        let body = line;
+        const colonMatch = line.match(/^[\u200E\u200F\s]*([A-Za-z\u0600-\u06FF0-9_\-\s]{1,30}):\s*([\s\S]*)$/);
+        if (colonMatch && !colonMatch[1].startsWith('http')) {
+          sender = colonMatch[1].trim();
+          body = colonMatch[2];
+        }
+
+        messages.push(buildMsg('generic', sender, null, line, (body || trimmed), idx + 1));
+      }
+      return { platform: 'generic', conversationTitle: null, messages, errors: [], ignoredCount };
+    }
 
     const flush = () => {
       if (currentMsg.length === 0) return;
@@ -338,10 +371,11 @@
       }
 
       if (!clean) ignoredCount++;
-      else messages.push(buildMsg('generic', null, null, raw, clean));
+      else messages.push(buildMsg('generic', null, null, raw, clean, currentLineNum));
     };
 
-    for (const line of lines) {
+    for (let idx = 0; idx < lines.length; idx++) {
+      const line = lines[idx];
       if (!line.trim()) {
         flush();
         currentMsg = [];
@@ -356,7 +390,9 @@
       if (isNew && currentMsg.length > 0) {
         flush();
         currentMsg = [line];
+        currentLineNum = idx + 1;
       } else {
+        if (currentMsg.length === 0) currentLineNum = idx + 1;
         currentMsg.push(line);
       }
     }
@@ -590,11 +626,12 @@
     }
   }
 
-  function buildMsg(platform, sender, timestamp, rawText, cleanText) {
+  function buildMsg(platform, sender, timestamp, rawText, cleanText, lineNumber) {
     return {
       id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       sender,
       timestamp,
+      lineNumber: lineNumber || null,
       rawText,
       cleanText,
       sourceType: 'message',

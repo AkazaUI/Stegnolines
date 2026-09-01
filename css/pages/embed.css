@@ -317,10 +317,12 @@ html.light .result-card {
   line-height: 1.5 !important;
   color: #ddddd8 !important;
   resize: vertical;
-  min-height: 120px !important;
+  min-height: 50px !important;
   max-height: 800px !important;
+  height: auto;
   word-break: break-all !important;
   overflow-wrap: break-word !important;
+  box-sizing: border-box;
 }
 
 html.light .editor-block {

@@ -21,6 +21,7 @@
   </script>
   <script src="js/shared/theme-manager.js"></script>
   <script src="js/shared/connection-monitor.js"></script>
+  <script src="js/core/crypto/sha256.js"></script>
   <link rel="stylesheet" href="css/pages/steganalysis.css"/>
 </head>
 <body>
@@ -171,13 +172,15 @@
 
       <div class="stack-xl">
         <!-- Success Header -->
-        <div class="success-header">
-          <div class="success-header__icon-wrap">
-            <span class="material-symbols-outlined" style="font-size:24px">analytics</span>
-          </div>
-          <div>
-            <div class="success-header__title" data-i18n="steganalysisResultsTitle">Analysis Results</div>
-            <div class="success-header__subtitle" data-i18n="steganalysisResultsSubtitle">Hidden character detection report & technique classification.</div>
+        <div class="success-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-md);">
+          <div style="display: flex; align-items: center; gap: var(--space-md);">
+            <div class="success-header__icon-wrap">
+              <span class="material-symbols-outlined" style="font-size:24px">analytics</span>
+            </div>
+            <div>
+              <div class="success-header__title" data-i18n="steganalysisResultsTitle">Analysis Results</div>
+              <div class="success-header__subtitle" data-i18n="steganalysisResultsSubtitle">Hidden character detection report & technique classification.</div>
+            </div>
           </div>
         </div>
 
