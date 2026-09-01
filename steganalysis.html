@@ -6,6 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>StegoLines — Text Steganalysis & Forensic Engine</title>
   <meta name="description" content="Analyze text for hidden Unicode characters, homoglyphs, and classify steganographic techniques."/>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('stegoTheme') || 'dark';
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+      const savedLang = localStorage.getItem('stegoLang') || 'en';
+      document.documentElement.setAttribute('lang', savedLang);
+      document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
+      const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
+      document.documentElement.setAttribute('data-arabic-font', savedFont);
+    })();
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
   <link rel="stylesheet" href="css/chat-scanner.css"/>
@@ -55,6 +72,7 @@
             class="form-textarea"
             id="steganalysisInput"
             rows="8"
+            dir="auto"
             data-i18n-placeholder="steganalysisTextareaPlaceholder"
             placeholder="Paste any chat message or text here to scan for hidden Unicode characters and homoglyph substitutions..."
           ></textarea>

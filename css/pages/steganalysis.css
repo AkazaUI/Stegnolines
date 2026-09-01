@@ -1598,7 +1598,7 @@ html.light .hash-tile:hover .hash-tile__code {
 
 /* ── 2. Typography Contrast (30%): Suspect Message Body with Visual Diff ── */
 .suspect-message-body {
-  padding: 18px 20px;
+  padding: 0px 5px;
   font-size: 1.05rem;
   line-height: 1.7;
   color: var(--color-on-surface);
@@ -1914,39 +1914,62 @@ html[dir="rtl"] .hash-tile__hint {
   background: transparent;
 }
 
-/* ── GREEN THEME STEGO VISUAL BADGE & UNDERSCORES ── */
+/* ── STEGO CLUSTER INSERTION MARKER & BADGES ── */
+.stego-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  margin: 0 3px;
+  position: relative;
+  user-select: none;
+  cursor: pointer;
+  line-height: 1;
+}
+
 .stego-visual-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 19px;
-  height: 19px;
-  padding: 0 5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
   background: var(--color-primary);
   color: #121214;
   font-family: 'Sora', monospace, sans-serif;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 800;
   border-radius: var(--radius-full);
-  margin-inline-start: 4px;
-  vertical-align: middle;
   line-height: 1;
-  box-shadow: 0 2px 8px rgba(187, 209, 0, 0.45);
+  box-shadow: 0 1px 6px rgba(187, 209, 0, 0.45);
   border: 1px solid rgba(0, 0, 0, 0.12);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
 }
 
+.stego-marker:hover .stego-visual-badge,
 .stego-visual-badge:hover {
   transform: scale(1.15);
-  box-shadow: 0 4px 14px rgba(187, 209, 0, 0.65);
+  box-shadow: 0 3px 12px rgba(187, 209, 0, 0.7);
 }
 
 html.light .stego-visual-badge {
   background: #7ca800;
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(124, 168, 0, 0.35);
+  box-shadow: 0 1px 6px rgba(124, 168, 0, 0.35);
+}
+
+.stego-marker.underscore--error .stego-visual-badge {
+  background: #B3261E;
+  color: #FFFFFF;
+  box-shadow: 0 1px 6px rgba(179, 38, 30, 0.45);
+}
+
+.stego-marker.underscore--warning .stego-visual-badge {
+  background: #E6A817;
+  color: #121214;
+  box-shadow: 0 1px 6px rgba(230, 168, 23, 0.45);
 }
 
 .visual-underscore.underscore--stego,
@@ -2141,5 +2164,74 @@ html.light .stego-popover-item-hex {
   color: var(--color-on-surface-variant);
   opacity: 0.85;
 }
+
+/* ── RTL COMPREHENSIVE SUPPORT (html[dir="rtl"]) ── */
+html[dir="rtl"] .suspect-message-body {
+  text-align: start;
+}
+
+html[dir="rtl"] .suspect-message-header {
+  flex-direction: row;
+}
+
+html[dir="rtl"] .suspect-message-meta {
+  flex-direction: row;
+}
+
+html[dir="rtl"] .threat-meter-header {
+  flex-direction: row;
+}
+
+html[dir="rtl"] .threat-meter-title-wrap {
+  flex-direction: row;
+}
+
+html[dir="rtl"] .threat-meter-score-wrap {
+  flex-direction: row;
+}
+
+html[dir="rtl"] .hash-console-toolbar {
+  flex-direction: row;
+}
+
+html[dir="rtl"] .hash-console-toolbar__title {
+  flex-direction: row;
+}
+
+html[dir="rtl"] .stego-hex-header {
+  flex-direction: row;
+}
+
+html[dir="rtl"] .stego-hex-hover-toolbar {
+  flex-direction: row;
+}
+
+html[dir="rtl"] .stego-matching-details summary {
+  text-align: start;
+}
+
+html[dir="rtl"] .stego-chat-filter-banner {
+  flex-direction: row;
+}
+
+html[dir="rtl"] .metric-cards-grid {
+  direction: rtl;
+}
+
+html[dir="rtl"] .metric-card {
+  text-align: start;
+}
+
+html[dir="rtl"] .steganalysis-summary {
+  flex-direction: row;
+  text-align: start;
+}
+
+html[dir="rtl"] .stego-popover-item-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 
 
