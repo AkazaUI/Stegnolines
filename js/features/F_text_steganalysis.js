@@ -896,7 +896,7 @@
             <td style="font-weight: 600; color: var(--color-on-surface);">${escSafe(row.charName)}</td>
             <td><code class="code-tag">${escSafe(row.hex)}</code></td>
             <td><span class="stego-bit-badge">${escSafe(row.bits)}</span></td>
-            <td style="color: var(--color-on-surface-variant); font-size: 0.85rem;">${escSafe(row.desc)}</td>
+            <td style="color: var(--color-on-surface-variant);">${escSafe(row.desc)}</td>
           </tr>
         `;
       });
@@ -2206,75 +2206,94 @@
       // Collapsible matching section for this message
       const msgMatchingSection = renderSignatureOrInventorySection(msgAnalysis);
 
-      const senderSpan = msg.sender ? `<span class="suspect-sender">${escSafe(msg.sender)}</span>` : '';
-      const timeSpan = msg.timestamp ? `<span class="suspect-time"><span class="material-symbols-outlined" style="font-size:13px;">schedule</span>${escSafe(msg.timestamp)}</span>` : '';
-      const lineSpan = msg.lineNumber ? `<span class="suspect-line-badge">L${msg.lineNumber}</span>` : '';
+      const msgPrefix = t('cardMsgIndex') || (curLang === 'ar' ? 'رسالة' : 'Msg');
+      const linePrefix = t('cardLineNumber') || (curLang === 'ar' ? 'السطر' : 'Line');
+
+      const senderTooltip = curLang === 'ar' ? 'اسم المرسل' : 'Sender';
+      const timeTooltip = curLang === 'ar' ? 'تاريخ وتوقيت الإرسال' : 'Message Timestamp';
+      const msgTooltip = curLang === 'ar' ? 'ترتيب الرسالة في المحادثة' : 'Message sequence number in conversation';
+      const lineTooltip = curLang === 'ar' ? 'رقم السطر في الملف المصدري' : 'Line number in source text file';
+
+      const senderSpan = msg.sender
+        ? `<span class="suspect-sender" title="${senderTooltip}"><span class="material-symbols-outlined" style="font-size:15px; vertical-align:middle; color:var(--color-primary);">person</span><span>${escSafe(msg.sender)}</span></span>`
+        : '';
+
+      const timeSpan = msg.timestamp
+        ? `<span class="suspect-time" title="${timeTooltip}"><span class="material-symbols-outlined" style="font-size:14px; vertical-align:middle;">schedule</span><span>${escSafe(msg.timestamp)}</span></span>`
+        : '';
+
+      const lineSpan = msg.lineNumber
+        ? `<span class="suspect-line-badge" title="${lineTooltip}"><span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle;">reorder</span><span>${linePrefix} ${msg.lineNumber}</span></span>`
+        : '';
+
+      const idxSpan = `<span class="suspect-idx-badge" title="${msgTooltip}"><span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle;">chat</span><span>${msgPrefix} #${msg.index}</span></span>`;
 
       suspectCardsHtml += `
-        <div class="suspect-message-card" id="suspect-msg-${sIdx}">
-          <!-- Header (Scanner Style) -->
-          <div class="suspect-message-header">
+        <details class="suspect-message-card" id="suspect-msg-${sIdx}" ${sIdx === 0 ? 'open' : ''}>
+          <!-- Header / Accordion Summary Row -->
+          <summary class="suspect-message-header">
             <div class="suspect-message-meta">
-              <span class="suspect-idx-badge">#${msg.index}</span>
+              ${idxSpan}
               ${lineSpan}
               ${senderSpan}
               ${timeSpan}
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="suspect-stego-badge">
-                <span class="material-symbols-outlined" style="font-size:14px; vertical-align:middle;">warning</span>
-                ${msgAnalysis.totalFound} ${curLang === 'ar' ? 'رمز مخفي' : 'hidden symbols'}
-              </span>
+            <div class="suspect-header-actions">
+              <span class="material-symbols-outlined suspect-chevron">expand_more</span>
             </div>
+          </summary>
+
+          <div class="suspect-message-content">
+            <!-- Visual Diff Mapped Body for this message only -->
+            <div class="suspect-message-body" dir="auto">
+              <span class="suspect-message-text" data-idx="${sIdx}" role="button" tabindex="0" title="${curLang === 'ar' ? 'انقر لنسخ غلاف الرسالة مع الرموز المخفية' : 'Click to copy cover message with hidden symbols'}">${msgVisualDiff}</span>
+            </div>
+
+            <!-- Dual SHA-256 Hash Console for this message only -->
+            ${msgDualHashHtml}
+
+            <!-- Hexadecimal Sequence String Box with Single-Row Hover Actions Toolbar -->
+            <div class="stego-hex-box" id="stego-hex-${sIdx}">
+              <div class="stego-hex-header">
+                <div class="stego-hex-header__title">
+                  <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary);">terminal</span>
+                  <span>${t('hexSequenceTitle') || 'Extracted Hexadecimal Sequence'}</span>
+                </div>
+              </div>
+              <div class="stego-hex-body">
+                <div class="stego-hex-wrapper">
+                  <div class="stego-hex-content">
+                    <code>${escSafe(hexList)}</code>
+                  </div>
+                  <div class="stego-hex-hover-toolbar">
+                    <button type="button" class="btn-action-secondary btn-copy-suspect-hex" data-idx="${sIdx}" title="${curLang === 'ar' ? 'نسخ سلسلة الأكواد السداسية' : 'Copy Hexadecimal Sequence'}">
+                      <span class="material-symbols-outlined" style="font-size: 14px;">terminal</span>
+                      <span>${t('btnCopyHexSequence') || 'Copy Sequence'}</span>
+                    </button>
+                    <button type="button" class="btn-action-secondary btn-copy-suspect-symbols" data-idx="${sIdx}" title="${curLang === 'ar' ? 'نسخ الرموز المخفية فقط' : 'Copy Covert Symbols Only'}">
+                      <span class="material-symbols-outlined" style="font-size: 14px;">data_object</span>
+                      <span>${t('btnCopyMessageSymbols') || 'Copy Symbols'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Collapsible Matching Table Dropdown (Only appears when clicked) -->
+            <details class="stego-matching-details">
+              <summary>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:17px;">table_chart</span>
+                  <span>${t('matchingDropdownTitle')}</span>
+                </div>
+                <span class="material-symbols-outlined details-chevron" style="font-size:18px;">expand_more</span>
+              </summary>
+              <div class="stego-matching-details__body">
+                ${msgMatchingSection}
+              </div>
+            </details>
           </div>
-
-          <!-- Visual Diff Mapped Body for this message only -->
-          <div class="suspect-message-body" dir="auto" data-idx="${sIdx}" role="button" tabindex="0" title="${curLang === 'ar' ? 'انقر لنسخ الرسالة مع الرموز المخفية' : 'Click to copy stego message with hidden symbols'}">
-            ${msgVisualDiff}
-          </div>
-
-          <!-- Dual SHA-256 Hash Console for this message only -->
-          ${msgDualHashHtml}
-
-          <!-- Hexadecimal Sequence String Box with Single-Row Hover Actions Toolbar -->
-          <div class="stego-hex-box" id="stego-hex-${sIdx}">
-            <div class="stego-hex-header">
-              <div class="stego-hex-header__title">
-                <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary);">terminal</span>
-                <span>${t('hexSequenceTitle') || 'Extracted Hexadecimal Sequence'}</span>
-              </div>
-            </div>
-            <div class="stego-hex-wrapper">
-              <div class="stego-hex-content">
-                <code>${escSafe(hexList)}</code>
-              </div>
-              <div class="stego-hex-hover-toolbar">
-                <button type="button" class="btn-action-secondary btn-copy-suspect-hex" data-idx="${sIdx}" title="${curLang === 'ar' ? 'نسخ سلسلة الأكواد السداسية' : 'Copy Hexadecimal Sequence'}">
-                  <span class="material-symbols-outlined" style="font-size: 14px;">terminal</span>
-                  <span>${t('btnCopyHexSequence') || 'Copy Sequence'}</span>
-                </button>
-                <button type="button" class="btn-action-secondary btn-copy-suspect-symbols" data-idx="${sIdx}" title="${curLang === 'ar' ? 'نسخ الرموز المخفية فقط' : 'Copy Covert Symbols Only'}">
-                  <span class="material-symbols-outlined" style="font-size: 14px;">data_object</span>
-                  <span>${t('btnCopyMessageSymbols') || 'Copy Symbols'}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Collapsible Matching Table Dropdown (Only appears when clicked) -->
-          <details class="stego-matching-details">
-            <summary>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:17px;">table_chart</span>
-                <span>${t('matchingDropdownTitle')}</span>
-              </div>
-              <span class="material-symbols-outlined details-chevron" style="font-size:18px;">expand_more</span>
-            </summary>
-            <div class="stego-matching-details__body">
-              ${msgMatchingSection}
-            </div>
-          </details>
-        </div>
+        </details>
       `;
     });
 
@@ -2355,10 +2374,10 @@
       });
     });
 
-    // 7. Setup Click & Selection Copy Handlers for suspect-message-body (Copy with Cover / Stego Text)
-    container.querySelectorAll('.suspect-message-body').forEach(bodyEl => {
-      // Direct Click to Copy
-      bodyEl.addEventListener('click', function(e) {
+    // 7. Setup Click & Selection Copy Handlers specifically on suspect-message-text (Cover Text)
+    container.querySelectorAll('.suspect-message-text').forEach(textEl => {
+      // Direct Click on the Cover Text to Copy
+      textEl.addEventListener('click', function(e) {
         // If user is selecting text, let selection copy handle it
         const sel = window.getSelection();
         if (sel && sel.toString().trim().length > 0) return;
@@ -2377,7 +2396,7 @@
       });
 
       // Keyboard Access (Enter / Space)
-      bodyEl.addEventListener('keydown', function(e) {
+      textEl.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           const idx = parseInt(this.getAttribute('data-idx'), 10);
@@ -2393,7 +2412,7 @@
       });
 
       // Text Selection Copy (Ctrl+C / Right Click Copy)
-      bodyEl.addEventListener('copy', function(e) {
+      textEl.addEventListener('copy', function(e) {
         const idx = parseInt(this.getAttribute('data-idx'), 10);
         const item = suspectMessages[idx];
         if (item && item.rawText) {
