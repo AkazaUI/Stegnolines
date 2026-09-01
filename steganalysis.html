@@ -189,43 +189,8 @@
       <h2 class="text-headline-md card__title" data-i18n="steganalysisResultsTitle">Analysis Results</h2>
 
       <div class="stack-xl">
-        <!-- Success Header -->
-        <div class="success-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-md);">
-          <div style="display: flex; align-items: center; gap: var(--space-md);">
-            <div class="success-header__icon-wrap">
-              <span class="material-symbols-outlined" style="font-size:24px">analytics</span>
-            </div>
-            <div>
-              <div class="success-header__title" data-i18n="steganalysisResultsTitle">Analysis Results</div>
-              <div class="success-header__subtitle" data-i18n="steganalysisResultsSubtitle">Hidden character detection report & technique classification.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Metric Cards -->
-        <div class="metric-cards-grid">
-          <div class="metric-card">
-            <span class="metric-card__label" data-i18n="metricTotalHidden">Hidden / Evasive Chars</span>
-            <span class="metric-card__value" id="steganalysisTotalVal">0</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-card__label" data-i18n="metricDistinctTypes">Distinct Types</span>
-            <span class="metric-card__value" id="steganalysisTypesVal">0</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-card__label" data-i18n="metricAnalysisTime">Analysis Duration</span>
-            <span class="metric-card__value" id="steganalysisTimeVal">0 ms</span>
-          </div>
-        </div>
-
-        <!-- Results Body (Table, Techniques Banner, or Clean State rendered here by JS) -->
+        <!-- Results Body (Forensic Dashboard & Suspect Message Cards rendered here by JS) -->
         <div id="steganalysisResultsBody"></div>
-
-        <!-- Summary -->
-        <div class="steganalysis-summary" id="steganalysisSummary" style="display: none;">
-          <span class="material-symbols-outlined steganalysis-summary__icon">summarize</span>
-          <span class="steganalysis-summary__text" id="steganalysisSummaryText"></span>
-        </div>
       </div>
     </section>
 

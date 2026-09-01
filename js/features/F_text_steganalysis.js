@@ -1793,7 +1793,7 @@
               if (msgAnalysis.totalFound > 0) {
                 suspectMessages.push({
                   index: idx + 1,
-                  sender: msg.sender || (_currentSteganalysisFile ? _currentSteganalysisFile.name : `Participant #${idx+1}`),
+                  sender: msg.sender || null,
                   timestamp: msg.timestamp || new Date().toLocaleString(),
                   rawText: msgText,
                   totalFound: msgAnalysis.totalFound,
@@ -2132,6 +2132,95 @@
     }
   }
 
+  // ── RENDER FORENSIC SUMMARY (3 KEY POINTS ONLY) ─────────────
+  function renderForensicSummaryDashboard(analysis, suspectMessages) {
+    const curLang = localStorage.getItem('stegoLang') || document.documentElement.lang || 'en';
+    const isAr = curLang === 'ar';
+
+    // 1. Threat Meter HTML (Integrated as Dashboard Header)
+    const threatMeterHtml = renderHorizontalThreatMeter(analysis, classifyRisk(analysis.totalFound, analysis.linguisticEval));
+
+    // 2. Suspect Messages Count & Ratio
+    const totalMsgsCount = _steganalysisParsedMessages && _steganalysisParsedMessages.length > 0 ? _steganalysisParsedMessages.length : 1;
+    const suspectCount = suspectMessages.length;
+    let msgsStatVal = '';
+    let msgsStatSub = '';
+
+    if (totalMsgsCount > 1) {
+      const pct = ((suspectCount / totalMsgsCount) * 100).toFixed(1);
+      msgsStatVal = `${suspectCount}`;
+      msgsStatSub = `${(t('summaryOfTotalMsgs') || 'of {total} ({pct}%)').replace('{total}', totalMsgsCount).replace('{pct}', pct)}`;
+    } else {
+      msgsStatVal = `${suspectCount}`;
+      msgsStatSub = t('summaryDirectInputMsg') || (isAr ? 'نص مدخل مباشر' : '1 direct text input');
+    }
+
+    // 3. Suspect Senders (Only rendered if sender names exist)
+    const sendersSet = new Set();
+    suspectMessages.forEach(m => {
+      if (m.sender && m.sender.trim().length > 0) {
+        sendersSet.add(m.sender.trim());
+      }
+    });
+
+    let sendersCardHtml = '';
+    if (sendersSet.size > 0) {
+      const chips = Array.from(sendersSet).map(s => `
+        <span class="summary-sender-chip">
+          <span class="material-symbols-outlined">person</span>
+          <span>${escSafe(s)}</span>
+        </span>
+      `).join('');
+
+      sendersCardHtml = `
+        <!-- 3. الأشخاص الذين أرسلوا الرسائل المخفية -->
+        <div class="forensic-stat-card">
+          <div class="forensic-stat-card__label">
+            <span class="material-symbols-outlined">group</span>
+            <span>${t('summarySuspectSenders') || (isAr ? 'المرسلون المتورطون' : 'Suspect Senders')}</span>
+          </div>
+          <div class="summary-senders-list">${chips}</div>
+        </div>
+      `;
+    }
+
+    // 4. Total Covert Symbols
+    const totalCovert = analysis.totalFound;
+    const distinctTypesSub = `${analysis.distinctTypes} ${isAr ? 'أنواع فريدة' : 'distinct types'}`;
+
+    return `
+      <div class="forensic-summary-dashboard">
+        <!-- Integrated Threat Meter as Header -->
+        ${threatMeterHtml}
+
+        <!-- Summary Stats Grid (Cards adjust dynamically) -->
+        <div class="forensic-summary-grid">
+          <!-- 1. عدد الرسائل المخفية -->
+          <div class="forensic-stat-card">
+            <div class="forensic-stat-card__label">
+              <span class="material-symbols-outlined">chat_bubble</span>
+              <span>${t('summarySuspectMsgs') || (isAr ? 'الرسائل المخفية' : 'Suspect Messages')}</span>
+            </div>
+            <div class="forensic-stat-card__value" style="font-size: 1.25rem;">${msgsStatVal}</div>
+            ${msgsStatSub ? `<div class="forensic-stat-card__sub">${escSafe(msgsStatSub)}</div>` : ''}
+          </div>
+
+          <!-- 2. عدد الرموز المخفية -->
+          <div class="forensic-stat-card">
+            <div class="forensic-stat-card__label">
+              <span class="material-symbols-outlined">data_object</span>
+              <span>${t('summaryTotalCovert') || (isAr ? 'الرموز المخفية' : 'Hidden Symbols')}</span>
+            </div>
+            <div class="forensic-stat-card__value" style="font-size: 1.25rem; color: var(--color-primary);">${totalCovert}</div>
+            <div class="forensic-stat-card__sub">${escSafe(distinctTypesSub)}</div>
+          </div>
+
+          ${sendersCardHtml}
+        </div>
+      </div>
+    `;
+  }
+
   // ── MAIN RESULTS TABLE OVERHAUL (SUSPECT MESSAGES ONLY) ────────
   function renderResultsTable(analysis) {
     const container = document.getElementById('steganalysisResultsBody');
@@ -2149,7 +2238,7 @@
           suspectMessages.push({
             index: idx + 1,
             lineNumber: msg.lineNumber || (idx + 1),
-            sender: msg.sender || (_currentSteganalysisFile ? _currentSteganalysisFile.name : null),
+            sender: msg.sender || null,
             timestamp: msg.timestamp || '',
             rawText: rawContent,
             analysis: msgAnalysis,
@@ -2188,8 +2277,8 @@
       return;
     }
 
-    // 2. Build Top Components (Horizontal Threat Meter ONLY - No global hash box)
-    const threatMeterHtml = renderHorizontalThreatMeter(analysis, classifyRisk(analysis.totalFound, analysis.linguisticEval));
+    // 2. Build Top Components (Unified Forensic Executive Summary Dashboard)
+    const forensicSummaryDashboardHtml = renderForensicSummaryDashboard(analysis, suspectMessages);
 
     // 3. Build Suspect Messages Cards (Scanner-like output with embedded hash & hex)
     let suspectCardsHtml = '';
@@ -2297,23 +2386,8 @@
       `;
     });
 
-    const totalMsgsCount = _steganalysisParsedMessages && _steganalysisParsedMessages.length > 0 ? _steganalysisParsedMessages.length : 1;
-    const filterBannerText = totalMsgsCount > 1
-      ? (t('chatFilterBannerFound') || `Steganography detected in {stegoCount} of {totalCount} messages in this conversation.`)
-          .replace('{stegoCount}', suspectMessages.length)
-          .replace('{totalCount}', totalMsgsCount)
-      : (t('chatFilterBannerSingle') || `Single input text analyzed. Hidden characters detected.`);
-
     container.innerHTML = `
-      ${threatMeterHtml}
-
-      <div class="stego-chat-filter-banner" style="display:flex; align-items:center; justify-content:space-between; background:var(--color-surface-container); border:1px solid var(--color-outline-variant); border-radius:var(--radius-md); padding:10px 16px; margin-bottom:var(--space-md);">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span class="material-symbols-outlined" style="color:var(--color-primary); font-size:20px;">filter_alt</span>
-          <span style="font-weight:600; font-size:0.9rem;">${escSafe(filterBannerText)}</span>
-        </div>
-        <span class="badge badge--primary" style="font-weight:700;">${suspectMessages.length} ${curLang === 'ar' ? 'رسائل مشتبهة' : 'suspect msgs'}</span>
-      </div>
+      ${forensicSummaryDashboardHtml}
 
       <div class="stego-suspects-container">
         ${suspectCardsHtml}
