@@ -3,37 +3,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 @font-face {
-  font-family: 'Thmanyah Sans';
-  src: url('https://framerusercontent.com/assets/x6EBzvXf1Fi35XhsRoHxePDVo.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Thmanyah Sans';
-  src: url('https://framerusercontent.com/assets/Lh8puxCFq405qBv7dKpg9NsHZNk.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Thmanyah Sans';
-  src: url('https://framerusercontent.com/assets/oE98mOPE28KTzUeptOLRIaqW1I.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Thmanyah Sans';
-  src: url('https://framerusercontent.com/assets/LZvgFRUsP7pGWYj3tKxMUrKuhSY.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Thmanyah Sans';
-  src: url('https://framerusercontent.com/assets/ulQLGTktcl2Qq4AmD6RuVgELZKg.woff2') format('woff2');
-  font-weight: 900;
+  font-family: 'Cairo';
+  src: url('../assets/fonts/Cairo-VariableFont_slnt,wght.ttf') format('truetype');
+  font-weight: 200 1000;
   font-style: normal;
   font-display: swap;
 }
@@ -69,6 +41,12 @@
   --loader-bg-overlay:             rgba(243, 243, 231, 0.45);
   --loader-logo-filter:            drop-shadow(0 0 10px rgba(0, 0, 0, 0.05));
 
+  /* —— Scrollbar Tokens (Light Mode - Default) —— */
+  --scrollbar-thumb:               rgba(122, 122, 110, 0.4);
+  --scrollbar-thumb-hover:         var(--color-secondary);
+  --scrollbar-thumb-active:        var(--color-tertiary);
+  --scrollbar-track:               transparent;
+
   /* —— Dark Mode Colors —— */
   --dark-background:              #222023;
   --dark-on-surface:              #FFFFFF;
@@ -86,6 +64,12 @@
   --dark-error-container:         #601410;
   --dark-on-error-container:      #F9DEDC;
   --dark-secondary-container:     #3D5200;
+
+  /* —— Dark Mode Scrollbar Tokens —— */
+  --dark-scrollbar-thumb:         rgba(255, 255, 255, 0.22);
+  --dark-scrollbar-thumb-hover:   var(--color-primary);
+  --dark-scrollbar-thumb-active:  var(--color-secondary);
+  --dark-scrollbar-track:         transparent;
 
   /* —— Font Families —— */
   --font-primary:    'Sora', sans-serif;
@@ -156,6 +140,11 @@
     
     --loader-bg-overlay:             rgba(14, 14, 18, 0.55);
     --loader-logo-filter:            drop-shadow(0 0 15px rgba(255, 255, 255, 0.05));
+
+    --scrollbar-thumb:               var(--dark-scrollbar-thumb);
+    --scrollbar-thumb-hover:         var(--dark-scrollbar-thumb-hover);
+    --scrollbar-thumb-active:        var(--dark-scrollbar-thumb-active);
+    --scrollbar-track:               var(--dark-scrollbar-track);
   }
 }
 
@@ -179,14 +168,35 @@ html.dark {
   
   --loader-bg-overlay:             rgba(14, 14, 18, 0.55);
   --loader-logo-filter:            drop-shadow(0 0 15px rgba(255, 255, 255, 0.05));
+
+  --scrollbar-thumb:               var(--dark-scrollbar-thumb);
+  --scrollbar-thumb-hover:         var(--dark-scrollbar-thumb-hover);
+  --scrollbar-thumb-active:        var(--dark-scrollbar-thumb-active);
+  --scrollbar-track:               var(--dark-scrollbar-track);
+}
+
+html.light {
+  --scrollbar-thumb:               rgba(122, 122, 110, 0.4);
+  --scrollbar-thumb-hover:         var(--color-secondary);
+  --scrollbar-thumb-active:        var(--color-tertiary);
+  --scrollbar-track:               transparent;
 }
 
 html[lang="ar"] {
-  --font-primary:    'Thmanyah Sans', sans-serif;
-  --font-body:       'Thmanyah Sans', sans-serif;
-  --font-headline:   'Thmanyah Sans', sans-serif;
-  --font-display:    'Thmanyah Sans', sans-serif;
-  --font-label:      'Thmanyah Sans', sans-serif;
+  --font-primary:    'Cairo', sans-serif;
+  --font-body:       'Cairo', sans-serif;
+  --font-headline:   'Cairo', sans-serif;
+  --font-display:    'Cairo', sans-serif;
+  --font-label:      'Cairo', sans-serif;
+}
+
+html[lang="ar"][data-arabic-font="cairo"],
+html[lang="ar"][data-arabic-font="thmanyah"] {
+  --font-primary:    'Cairo', sans-serif;
+  --font-body:       'Cairo', sans-serif;
+  --font-headline:   'Cairo', sans-serif;
+  --font-display:    'Cairo', sans-serif;
+  --font-label:      'Cairo', sans-serif;
 }
 
 html[lang="ar"][data-arabic-font="alexandria"] {

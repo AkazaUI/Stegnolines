@@ -12,50 +12,120 @@
   background: #B3261E;
 }
 
-/* ── Capacity Meter 4-stat grid ── */
+/* ── Capacity Meter 3-box system ── */
 .capacity-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
   gap: var(--space-sm);
   margin-top: var(--space-sm);
+  width: 100%;
 }
 
-.capacity-stats-grid > span {
+.capacity-smart-box,
+.capacity-mini-box {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  padding: 6px 10px;
+  gap: 8px;
+  font-size: 0.8125rem;
+  padding: 8px 12px;
   background: var(--color-surface-container-low);
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-lg);
   box-sizing: border-box;
+  color: var(--color-on-surface-variant);
+  transition: var(--transition-colors);
+  min-height: 38px;
+}
+
+.capacity-smart-box {
+  flex: 1 1 540px;
+  min-width: 0;
+  justify-content: flex-start;
+  text-align: start;
+}
+
+.capacity-smart-box .capacity-box-text {
+  font-weight: 500;
+  color: var(--color-on-surface);
+  line-height: 1.45;
+  word-break: normal;
+}
+
+.capacity-mini-box {
+  flex: 1 1 auto;
+  justify-content: center;
   text-align: center;
   white-space: nowrap;
-  transition: var(--transition-colors);
+  font-variant-numeric: tabular-nums;
+}
+
+.capacity-box-icon {
+  font-size: 18px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+/* Highlighted key elements in capacity text */
+.capacity-highlight {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.capacity-highlight.is-overflow {
+  color: var(--color-error, #ef4444);
+}
+
+/* Subtle warning state when capacity is exceeded */
+.capacity-smart-box.is-overflow {
+  border-color: rgba(220, 38, 38, 0.4);
+}
+
+.capacity-smart-box.is-overflow .capacity-box-icon {
+  color: var(--color-error, #ef4444);
+}
+
+/* ── Responsive Dropdown Layout for Compression & Hint Boxes ──
+   Breakpoint: 1024px
+   Calculated from longest capacity messages (Arabic: ~57-65 chars = ~520px) +
+   Compression box (~170px) + Hint box (~150px) + gaps (16px) = ~856px content width,
+   corresponding to ~1024px viewport width including container margins and card padding.
+   - At <= 1024px: Smart Message Box takes 100% of row 1 (completely eliminating ellipsis dots),
+     while Compression and Hint boxes drop down to row 2 (sharing 50% / 50% width).
+*/
+@media (max-width: 1024px) {
+  .capacity-smart-box {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .capacity-mini-box {
+    flex: 1 1 calc(50% - (var(--space-sm) / 2));
+    font-size: 0.8125rem;
+    padding: 8px 12px;
+  }
 }
 
 @media (max-width: 480px) {
   .capacity-stats-grid {
     gap: var(--space-xs);
   }
-  .capacity-stats-grid > span {
-    font-size: 0.72rem;
-    padding: 6px var(--space-xs);
-  }
-}
 
-@media (max-width: 360px) {
-  .capacity-stats-grid {
-    grid-template-columns: 1fr;
+  .capacity-smart-box {
+    padding: 7px 10px;
+    font-size: 0.75rem;
   }
-}
 
-@media (min-width: 640px) {
-  .capacity-stats-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-sm);
+  .capacity-mini-box {
+    flex: 1 1 calc(50% - (var(--space-xs) / 2));
+    font-size: 0.75rem;
+    padding: 6px 8px;
+    gap: 4px;
+  }
+
+  .capacity-box-icon {
+    font-size: 16px;
   }
 }
 
@@ -70,6 +140,61 @@
   .textarea-row {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+/* ── Fixed Size & Themed Scrollbar for Cover & Secret Textareas ── */
+.textarea-row .form-textarea,
+#embedCover,
+#embedSecretMessage {
+  height: 220px;
+  min-height: 220px;
+  max-height: 220px;
+  resize: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.textarea-row .form-textarea::-webkit-scrollbar,
+#embedCover::-webkit-scrollbar,
+#embedSecretMessage::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.textarea-row .form-textarea::-webkit-scrollbar-track,
+#embedCover::-webkit-scrollbar-track,
+#embedSecretMessage::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.textarea-row .form-textarea::-webkit-scrollbar-thumb,
+#embedCover::-webkit-scrollbar-thumb,
+#embedSecretMessage::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+.textarea-row .form-textarea::-webkit-scrollbar-thumb:hover,
+#embedCover::-webkit-scrollbar-thumb:hover,
+#embedSecretMessage::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.textarea-row .form-textarea::-webkit-scrollbar-thumb:active,
+#embedCover::-webkit-scrollbar-thumb:active,
+#embedSecretMessage::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
+}
+
+.textarea-row .form-textarea::-webkit-scrollbar-corner,
+#embedCover::-webkit-scrollbar-corner,
+#embedSecretMessage::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* ── Share buttons row ── */

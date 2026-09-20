@@ -79,8 +79,8 @@
       const savedLang = localStorage.getItem('stegoLang') || 'en';
       document.documentElement.setAttribute('lang', savedLang);
       document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
-      const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
-      document.documentElement.setAttribute('data-arabic-font', savedFont);
+      const savedFont = localStorage.getItem('stegoFont') || 'cairo';
+      document.documentElement.setAttribute('data-arabic-font', savedFont === 'thmanyah' ? 'cairo' : savedFont);
     })();
   </script>
 </head>

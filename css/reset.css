@@ -6,6 +6,7 @@
 
 html {
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body {
@@ -21,6 +22,50 @@ body {
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
+}
+
+/* ── Global Cross-Browser Themed Scrollbars (Site-wide) ── */
+/* Modern W3C Standard (Firefox, modern Chrome/Edge 121+, Safari 17.2+) */
+:root,
+html,
+body,
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* WebKit / Chromium Engines (Chrome, Edge, Safari, Opera, Brave) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* Premium smooth transitions for theme changes */

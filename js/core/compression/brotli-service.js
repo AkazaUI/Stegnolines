@@ -210,6 +210,18 @@ function _getCapacityWorker() {
         };
         _brotliCapacityWorker.onerror = function (err) {
             console.warn('[brotli-service] Worker error, falling back to main thread:', err);
+            _brotliPendingRequests.forEach(({ resolve }) => {
+                try {
+                    resolve({
+                        rawBytesLength: 0,
+                        compressedBytesLength: 0,
+                        finalBytesLength: 0,
+                        isCompressed: false,
+                        savingsPercent: 0
+                    });
+                } catch (_) {}
+            });
+            _brotliPendingRequests.clear();
             _brotliCapacityWorker = null;
         };
     } catch (e) {
@@ -252,8 +264,8 @@ function calculateCompressedPayloadSync(payloadBytes) {
         isCompressed = true;
     }
 
-    const savingsPercent = (rawLen > 0 && isCompressed)
-        ? Math.max(0, ((rawLen - finalLen) / rawLen) * 100)
+    const savingsPercent = (rawLen > 0 && isCompressed && finalLen < rawLen)
+        ? Math.round(((rawLen - finalLen) / rawLen) * 100)
         : 0;
 
     return {

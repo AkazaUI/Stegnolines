@@ -51,8 +51,8 @@ self.onmessage = function (e) {
       isCompressed = true;
     }
 
-    const savingsPercent = (rawLen > 0 && isCompressed)
-      ? Math.max(0, ((rawLen - finalLen) / rawLen) * 100)
+    const savingsPercent = (rawLen > 0 && isCompressed && finalLen < rawLen)
+      ? Math.round(((rawLen - finalLen) / rawLen) * 100)
       : 0;
 
     self.postMessage({

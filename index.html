@@ -203,19 +203,22 @@
             <div class="progress-track">
               <div class="progress-fill" id="meterFill" style="width:0%"></div>
             </div>
-            <div class="capacity-stats-grid">
-              <span class="text-body-sm" style="color:var(--color-on-surface-variant)"><span
-                  data-i18n="labelCoverBits">Cover: </span><span class="font-semibold"
-                  style="color:var(--color-primary)" id="mCoverLen">0</span> <span data-i18n="labelBitsUnit">bits</span></span>
-              <span class="text-body-sm" style="color:var(--color-on-surface-variant)"><span
-                  data-i18n="labelMaxChars">Capacity: </span><span class="font-semibold"
-                  style="color:var(--color-primary)" id="mMaxChars">0</span> <span data-i18n="labelCharsUnit">chars</span></span>
-              <span class="text-body-sm" style="color:var(--color-on-surface-variant)"><span
-                  data-i18n="labelMsgBits">Msg: </span><span class="font-semibold" style="color:var(--color-primary)"
-                  id="mMsgBits">0</span> <span data-i18n="labelBitsUnit">bits</span></span>
-              <span class="text-body-sm" style="color:var(--color-on-surface-variant)"><span
-                  data-i18n="labelUsageBits">Usage: </span><span class="font-semibold"
-                  style="color:var(--color-primary)" id="mUsage">0 / 0</span> <span data-i18n="labelBitsUnit">bits</span></span>
+            <div class="capacity-stats-grid" id="capacityBoxesGrid">
+              <!-- 1. Primary Smart Message Box -->
+              <div class="capacity-smart-box" id="capacitySmartBox">
+                <span class="material-symbols-outlined capacity-box-icon" id="capacitySmartIcon">info</span>
+                <span class="capacity-box-text" id="capacitySmartMsg" data-i18n="capacityMsgEmpty">أدخل نص الغلاف لتحديد السعة الاستيعابية</span>
+              </div>
+              <!-- 2. Compression Box -->
+              <div class="capacity-mini-box" id="capacityCompressionBox" title="Brotli Payload Compression">
+                <span class="material-symbols-outlined capacity-box-icon">compress</span>
+                <span class="capacity-box-text" id="capacityCompressionMsg">الضغط: --</span>
+              </div>
+              <!-- 3. Hint Box (Always visible) -->
+              <div class="capacity-mini-box" id="capacityHintBox" title="Hint Overhead">
+                <span class="material-symbols-outlined capacity-box-icon">lightbulb</span>
+                <span class="capacity-box-text" id="capacityHintMsg">التلميح: 0 بايت</span>
+              </div>
             </div>
           </div>
 
@@ -1131,9 +1134,6 @@
   <script src="js/core/compression/avif/avif-engine.js"></script>
   <script src="js/core/compression/avif/avif-bridge.js"></script>
   <script src="js/core/compression/avif/avif-service.js"></script>
-
-
-  </script>
 
   <!-- Image Embedding Engine moved to js/features/image-embed-controller.js -->
 

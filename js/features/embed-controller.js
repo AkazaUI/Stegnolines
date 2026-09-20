@@ -1199,6 +1199,9 @@ function applyLanguage(lang) {
   }
 
   updateVisualMetrics();
+  if (typeof updateCapacityMeter === 'function') {
+    updateCapacityMeter(true);
+  }
 }
 
 function applyArabicFont(font) {
@@ -1505,6 +1508,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Setup Language and Font from Storage
   const initLang = localStorage.getItem('stegoLang') || 'en';
   applyLanguage(initLang);
-  const initFont = localStorage.getItem('stegoFont') || 'thmanyah';
-  applyArabicFont(initFont);
+  const initFont = localStorage.getItem('stegoFont') || 'cairo';
+  applyArabicFont(initFont === 'thmanyah' ? 'cairo' : initFont);
 });
