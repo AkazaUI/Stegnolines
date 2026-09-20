@@ -307,8 +307,8 @@ function shell(meta) {
       document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
 
       // Retrieve Arabic font preference immediately
-      const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
-      document.documentElement.setAttribute('data-arabic-font', savedFont);
+      const savedFont = localStorage.getItem('stegoFont') || 'cairo';
+      document.documentElement.setAttribute('data-arabic-font', savedFont === 'thmanyah' ? 'cairo' : savedFont);
 
       window.DOCS_BASE = '../../';
     })();

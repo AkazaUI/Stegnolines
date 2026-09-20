@@ -28,6 +28,33 @@
   resize: vertical;
   min-height: 120px;
   max-height: 400px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.form-textarea::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.form-textarea::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.form-textarea::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.2s ease;
+}
+
+.form-textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.form-textarea::-webkit-scrollbar-corner {
+  background: transparent;
 }
 .form-input:focus, .form-textarea:focus, .form-select:focus {
   border-color: var(--color-secondary);

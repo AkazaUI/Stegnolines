@@ -145,18 +145,21 @@ html[dir="rtl"] .cover-editor__textarea {
 
 /* ── Scrollbar Styling (Optional Thin Scrollbar) ── */
 .cover-editor__textarea::-webkit-scrollbar {
-  width: 6px;
+  width: 7px;
 }
 
 .cover-editor__textarea::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 
 .cover-editor__textarea::-webkit-scrollbar-thumb {
-  background: var(--color-outline-variant);
+  background: var(--scrollbar-thumb);
   border-radius: var(--radius-full);
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
 }
 
 .cover-editor__textarea::-webkit-scrollbar-thumb:hover {
-  background: var(--color-outline);
+  background: var(--scrollbar-thumb-hover);
 }

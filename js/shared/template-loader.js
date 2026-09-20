@@ -562,13 +562,13 @@
                 </div>
 
                 <div class="font-cards-grid">
-                  <button type="button" class="font-card active" id="font-card-thmanyah" onclick="setArabicFont('thmanyah')">
+                  <button type="button" class="font-card active" id="font-card-cairo" onclick="setArabicFont('cairo')">
                     <div class="font-card__header">
-                      <span class="font-card__title">خط ثمانية (Thmanyah)</span>
+                      <span class="font-card__title">خط كايرو (Cairo)</span>
                       <span class="badge badge--neutral">Default</span>
                       <span class="font-card__indicator"></span>
                     </div>
-                    <div class="font-card__preview" style="font-family: 'Thmanyah', 'Alexandria', sans-serif;">
+                    <div class="font-card__preview" style="font-family: 'Cairo', 'Alexandria', sans-serif;">
                       نظام إخفاء متقدم بدون أي تشوهات بصرية أو عبء إضافي.
                     </div>
                   </button>
@@ -830,11 +830,12 @@
       applyLanguageUI(savedLang);
     }
 
-    const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
+    const savedFont = localStorage.getItem('stegoFont') || 'cairo';
+    const effectiveFont = savedFont === 'thmanyah' ? 'cairo' : savedFont;
     if (typeof applyArabicFont === 'function') {
-      applyArabicFont(savedFont);
+      applyArabicFont(effectiveFont);
     } else if (typeof applyArabicFontUI === 'function') {
-      applyArabicFontUI(savedFont);
+      applyArabicFontUI(effectiveFont);
     }
 
     // Synchronize Hints Storage Policy

@@ -79,9 +79,9 @@ function initDashboard() {
     applyLanguageUI_local(curLang);
   }
   
-  const curFont = localStorage.getItem('stegoFont') || 'thmanyah';
+  const curFont = localStorage.getItem('stegoFont') || 'cairo';
   if (typeof applyArabicFontUI === 'function') {
-    applyArabicFontUI(curFont);
+    applyArabicFontUI(curFont === 'thmanyah' ? 'cairo' : curFont);
   }
   
   const curTheme = localStorage.getItem('stegoTheme') || 'dark';

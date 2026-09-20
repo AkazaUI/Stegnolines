@@ -77,7 +77,11 @@ function initThemeManager() {
   const savedLang = localStorage.getItem('stegoLang') || 'en';
   applyLanguageUI(savedLang);
   
-  const savedFont = localStorage.getItem('stegoFont') || 'thmanyah';
+  let savedFont = localStorage.getItem('stegoFont') || 'cairo';
+  if (savedFont === 'thmanyah') {
+    savedFont = 'cairo';
+    localStorage.setItem('stegoFont', 'cairo');
+  }
   applyArabicFontUI(savedFont);
 
   updateStorageFootprintUI();
@@ -191,9 +195,10 @@ function applyLanguageUI(lang) {
 /**
  * Update the Arabic font selection.
  *
- * @param {string} font - 'thmanyah' or 'alexandria'
+ * @param {string} font - 'cairo' or 'alexandria'
  */
 function setArabicFont(font) {
+  if (font === 'thmanyah') font = 'cairo';
   localStorage.setItem('stegoFont', font);
   applyArabicFontUI(font);
 }
@@ -201,9 +206,10 @@ function setArabicFont(font) {
 /**
  * Apply the selected Arabic font stylesheet layout attributes.
  *
- * @param {string} font - 'thmanyah' or 'alexandria'
+ * @param {string} font - 'cairo' or 'alexandria'
  */
 function applyArabicFontUI(font) {
+  if (font === 'thmanyah') font = 'cairo';
   document.documentElement.setAttribute('data-arabic-font', font);
   
   document.querySelectorAll('.font-card').forEach(card => {
@@ -211,10 +217,12 @@ function applyArabicFontUI(font) {
     card.classList.toggle('active', cardFont === font);
   });
 
-  const modalBtnThmanyah = document.getElementById('font-btn-thmanyah');
+  const modalBtnCairo = document.getElementById('font-btn-cairo') || document.getElementById('font-btn-thmanyah');
   const modalBtnAlexandria = document.getElementById('font-btn-alexandria');
-  if (modalBtnThmanyah && modalBtnAlexandria) {
-    modalBtnThmanyah.classList.toggle('active', font === 'thmanyah');
+  if (modalBtnCairo) {
+    modalBtnCairo.classList.toggle('active', font === 'cairo');
+  }
+  if (modalBtnAlexandria) {
     modalBtnAlexandria.classList.toggle('active', font === 'alexandria');
   }
 
@@ -264,7 +272,7 @@ function resetAllSettingsPreferences() {
         localStorage.clear();
         setLanguage('en');
         setThemeMode('system');
-        setArabicFont('thmanyah');
+        setArabicFont('cairo');
         updateStorageFootprintUI();
         if (typeof showToast === 'function') {
           showToast(isAr ? 'تمت إعادة ضبط التفضيلات بنجاح' : 'Preferences reset successfully', 'success');
@@ -275,7 +283,7 @@ function resetAllSettingsPreferences() {
     localStorage.clear();
     setLanguage('en');
     setThemeMode('system');
-    setArabicFont('thmanyah');
+    setArabicFont('cairo');
     updateStorageFootprintUI();
   }
 }
