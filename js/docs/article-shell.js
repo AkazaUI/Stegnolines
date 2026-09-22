@@ -322,8 +322,8 @@ function shell(meta) {
 
       <!-- Brand -->
       <a class="top-nav__brand" href="../../index.html" id="brand-link">
-        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="../../assets/brand/logo-dark.png" alt="STEGNOLINES"/>
-        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="../../assets/brand/logo-light.png" alt="STEGNOLINES"/>
+        <img class="top-nav__brand-logo top-nav__brand-logo--light" src="../../assets/brand/logo-dark.webp" alt="STEGNOLINES"/>
+        <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="../../assets/brand/logo-light.webp" alt="STEGNOLINES"/>
       </a>
 
       <!-- Desktop Nav Links -->

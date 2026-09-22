@@ -113,8 +113,8 @@
       <div class="top-nav__inner">
         <!-- Brand logo -->
         <a class="top-nav__brand" href="${prefix}index.html" id="brand-link">
-          <img class="top-nav__brand-logo top-nav__brand-logo--light" src="${prefix}assets/brand/logo-dark.png" alt="STEGNOLINES" onerror="this.style.display='none'"/>
-          <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="${prefix}assets/brand/logo-light.png" alt="STEGNOLINES" onerror="this.style.display='none'"/>
+          <img class="top-nav__brand-logo top-nav__brand-logo--light" src="${prefix}assets/brand/logo-dark.webp" alt="STEGNOLINES" onerror="this.style.display='none'"/>
+          <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="${prefix}assets/brand/logo-light.webp" alt="STEGNOLINES" onerror="this.style.display='none'"/>
         </a>
 
         <!-- Desktop Navigation Links -->

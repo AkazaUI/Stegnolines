@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html class="light" lang="en">
 <head>
-  <link rel="icon" type="image/png" href="assets/brand/favicon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/brand/favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/brand/favicon_io/favicon-16x16.png">
+  <link rel="manifest" href="assets/brand/favicon_io/site.webmanifest">
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>StegoLines — Network Error</title>
@@ -146,7 +149,7 @@
             }, 1200);
           } else {
             // On HTTP/S protocols, do a real fetch latency check
-            const checkUrl = 'assets/brand/favicon.png?t=' + Date.now();
+            const checkUrl = 'assets/brand/favicon_io/favicon-32x32.png?t=' + Date.now();
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 3500);
 
