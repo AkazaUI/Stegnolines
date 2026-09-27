@@ -32,5 +32,5 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./_site/
-          server-dir: public_html/
+          server-dir: ./
           dangerous-clean-slate: false # لا يحذف ملفات الاستضافة الأخرى (مثل .htaccess أو شهادات SSL)
