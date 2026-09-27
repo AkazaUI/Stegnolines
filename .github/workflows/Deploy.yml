@@ -1,0 +1,36 @@
+name: Deploy StegoLines to Hostinger
+
+on:
+  push:
+    branches:
+      - main # يتم التشغيل تلقائياً عند أي Push لفرع main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 استنساخ الكود (Checkout)
+        uses: actions/checkout@v4
+
+      - name: ⚙️ إعداد بيئة Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 تثبيت الحزم (Install Dependencies)
+        run: npm ci
+
+      - name: 🏗️ بناء الموقع (Build Site)
+        run: npm run build
+
+      - name: 🚀 رفع الملفات المبنية إلى هوستنجر عبر FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./_site/
+          server-dir: public_html/
+          dangerous-clean-slate: false # لا يحذف ملفات الاستضافة الأخرى (مثل .htaccess أو شهادات SSL)
