@@ -1,3 +1,0 @@
-CONVERSATION ID,FROM,TO,DATE,SUBJECT,CONTENT
-conv01,Faisal,Ahmed,2026-07-27 10:30:00,Hello,"Hello Ahmed, this is a quoted CSV message with commas, and newlines."
-conv01,Ahmed,Faisal,2026-07-27 10:31:00,Re: Hello,I received your LinkedIn message!

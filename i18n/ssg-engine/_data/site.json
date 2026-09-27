@@ -1,0 +1,229 @@
+{
+  "name": "StegoLines",
+  "nameAr": "السطور المخفية",
+  "domain": "https://stegnolines.com",
+  "repository": "https://github.com/AkazaUI/Stegnolines",
+  "university": "University of Science and Technology - Aden",
+  "universityAr": "جامعة العلوم والتكنولوجيا - عدن",
+  "classYear": "2026",
+  "teamCount": 5,
+  "defaultLang": "en",
+  "languages": [
+    { "code": "en", "name": "English", "dir": "ltr", "prefix": "" },
+    { "code": "ar", "name": "العربية", "dir": "rtl", "prefix": "/ar" },
+    { "code": "fr", "name": "Français", "dir": "ltr", "prefix": "/fr" },
+    { "code": "zh", "name": "中文", "dir": "ltr", "prefix": "/zh" },
+    { "code": "la", "name": "Latina", "dir": "ltr", "prefix": "/la" }
+  ],
+  "routes": [
+    { "code": "en", "isRoot": true, "prefix": "" },
+    { "code": "ar", "isRoot": false, "prefix": "/ar" },
+    { "code": "fr", "isRoot": false, "prefix": "/fr" },
+    { "code": "zh", "isRoot": false, "prefix": "/zh" },
+    { "code": "la", "isRoot": false, "prefix": "/la" }
+  ],
+  "titles": {
+    "index": {
+      "en": "StegoLines — Text Steganography",
+      "ar": "السطور المخفية — الإخفاء النصي",
+      "fr": "StegoLines — Stéganographie de Texte",
+      "zh": "StegoLines — 文本隐写术",
+      "la": "StegoLines — Steganographia Textus"
+    },
+    "extract": {
+      "en": "StegoLines — Payload Extractor",
+      "ar": "السطور المخفية — استخراج النصوص المخفية",
+      "fr": "StegoLines — Extracteur de Charge Utile",
+      "zh": "StegoLines — 隐写文本提取器",
+      "la": "StegoLines — Extractor Oneris"
+    },
+    "steganalysis": {
+      "en": "StegoLines — Chat Scanner",
+      "ar": "السطور المخفية — فاحص المحادثات المخفية",
+      "fr": "StegoLines — Analyseur de Discussions",
+      "zh": "StegoLines — 聊天记录隐写扫描器",
+      "la": "StegoLines — Scrutator Sermonis"
+    },
+    "about": {
+      "en": "StegoLines — Development Team",
+      "ar": "السطور المخفية — فريق التطوير",
+      "fr": "StegoLines — Équipe de Développement",
+      "zh": "StegoLines — 开发团队",
+      "la": "StegoLines — Turma Evolutionis"
+    },
+    "contact": {
+      "en": "StegoLines — Support & Contact",
+      "ar": "السطور المخفية — الدعم والتواصل",
+      "fr": "StegoLines — Support & Contact",
+      "zh": "StegoLines — 支持与联系",
+      "la": "StegoLines — Auxilium et Contactus"
+    },
+    "documentation": {
+      "en": "StegoLines — Documentation",
+      "ar": "السطور المخفية — التوثيق",
+      "fr": "StegoLines — Documentation",
+      "zh": "StegoLines — 技术文档",
+      "la": "StegoLines — Documentatio"
+    },
+    "offline": {
+      "en": "StegoLines — Offline Mode",
+      "ar": "السطور المخفية — وضع عدم الاتصال",
+      "fr": "StegoLines — Mode Hors Ligne",
+      "zh": "StegoLines — 离线模式",
+      "la": "StegoLines — Modus Sine Interrete"
+    }
+  },
+  "metaDescriptions": {
+    "index": {
+      "en": "Hide secret messages and images with password encryption inside ordinary social media chat text.",
+      "ar": "أخفِ رسائلك السرية وصورك برقم سري داخل نصوص محادثات عادية في مواقع التواصل.",
+      "fr": "Dissimulez vos messages secrets et images chiffrés par mot de passe au sein de textes de discussion ordinaires sur les réseaux sociaux.",
+      "zh": "使用密码加密将您的机密消息和图像隐藏在普通社交媒体聊天文本中。",
+      "la": "Occulta epistulas tuas secretas atque imagines tessera munitas intra sermones ordinarios in mediis socialibus."
+    },
+    "extract": {
+      "en": "Extract your hidden messages from social media chat text and instantly decrypt them with your password in total security.",
+      "ar": "استخرج رسائلك المخفية في محادثات تطبيقات مواقع التواصل وفك تشفيرها فوراً برقمك السري بأمان تام.",
+      "fr": "Extrayez vos messages dissimulés dans les discussions de réseaux sociaux et déchiffrez-les instantanément avec votre mot de passe en toute sécurité.",
+      "zh": "从社交媒体聊天文本中提取您隐藏的消息，并使用您的密码即时安全解密。",
+      "la": "Extrahe epistulas tuas occultas e sermonibus mediorum socialium et illas statim tessera tua summa securitate decifra."
+    },
+    "steganalysis": {
+      "en": "Scan chat logs from all social media apps to instantly detect hidden steganographic messages or invisible text with high precision and zero data leakage.",
+      "ar": "افحص سجلات محادثات لجميع تطبيقات مواقع التواصل واكتشف فوراً إن كانت تحتوي على رسائل مخفية أو نصوص مموهة بدقة عالية وأمان تام.",
+      "fr": "Analysez les journaux de discussion de toutes les applications sociales pour détecter instantanément messages stéganographiques et textes invisibles avec haute précision et sans fuite de données.",
+      "zh": "扫描所有主流社交应用的聊天记录，以极高精度即时检测隐藏的隐写消息或不可见文本，确保数据零泄露。",
+      "la": "Scruta acta sermonum omnium applicationum socialium ut statim detegas epistulas steganographicas vel textum invisibilem summa diligentia et sine ulla scissura secretorum."
+    },
+    "about": {
+      "en": "Meet the development team of 5 cybersecurity engineers from the University of Science & Technology - Aden, creators of the StegoLines secure messaging suite.",
+      "ar": "تعرف على فريق التطوير المكون من 5 مهندسي أمن سيبراني خريجي جامعة العلوم والتكنولوجيا - عدن مطوري منظومة السطور المخفية للمراسلة السرية الآمنة.",
+      "fr": "Découvrez l'équipe de 5 ingénieurs en cybersécurité de l'Université des Sciences et Technologies d'Aden, concepteurs de la suite sécurisée StegoLines.",
+      "zh": "结识由来自亚丁科技大学的5位网络安全工程师组成的开发团队，他们是StegoLines安全通信套件的创造者。",
+      "la": "Cognosce turmam 5 ingeniariorum securitatis cyberneticae ex Universitate Scientiae et Technologiae Adana, auctorum systematis StegoLines."
+    },
+    "contact": {
+      "en": "Contact the StegoLines development team directly to provide feedback, request technical assistance, or collaborate on academic and forensic steganography research.",
+      "ar": "تواصل مباشرة مع فريق تطوير السطور المخفية ،لتقديم الملاحظات، أو التعاون الأكاديمي والبحثي في تقنيات الإخفاء.",
+      "fr": "Contactez directement l'équipe de StegoLines pour soumettre des retours, demander une assistance technique ou collaborer sur la recherche stéganographique et criminalistique.",
+      "zh": "直接联系StegoLines开发团队以提供反馈、获取技术协助，或开展隐写术与取证学术研究合作。",
+      "la": "Contingite directe turmam StegoLines ad sententias dandas, auxilium technicum rogandum, vel collaborationem in investigatione forensica instituendam."
+    },
+    "documentation": {
+      "en": "Comprehensive guide to the StegoLines suite: how text steganography works using Variation Selectors (VS) and techniques for message survivability across WhatsApp and Telegram.",
+      "ar": "الدليل الشامل لمنظومة السطور المخفية: شرح كيفية عمل الإخفاء النصي بمحددات التنوع (VS)، وطرق صمود الرسائل داخل منصات المحادثة كواتساب وتيليجرام.",
+      "fr": "Guide complet de StegoLines : fonctionnement de la stéganographie textuelle par Sélecteurs de Variation (VS) et techniques de survie des messages sur WhatsApp et Telegram.",
+      "zh": "StegoLines套件全方位技术指南：详解变体选择器（VS）文本隐写原理及消息在WhatsApp和Telegram等平台上的存活技术。",
+      "la": "Enchiridion plenum systematis StegoLines: quomodo steganographia textus per Selectores Variationis (VS) operetur atque methodi resistentiae nuntiorum in WhatsApp et Telegram."
+    },
+    "offline": {
+      "en": "StegoLines offline mode: Use text steganography, payload extraction, and cryptographic tools without an internet connection.",
+      "ar": "وضع عدم الاتصال لمنظومة السطور المخفية: استخدم أدوات الإخفاء النصي، فك التشفير، وفحص المحادثات بأمان تام ودون اتصال بالإنترنت.",
+      "fr": "Mode hors ligne de StegoLines : Utilisez les outils de stéganographie, d'extraction et de chiffrement en toute sécurité sans connexion Internet.",
+      "zh": "StegoLines离线模式：在无网络连接的情况下安全使用文本隐写、载荷提取和密码学工具。",
+      "la": "Modus sine interrete StegoLines: Utere instrumentis steganographiae textus, extractionis et cryptographiae sine connexione interretiali."
+    }
+  },
+  "keywords": {
+    "index": {
+      "en": "StegoLines, Hidden Lines, Text Steganography, hide text in text, hide image in text, steganography, text encryption, hide message in social media, image hiding, image encryption, Stegnolines, StegoLines, invisible characters, Unicode variation selectors, AES-256 encryption, send secret messages via social media",
+      "ar": "السطور المخفية, الإخفاء النصي, اخفاء نص داخل نص, إخفاء صورة داخل نص, ستيجانوغرافي, ستغانوغرافي, تشفير النصوص, إخفاء رسالة في مواقع التواصل, إخفاء الصور, تشفير الصور, ستغنولاين, ستيجولاينز, أحرف غير مرئية, محددات التنوع يونيكود, تشفير AES-256, إرسال رسائل سرية عبر مواقع التواصل",
+      "fr": "StegoLines, Lignes Cachées, Stéganographie de Texte, cacher du texte dans du texte, cacher une image dans du texte, stéganographie, chiffrement de texte, cacher un message sur les réseaux sociaux, dissimulation d'image, chiffrement d'image, Stegnolines, caractères invisibles, sélecteurs de variation Unicode, chiffrement AES-256, envoyer des messages secrets sur les réseaux sociaux",
+      "zh": "StegoLines, 隐藏行, 文本隐写术, 文本中隐藏文本, 文本中隐藏图像, 隐写术, 文本加密, 社交媒体中隐藏消息, 图像隐藏, 图像加密, Stegnolines, 不可见字符, Unicode变体选择器, AES-256加密, 通过社交媒体发送机密消息",
+      "la": "StegoLines, Lineae Occultae, Steganographia Textus, occultare textum in texto, occultare imaginem in texto, steganographia, textus cryptographia, occultare epistulam in mediis socialibus, imaginum occultatio, imaginum cryptographia, Stegnolines, characteres invisibiles, selectores variationis Unicode, cryptographia AES-256, mittere epistulas secretas per media socialia"
+    },
+    "extract": {
+      "en": "StegoLines, Hidden Lines, hidden text extraction, extract hidden messages, steganography decryption, Stegnolines, StegoLines, extract hidden image, decrypt hidden message, text steganography, steganography",
+      "ar": "السطور المخفية, استخراج النصوص المخفية, ستجنوجرافي فك تشفير الرسائل المخفية, ستجنولاين, ستجولاين, استخراج الصوره المخفية, فك تشفير الرسالة المخفية, الاخفاء النصي, ستجنوجرافي",
+      "fr": "StegoLines, Lignes Cachées, extraction de texte caché, extraire des messages cachés, déchiffrement stéganographique, Stegnolines, extraire une image cachée, déchiffrer un message secret, stéganographie textuelle, stéganographie",
+      "zh": "StegoLines, 隐藏行, 隐藏文本提取, 提取机密消息, 隐写解密, Stegnolines, 提取隐藏图像, 解密隐藏消息, 文本隐写术, 隐写术",
+      "la": "StegoLines, Lineae Occultae, extractio textus occulti, extrahere epistulas occultas, steganographica decifratio, Stegnolines, extrahere imaginem occultam, decifrare epistulam occultam, steganographia textus, steganographia"
+    },
+    "steganalysis": {
+      "en": "StegoLines, Hidden Lines, extract hidden chats, detect hidden messages, social media chat scanner, digital forensics, forensic chat inspection, steganalysis, identify hidden messages",
+      "ar": "السطور المخفية, استخراج المحادثات المخفية, كشف الرسائل المخفية, فحص محادثات مواقع التواصل الاجتماعي, التحليل الجنائي الرقمي, فحص المحادثات الجنائية, تحليل الاخفاء, تحديد الرسائل المخفية",
+      "fr": "StegoLines, Lignes Cachées, extraire des discussions cachées, détecter des messages cachés, analyseur de discussions sur réseaux sociaux, criminalistique numérique, inspection médico-légale de conversations, stéganalyse, identifier les messages cachés",
+      "zh": "StegoLines, 隐藏行, 提取隐藏聊天, 检测隐藏消息, 社交媒体聊天扫描器, 数字取证, 聊天取证检查, 隐写分析, 识别隐藏消息",
+      "la": "StegoLines, Lineae Occultae, extrahere colloquia occulta, detegere epistulas occultas, scrutator sermonum mediorum socialium, forensica digitalis, inspectio forensica sermonum, steganalysis, agnoscere epistulas occultas"
+    },
+    "about": {
+      "en": "StegoLines, Hidden Lines, development team, StegoLines developers, text steganography, steganography",
+      "ar": "السطور المخفية, فريق التطوير, مطورو السطور المخفية, الاخفاء النصي, ستجنوجرافي",
+      "fr": "StegoLines, Lignes Cachées, équipe de développement, développeurs de StegoLines, stéganographie de texte, stéganographie",
+      "zh": "StegoLines, 隐藏行, 开发团队, StegoLines开发者, 文本隐写术, 隐写术",
+      "la": "StegoLines, Lineae Occultae, turma evolutionis, inventores StegoLines, steganographia textus, steganographia"
+    },
+    "contact": {
+      "en": "StegoLines, Hidden Lines, support and contact, contact StegoLines developers, text steganography, steganography",
+      "ar": "السطور المخفية, الدعم والتواصل, التواصل مع مطوري السطور المخفية, الاخفاء النصي, ستجنوجرافي",
+      "fr": "StegoLines, Lignes Cachées, support et contact, contacter les développeurs de StegoLines, stéganographie de texte, stéganographie",
+      "zh": "StegoLines, 隐藏行, 支持与联系, 联系StegoLines开发者, 文本隐写术, 隐写术",
+      "la": "StegoLines, Lineae Occultae, auxilium et contactus, contactus cum inventoribus StegoLines, steganographia textus, steganographia"
+    },
+    "documentation": {
+      "en": "StegoLines, Hidden Lines, documentation, text steganography guide, structural text steganography, types of steganography",
+      "ar": "السطور المخفية, التوثيق, دليل الإخفاء النصي, الاخفاء النصي الهيكلي, أنواع الاخفاء النصي",
+      "fr": "StegoLines, Lignes Cachées, documentation, guide de stéganographie de texte, stéganographie structurelle de texte, types de stéganographie",
+      "zh": "StegoLines, 隐藏行, 技术文档, 文本隐写指南, 结构化文本隐写术, 隐写术类型",
+      "la": "StegoLines, Lineae Occultae, documentatio, enchiridion steganographiae textus, steganographia textus structuralis, genera steganographiae"
+    },
+    "offline": {
+      "en": "StegoLines, offline mode, client-side cryptography, local text steganography, no server steganography",
+      "ar": "السطور المخفية, وضع عدم الاتصال, تشفير محلي, إخفاء نصي دون اتصال, ستجنولاين أوفلاين",
+      "fr": "StegoLines, mode hors ligne, cryptographie côté client, stéganographie locale, stéganographie sans serveur",
+      "zh": "StegoLines, 离线模式, 客户端密码学, 本地文本隐写, 无服务器隐写",
+      "la": "StegoLines, modus sine interrete, cryptographia localis, steganographia sine servitore"
+    }
+  },
+  "aiQueries": {
+    "index": {
+      "en": "How to send an encrypted secret message, whether text or image, inside social media chats without anyone noticing.",
+      "ar": "كيف ترسل رسالة سرية سواء نص او صورة داخل محادثات مواقع التواصل الاجتماعي دون أن يراها أحد وتكون مشفرة.",
+      "fr": "Comment envoyer un message secret chiffré, texte ou image, dans les discussions des réseaux sociaux sans que personne ne s'en aperçoive.",
+      "zh": "如何在社交媒体聊天中发送加密的机密消息（无论是文本还是图像），且不被任何人发觉。",
+      "la": "Quomodo mittere epistulam secretam cryptatam, sive textum sive imaginem, intra colloquia mediorum socialium nemine sentiente."
+    },
+    "extract": {
+      "en": "How to extract and decrypt a password-protected secret message hidden inside text received via social media platforms.",
+      "ar": "طريقة استخراج رسالة سرية مخفية داخل نص تم استلامه عبر مواقع التواصل برقم سري",
+      "fr": "Méthode pour extraire et déchiffrer un message secret protégé par mot de passe, dissimulé dans un texte reçu sur les réseaux sociaux.",
+      "zh": "如何提取并解密通过社交媒体平台接收到的隐藏在文本中的受密码保护的机密消息。",
+      "la": "Ratio extrahendi et decifrandi epistulam secretam tessera munitam et intra textum per media socialia receptum occultatam."
+    },
+    "steganalysis": {
+      "en": "How to inspect forensic chat logs in messaging apps and detect whether they contain hidden steganographic messages.",
+      "ar": "كيف يمكن فحص سجل المحادثات الجنائية في تطبيقات التواصل وكشف إذا كان فيها رسائل مخفية.",
+      "fr": "Comment examiner les journaux médico-légaux de conversations dans les applications de messagerie et détecter s'ils contiennent des messages stéganographiques cachés.",
+      "zh": "如何检查即时通讯软件中的取证聊天记录，并检测其中是否包含隐藏的隐写消息。",
+      "la": "Quomodo inspicere acta forensica sermonum in applicationibus communicandi et detegere num epistulas steganographicas occultas contineant."
+    },
+    "about": {
+      "en": "Who are the developers of the StegoLines text steganography suite?",
+      "ar": "من هم مطورو أداة السطور المخفية للإخفاء النصي",
+      "fr": "Qui sont les développeurs de la suite de stéganographie textuelle StegoLines ?",
+      "zh": "谁是StegoLines文本隐写套件的开发者？",
+      "la": "Qui sunt inventores ac compositores systematis StegoLines steganographiae textus?"
+    },
+    "contact": {
+      "en": "How to contact the StegoLines development team for technical support or academic research collaboration.",
+      "ar": "كيف تتواصل مع فريق تطوير منظومة السطور المخفية لطلب دعم فني أو شراكة بحثية",
+      "fr": "Comment contacter l'équipe de développement de StegoLines pour un support technique ou une collaboration de recherche académique.",
+      "zh": "如何联系StegoLines开发团队以获取技术支持或进行学术研究合作。",
+      "la": "Quomodo contingere turmam evolutionis StegoLines ad auxilium technicum vel cooperationem academicam petendam."
+    },
+    "documentation": {
+      "en": "How do I use the StegoLines tool, and how does the secret message embedding and extraction process work?",
+      "ar": "كيف أستخدم أداة السطور المخفية، وكيف تعمل عملية إخفاء الرسائل واستخراجها؟",
+      "fr": "Comment utiliser l'outil StegoLines, et comment fonctionne le processus de dissimulation et d'extraction de messages secrets ?",
+      "zh": "如何使用StegoLines工具，机密消息的隐写嵌入与提取流程是如何运作的？",
+      "la": "Quomodo uti instrumento StegoLines, et quomodo operatur ratio occultandi atque extrahendi epistulas secretas?"
+    },
+    "offline": {
+      "en": "How can I run StegoLines offline without an internet connection or backend server?",
+      "ar": "كيف يمكنني تشغيل منظومة السطور المخفية أوفلاين دون اتصال بالإنترنت أو خادم خلفي؟",
+      "fr": "Comment exécuter StegoLines hors ligne sans connexion Internet ni serveur backend ?",
+      "zh": "如何在没有互联网连接或后端服务器的情况下离线运行StegoLines？",
+      "la": "Quomodo possum uti StegoLines sine interrete et sine ullo servitore?"
+    }
+  }
+}

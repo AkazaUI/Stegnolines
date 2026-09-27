@@ -279,14 +279,95 @@ Embding-Algo/
 ];
 
 function shell(meta) {
+  const cleanPath = meta.file.replace(/\.html$/, '');
+  const pageUrl = `https://stegnolines.com/docs/${cleanPath}`;
+  const pageDescription = `Stegnolines Technical Documentation: ${meta.title} (${meta.section}). In-depth analysis, architecture, algorithms, and security reference.`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="apple-touch-icon" sizes="180x180" href="../../assets/brand/favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../assets/brand/favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../../assets/brand/favicon_io/favicon-16x16.png">
+  <link rel="manifest" href="../../assets/brand/favicon_io/site.webmanifest">
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>STEGNOLINES — ${meta.title}</title>
+  <title>StegoLines — ${meta.title}</title>
+  <meta name="description" content="${pageDescription}"/>
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"/>
+  <link rel="canonical" href="${pageUrl}"/>
+  <link rel="alternate" hreflang="en" href="${pageUrl}?lang=en"/>
+  <link rel="alternate" hreflang="ar" href="${pageUrl}?lang=ar"/>
+  <link rel="alternate" hreflang="x-default" href="${pageUrl}"/>
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article"/>
+  <meta property="og:url" content="${pageUrl}"/>
+  <meta property="og:title" content="StegoLines — ${meta.title}"/>
+  <meta property="og:description" content="${pageDescription}"/>
+  <meta property="og:image" content="https://stegnolines.com/assets/brand/logo-dark.webp"/>
+  <meta property="og:site_name" content="Stegnolines"/>
+  <meta property="og:locale" content="en_US"/>
+  <meta property="og:locale:alternate" content="ar_AR"/>
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:url" content="${pageUrl}"/>
+  <meta name="twitter:title" content="StegoLines — ${meta.title}"/>
+  <meta name="twitter:description" content="${pageDescription}"/>
+  <meta name="twitter:image" content="https://stegnolines.com/assets/brand/logo-dark.webp"/>
+
+  <!-- Schema.org Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TechArticle",
+        "@id": "${pageUrl}#article",
+        "headline": "${meta.title}",
+        "description": "${pageDescription}",
+        "url": "${pageUrl}",
+        "isPartOf": {
+          "@type": "WebSite",
+          "@id": "https://stegnolines.com/#website",
+          "name": "Stegnolines",
+          "url": "https://stegnolines.com/"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "${pageUrl}#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://stegnolines.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Documentation",
+            "item": "https://stegnolines.com/documentation"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "${meta.section}",
+            "item": "https://stegnolines.com/documentation"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "${meta.title}",
+            "item": "${pageUrl}"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="../../New_styles.css"/>
   <link rel="stylesheet" href="../../css/main.css"/>
   <link rel="stylesheet" href="../../css/pages/docs.css"/>
   <script>
@@ -302,7 +383,9 @@ function shell(meta) {
       }
 
       // Retrieve language preference immediately
-      const savedLang = localStorage.getItem('stegoLang') || 'en';
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramLang = urlParams.get('lang');
+      const savedLang = (paramLang && (paramLang === 'ar' || paramLang === 'en')) ? paramLang : (localStorage.getItem('stegoLang') || 'en');
       document.documentElement.setAttribute('lang', savedLang);
       document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
 
@@ -555,8 +638,8 @@ function shell(meta) {
         <div class="main-footer__col">
           <div class="main-footer__col-title" data-i18n="footerColTeam">Team</div>
           <ul class="main-footer__col-links">
-            <li><a href="../../about us.html" class="main-footer__link" data-i18n="footerAboutTeam">About Team</a></li>
-            <li><a href="../../contact team.html" class="main-footer__link" data-i18n="footerContactTeam">Contact With Team</a></li>
+            <li><a href="../../about.html" class="main-footer__link" data-i18n="footerAboutTeam">About Team</a></li>
+            <li><a href="../../contact.html" class="main-footer__link" data-i18n="footerContactTeam">Contact With Team</a></li>
           </ul>
         </div>
       </div>

@@ -1,0 +1,57 @@
+# StegoLines (السطور المخفية) — Full Technical Specification for Large Language Models
+
+This document serves as an exhaustive knowledge base for AI search agents and LLMs retrieving technical information about StegoLines (السطور المخفية).
+
+## Identity & Architecture
+- **Official Brand:** StegoLines (Arabic: السطور المخفية)
+- **Primary Domain:** https://stegnolines.com
+- **Repository:** https://github.com/AkazaUI/Stegnolines
+- **License:** Open Source
+- **Runtime Environment:** Pure Client-side Browser execution (HTML5, Vanilla ES6+ JavaScript, CSS3 Design Tokens)
+- **Zero-Server Guarantee:** No plain text, secret keys, payloads, or cover texts are ever transmitted over the network. All cryptographic operations utilize the browser's native Web Crypto API or hardened client-side cryptographic routines.
+
+## Cryptographic Specification
+1. **Key Derivation Function:** PBKDF2 (Password-Based Key Derivation Function 2)
+   - PRF: HMAC-SHA-256
+   - Iterations: 100,000 rounds
+   - Salt: Cryptographically secure random 16-byte salt per payload
+2. **Symmetric Encryption:** AES (Advanced Encryption Standard)
+   - Key Length: 256 bits
+   - Mode: CTR (Counter Mode) stream cipher for zero-padding overhead
+   - IV/Nonce: 16 bytes unique initialization vector
+3. **Payload Authentication:** Integrity verification using SHA-256 digest checks to prevent bit-flipping and extraction errors.
+
+## Steganographic Encoding Methods
+1. **Unicode Variation Selector Encoding (VS1–VS256):**
+   - High-density invisible encoding mapping 256 byte values directly to 256 unique Unicode variation selectors:
+     - BMP Variation Selectors: U+FE00 to U+FE0F (VS-1 to VS-16, 16 codepoints)
+     - Supplementary Variation Selectors: U+E0100 to U+E01EF (VS-17 to VS-256, 240 codepoints)
+   - Dynamic Key-Dependent Permutation (VS S-Box Shuffle):
+     - Bijective permutation table ($\pi: [0..255] \leftrightarrow [0..255]$) derived from Stego-Key via PBKDF2-HMAC-SHA256 and AES-256-CTR CSPRNG with Unbiased Rejection Sampling.
+   - Exact 1-byte to 1-character mapping (8x to 4x higher information density than deprecated Zero-Width Characters).
+2. **Spatial PRNG Placement & Bitwise XOR Masking:**
+   - CSPRNG distributes payload bits deterministically across the cover text.
+   - Bitwise XOR masking ($K = C \oplus M$) ensures zero visual alteration of the host text.
+
+## Social Platform Guard (SPG)
+A specialized pre-filtering and encoding resilience layer designed to withstand aggressive server-side text sanitization:
+- **Sanitization Resistance:** Variation Selectors (VS1–VS256) are official Unicode glyph variation markers and are immune to the automated regex filters that strip traditional zero-width spaces (U+200B/U+200C/U+200D).
+- **Telegram & WhatsApp:** Preserves formatted Markdown and chat messages without breaking payload integrity or triggering spam filters.
+- **Instagram & Messenger:** Resists automated whitespace collapse and UTF-8 normalization.
+- **LinkedIn & X (Twitter):** Circumvents copy-paste stripping, link wrapping, and platform re-encoding.
+- **Empirical Survival Benchmark:** 100% successful extraction rate across 9 benchmarked communication platforms.
+
+## Chat Scanner & Inspection (فاحص المحادثات المخفية)
+The built-in chat scanner (`/steganalysis`) performs:
+1. **Unicode Dissection:** Identifies, highlights, and tallies hidden non-printable characters and Variation Selectors.
+2. **Homoglyph Anomaly Detection:** Flags characters belonging to unexpected Unicode scripts.
+3. **Entropy & Bit-Variance Inspection:** Determines likelihood of hidden steganographic or encrypted payloads in suspicious plain texts.
+4. **Chat Log Scanner:** High-throughput batch analyzer capable of parsing WhatsApp and Telegram exported chat records (.txt, .json, .csv) to detect hidden transmissions.
+
+## Official Site Routes
+- `/`: Primary Embedding Workbench (Text Steganography | الإخفاء النصي)
+- `/extract`: Extraction & Decryption Workbench (Payload Extractor | استخراج النصوص المخفية)
+- `/steganalysis`: Forensic Inspection Engine (Chat Scanner | فاحص المحادثات المخفية)
+- `/documentation`: Documentation Portal (Documentation | التوثيق)
+- `/about`: Development Team & Organization Background (Development Team | فريق التطوير)
+- `/contact`: Communication and Feedback Channels (Support & Contact | الدعم والتواصل)

@@ -1,0 +1,19 @@
+# Build output & dependencies
+_site/
+node_modules/
+.cache/
+
+# Auto-generated build artifacts (generated dynamically into _site)
+sitemap.xml
+
+# AI assistants, agent workspaces & scratch
+.agent/
+.serena/
+scratch/
+
+# Operating System & Temporary files
+.DS_Store
+Thumbs.db
+*.heic
+*.HEIC
+*.log

@@ -91,21 +91,31 @@
   styleEl.textContent = styles;
   document.head.appendChild(styleEl);
 
-  // ── Path Prefix Resolver (Critical for nested /docs/ & /Scanner feature/ folders) ──
+  // ── Path Prefix Resolver (Critical for relative paths across root, languages & docs) ──
   function getPathPrefix() {
     const href = window.location.href.replace(/\\/g, '/');
-    if (href.includes('/docs/getting-started/') || 
-        href.includes('/docs/user-guide/') || 
-        href.includes('/docs/technical-reference/') || 
-        href.includes('/docs/development/')) {
+    const isLangDoc = href.includes('/ar/docs/') || href.includes('/en/docs/') || href.includes('/fr/docs/') || href.includes('/zh/docs/') || href.includes('/la/docs/');
+    const isRootDoc = href.includes('/docs/getting-started/') || href.includes('/docs/user-guide/') || href.includes('/docs/technical-reference/') || href.includes('/docs/development/');
+    if (isLangDoc || isRootDoc) {
       return '../../';
-    } else if (href.includes('/docs/') || href.includes('/Scanner feature/') || href.includes('/Scanner%20feature/')) {
-      return '../';
     }
     return '';
   }
 
+  function getAssetPrefix() {
+    const href = window.location.href.replace(/\\/g, '/');
+    const isLangDoc = href.includes('/ar/docs/') || href.includes('/en/docs/') || href.includes('/fr/docs/') || href.includes('/zh/docs/') || href.includes('/la/docs/');
+    const isRootDoc = href.includes('/docs/getting-started/') || href.includes('/docs/user-guide/') || href.includes('/docs/technical-reference/') || href.includes('/docs/development/');
+    const isLangSub = href.includes('/ar/') || href.includes('/en/') || href.includes('/fr/') || href.includes('/zh/') || href.includes('/la/');
+    
+    if (isLangDoc) return '../../../';
+    if (isRootDoc) return '../../';
+    if (isLangSub || href.includes('/docs/')) return '../';
+    return '';
+  }
+
   const prefix = getPathPrefix();
+  const assetPrefix = getAssetPrefix();
 
   // ── HTML Navbar Template Builder ──
   function buildNavbarHtml() {
@@ -113,8 +123,8 @@
       <div class="top-nav__inner">
         <!-- Brand logo -->
         <a class="top-nav__brand" href="${prefix}index.html" id="brand-link">
-          <img class="top-nav__brand-logo top-nav__brand-logo--light" src="${prefix}assets/brand/logo-dark.webp" alt="STEGNOLINES" onerror="this.style.display='none'"/>
-          <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="${prefix}assets/brand/logo-light.webp" alt="STEGNOLINES" onerror="this.style.display='none'"/>
+          <img class="top-nav__brand-logo top-nav__brand-logo--light" src="${assetPrefix}assets/brand/logo-dark.webp" alt="STEGNOLINES" onerror="this.style.display='none'"/>
+          <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="${assetPrefix}assets/brand/logo-light.webp" alt="STEGNOLINES" onerror="this.style.display='none'"/>
         </a>
 
         <!-- Desktop Navigation Links -->
@@ -187,7 +197,7 @@
                 </div>
                 <div class="top-nav__dropdown-item-text">
                   <span class="top-nav__dropdown-item-title" data-i18n="exTabImage">Image Extract</span>
-                  <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownImageDesc">Reveal hidden image payload</span>
+                  <span class="top-nav__dropdown-item-desc" data-i18n="navDropdownImageExtractDesc">Reveal hidden image payload</span>
                 </div>
               </a>
             </div>
@@ -207,7 +217,7 @@
         <!-- Dynamic theme toggle / Preferences Trigger button -->
         <div class="top-nav__actions">
           <input type="checkbox" id="toggle-dark-mode" style="display: none !important;" />
-          <button class="icon-btn" id="top-nav-settings" aria-label="Settings" title="Settings">
+          <button class="icon-btn" id="top-nav-settings" aria-label="Settings" title="Settings" data-i18n-title="settingsTitle">
             <span class="material-symbols-outlined">settings</span>
           </button>
         </div>
@@ -313,8 +323,8 @@
           <div class="main-footer__col">
             <div class="main-footer__col-title" data-i18n="footerColTeam">TEAM</div>
             <ul class="main-footer__col-links">
-              <li><a href="${prefix}about us.html" class="main-footer__link" data-i18n="footerAboutTeam">About Team</a></li>
-              <li><a href="${prefix}contact team.html" class="main-footer__link" data-i18n="footerContactTeam">Contact With Team</a></li>
+              <li><a href="${prefix}about.html" class="main-footer__link" data-i18n="footerAboutTeam">About Team</a></li>
+              <li><a href="${prefix}contact.html" class="main-footer__link" data-i18n="footerContactTeam">Contact With Team</a></li>
             </ul>
           </div>
         </div>
@@ -669,8 +679,76 @@
     }
   };
 
+  // ── Translate Dynamically Injected Templates (Header, Footer, Settings) ──
+  function translateInjectedTemplates(lang) {
+    const targetLang = lang || document.documentElement.getAttribute('lang') || localStorage.getItem('stegoLang') || 'en';
+    const commonDict = (typeof I18N_COMMON !== 'undefined' && I18N_COMMON[targetLang]) ? I18N_COMMON[targetLang] : {};
+    const pageDict = (typeof translations !== 'undefined' && translations[targetLang]) ? translations[targetLang] : {};
+    const dict = Object.assign({}, commonDict, pageDict);
+
+    if (Object.keys(dict).length === 0) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => translateInjectedTemplates(targetLang), { once: true });
+      } else {
+        setTimeout(() => translateInjectedTemplates(targetLang), 60);
+      }
+      return;
+    }
+
+    const containers = [
+      document.getElementById('top-nav'),
+      document.querySelector('.main-footer'),
+      document.getElementById('settings-modal'),
+      document.getElementById('mobile-menu')
+    ];
+
+    containers.forEach(container => {
+      if (!container) return;
+
+      container.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+          const icon = el.querySelector('.material-symbols-outlined');
+          if (icon) {
+            let replaced = false;
+            el.childNodes.forEach(child => {
+              if (child.nodeType === Node.TEXT_NODE && child.textContent.trim().length > 0) {
+                child.textContent = ' ' + dict[key];
+                replaced = true;
+              }
+            });
+            if (!replaced) {
+              el.appendChild(document.createTextNode(' ' + dict[key]));
+            }
+          } else {
+            el.textContent = dict[key];
+          }
+        }
+      });
+
+      container.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (dict[key]) el.setAttribute('title', dict[key]);
+      });
+
+      container.querySelectorAll('[data-i18n-tooltip]').forEach(el => {
+        const key = el.getAttribute('data-i18n-tooltip');
+        if (dict[key]) el.setAttribute('data-tooltip', dict[key]);
+      });
+
+      container.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (dict[key]) el.setAttribute('placeholder', dict[key]);
+      });
+    });
+  }
+
+  window.translateInjectedTemplates = translateInjectedTemplates;
+
   // ── Inject HTML & Bind Event Listeners ──
   function initTemplates() {
+    const currentDocLang = document.documentElement.getAttribute('lang') || 'en';
+
     // 1. Inject Navbar
     const navPlaceholder = document.getElementById('navbar-placeholder');
     if (navPlaceholder) {
@@ -696,6 +774,9 @@
       modalContainer.innerHTML = buildSettingsModalHtml(); // SECURITY: Static template, no user input (safe)
       document.body.appendChild(modalContainer);
     }
+
+    // Immediately translate newly injected components to the document language
+    translateInjectedTemplates(currentDocLang);
 
     if (!document.getElementById('sec-toast-wrap')) {
       const toastWrap = document.createElement('div');
@@ -822,12 +903,22 @@
       });
     });
 
-    // ── Set default languages and fonts on load (Translate Immediately) ──
-    const savedLang = localStorage.getItem('stegoLang') || 'en';
-    if (typeof applyLanguage === 'function') {
-      applyLanguage(savedLang);
-    } else if (typeof applyLanguageUI === 'function') {
-      applyLanguageUI(savedLang);
+    // ── Synchronize languages and fonts on load ──
+    const isSsg = document.documentElement.getAttribute('data-ssg-rendered') === 'true' || currentDocLang !== 'en';
+    localStorage.setItem('stegoLang', currentDocLang);
+
+    if (isSsg) {
+      if (typeof updateLanguageControlsOnly === 'function') {
+        updateLanguageControlsOnly(currentDocLang);
+      }
+      translateInjectedTemplates(currentDocLang);
+    } else {
+      if (typeof applyLanguage === 'function') {
+        applyLanguage(currentDocLang);
+      } else if (typeof applyLanguageUI === 'function') {
+        applyLanguageUI(currentDocLang);
+      }
+      translateInjectedTemplates(currentDocLang);
     }
 
     const savedFont = localStorage.getItem('stegoFont') || 'cairo';
@@ -850,7 +941,7 @@
         fileOpt.style.opacity = '0.5';
         fileOpt.style.cursor = 'not-allowed';
         fileOpt.style.pointerEvents = 'none';
-        fileOpt.textContent = savedLang === 'ar' ? 'ملف محلي آمن (غير مدعوم)' : 'Secure File (Unsupported)';
+        fileOpt.textContent = currentDocLang === 'ar' ? 'ملف محلي آمن (غير مدعوم)' : 'Secure File (Unsupported)';
       }
     }
 
@@ -866,11 +957,11 @@
     // Dynamically inject onboarding tour CSS and JS
     const tourLink = document.createElement('link');
     tourLink.rel = 'stylesheet';
-    tourLink.href = `${prefix}css/components/site-tour.css`;
+    tourLink.href = `${assetPrefix}css/components/site-tour.css`;
     document.head.appendChild(tourLink);
 
     const tourScript = document.createElement('script');
-    tourScript.src = `${prefix}js/shared/site-tour.js`;
+    tourScript.src = `${assetPrefix}js/shared/site-tour.js`;
     document.body.appendChild(tourScript);
   }
 
