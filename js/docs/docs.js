@@ -32,10 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (typeof I18N_COMMON === 'undefined') {
-    loadScript(base + 'js/i18n/common.js', function() {
-      loadScript(base + 'js/i18n/docs.js', function() {
-        loadScript(base + 'js/i18n/docs-articles.js', function() {
-          loadScript(base + 'js/i18n/index.js', function() {
+    loadScript(base + 'i18n/dictionaries/common.js', function() {
+      loadScript(base + 'i18n/dictionaries/docs.js', function() {
+        loadScript(base + 'i18n/dictionaries/docs-articles.js', function() {
+          loadScript(base + 'i18n/dictionaries/index.js', function() {
             if (typeof mergeI18n === 'function') {
               window.translations = mergeI18n(I18N_COMMON, I18N_DOCS);
             }
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   } else {
     if (typeof I18N_DOCS_ARTICLES === 'undefined') {
-      loadScript(base + 'js/i18n/docs-articles.js', function() {
+      loadScript(base + 'i18n/dictionaries/docs-articles.js', function() {
         if (typeof mergeI18n === 'function' && typeof I18N_DOCS !== 'undefined') {
           window.translations = mergeI18n(I18N_COMMON, I18N_DOCS);
         }
@@ -534,7 +534,7 @@ function renderDocsSidebarTree(lang, dict) {
   const sidebarNav = document.getElementById('docs-sidebar-nav');
   if (!sidebarNav || !window.DOCS_NAV) return;
 
-  const base = window.DOCS_BASE !== undefined ? window.DOCS_BASE : '';
+  const base = window.DOCS_PAGE_BASE !== undefined ? window.DOCS_PAGE_BASE : (window.DOCS_BASE !== undefined ? window.DOCS_BASE : '');
   const currentPath = window.location.pathname.replace(/\\/g, '/');
 
   sidebarNav.replaceChildren(); // SAFE: clear placeholder
@@ -603,7 +603,7 @@ function renderDocsPager(lang, dict) {
   const nextLink = document.getElementById('docs-next-link');
 
   if ((prevLink || nextLink) && window.DOCS_NAV) {
-    const base = window.DOCS_BASE !== undefined ? window.DOCS_BASE : '';
+    const base = window.DOCS_PAGE_BASE !== undefined ? window.DOCS_PAGE_BASE : (window.DOCS_BASE !== undefined ? window.DOCS_BASE : '');
     const currentPath = window.location.pathname.replace(/\\/g, '/');
 
     const flatItems = [];

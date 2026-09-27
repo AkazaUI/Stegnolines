@@ -232,7 +232,7 @@ async function performExtraction() {
   }
 }
 
-// Translations are loaded externally from js/i18n/
+// Translations are loaded externally from i18n/dictionaries/
 const TRANSLATIONS = window.translations;
 
 function applyLanguage(lang) {

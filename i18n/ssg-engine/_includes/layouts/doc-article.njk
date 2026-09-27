@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ dir }}" data-arabic-font="cairo" data-ssg-rendered="true">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  {% set isPageRoot = (isRoot == true or isRoot == "true") %}
+  {% set relRoot = '../../' if isPageRoot else '../../../' %}
+  {% set domain = site.domain or 'https://stegnolines.com' %}
+  {% set currentUrl = (domain + '/docs/' + slug) if isPageRoot else (domain + '/' + lang + '/docs/' + slug) %}
+
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ relRoot }}assets/brand/favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ relRoot }}assets/brand/favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ relRoot }}assets/brand/favicon_io/favicon-16x16.png">
+  <link rel="manifest" href="{{ relRoot }}assets/brand/favicon_io/site.webmanifest">
+  
+  <title>{{ title }}</title>
+  <meta name="description" content="StegoLines Technical Documentation: {{ name }} ({{ category }}). In-depth analysis, architecture, algorithms, and security reference."/>
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"/>
+  <link rel="canonical" href="{{ currentUrl }}"/>
+  <link rel="alternate" hreflang="en" href="{{ domain }}/docs/{{ slug }}"/>
+  <link rel="alternate" hreflang="ar" href="{{ domain }}/ar/docs/{{ slug }}"/>
+  <link rel="alternate" hreflang="x-default" href="{{ domain }}/docs/{{ slug }}"/>
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article"/>
+  <meta property="og:url" content="{{ currentUrl }}"/>
+  <meta property="og:title" content="{{ title }}"/>
+  <meta property="og:description" content="StegoLines Technical Documentation: {{ name }} ({{ category }})."/>
+  <meta property="og:image" content="{{ domain }}/assets/brand/logo-dark.webp"/>
+  <meta property="og:site_name" content="{{ 'السطور المخفية' if lang == 'ar' else 'StegoLines' }}"/>
+  <meta property="og:locale" content="{{ 'ar_AR' if lang == 'ar' else 'en_US' }}"/>
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:url" content="{{ currentUrl }}"/>
+  <meta name="twitter:title" content="{{ title }}"/>
+  <meta name="twitter:description" content="StegoLines Technical Documentation: {{ name }} ({{ category }})."/>
+  <meta name="twitter:image" content="{{ domain }}/assets/brand/logo-dark.webp"/>
+
+  <!-- Schema.org Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TechArticle",
+        "@id": "{{ currentUrl }}#article",
+        "headline": "{{ name }}",
+        "description": "StegoLines Technical Documentation: {{ name }} ({{ category }}). In-depth analysis, architecture, algorithms, and security reference.",
+        "url": "{{ currentUrl }}",
+        "inLanguage": "{{ lang }}",
+        "isPartOf": {
+          "@type": "WebSite",
+          "@id": "https://stegnolines.com/#website",
+          "name": "{{ 'السطور المخفية' if lang == 'ar' else 'StegoLines' }}",
+          "url": "https://stegnolines.com/"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "{{ currentUrl }}#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "{{ 'الرئيسية' if lang == 'ar' else 'Home' }}",
+            "item": "{{ 'https://stegnolines.com/' if isPageRoot else ('https://stegnolines.com/' + lang + '/') }}"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "{{ 'التوثيق' if lang == 'ar' else 'Documentation' }}",
+            "item": "{{ 'https://stegnolines.com/documentation' if isPageRoot else ('https://stegnolines.com/' + lang + '/documentation') }}"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "{{ category }}",
+            "item": "{{ 'https://stegnolines.com/documentation' if isPageRoot else ('https://stegnolines.com/' + lang + '/documentation') }}"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "{{ name }}",
+            "item": "{{ currentUrl }}"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- Typography & Styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Cairo:wght@400;600;700;800&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ relRoot }}css/main.css"/>
+  <link rel="stylesheet" href="{{ relRoot }}css/pages/docs.css"/>
+
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('stegoTheme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+      const savedFont = localStorage.getItem('stegoFont') || 'cairo';
+      document.documentElement.setAttribute('data-arabic-font', savedFont === 'thmanyah' ? 'cairo' : savedFont);
+      window.DOCS_BASE = "{{ relRoot }}";
+      window.DOCS_PAGE_BASE = "../../";
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <script src="{{ relRoot }}js/features/page-loader.js"></script>
+
+  <!-- Top Navigation Placeholder -->
+  <div id="navbar-placeholder"></div>
+
+  <div class="docs-wrap">
+    <div class="docs-layout">
+      <!-- Sidebar Column -->
+      <aside class="docs-sidebar" id="docs-sidebar" aria-label="Documentation navigation">
+        <p class="docs-sidebar__title">
+          <a href="../../documentation.html">{{ 'التوثيق' if lang == 'ar' else 'Documentation' }}</a>
+        </p>
+        <nav id="docs-sidebar-nav"></nav>
+      </aside>
+      
+      <div class="docs-sidebar-backdrop" id="docs-sidebar-backdrop"></div>
+      
+      <!-- Main Content Column -->
+      <div class="docs-main">
+        <button type="button" class="docs-sidebar-toggle" id="docs-sidebar-toggle" aria-expanded="false">
+          <span class="material-symbols-outlined">menu</span> {{ 'المحتويات' if lang == 'ar' else 'Contents' }}
+        </button>
+        
+        <nav class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../documentation.html">{{ 'التوثيق' if lang == 'ar' else 'Documentation' }}</a>
+          <span class="docs-breadcrumb__sep">/</span>
+          <span>{{ category }}</span>
+          <span class="docs-breadcrumb__sep">/</span>
+          <span>{{ name }}</span>
+        </nav>
+        
+        <article class="docs-article">
+          {{ content | safe }}
+        </article>
+        
+        <!-- Pager -->
+        <nav class="docs-pager" aria-label="Documentation pagination">
+          {% set pagerPrev = docItem.prev if (docItem and docItem.prev) else prev %}
+          {% set pagerNext = docItem.next if (docItem and docItem.next) else next %}
+
+          {% if pagerPrev %}
+          <a class="docs-pager__link docs-pager__link--prev" id="docs-prev-link" href="{{ pagerPrev.url }}">
+            <span class="material-symbols-outlined docs-pager__icon" aria-hidden="true">{{ 'arrow_forward' if lang == 'ar' else 'arrow_back' }}</span>
+            <div class="docs-pager__text">
+              <span class="docs-pager__dir">{{ 'السابق' if lang == 'ar' else 'Previous' }}</span>
+              <span class="docs-pager__label">{{ pagerPrev.name }}</span>
+            </div>
+          </a>
+          {% else %}
+          <div class="docs-pager__spacer"></div>
+          {% endif %}
+
+          {% if pagerNext %}
+          <a class="docs-pager__link docs-pager__link--next" id="docs-next-link" href="{{ pagerNext.url }}">
+            <div class="docs-pager__text">
+              <span class="docs-pager__dir">{{ 'التالي' if lang == 'ar' else 'Next' }}</span>
+              <span class="docs-pager__label">{{ pagerNext.name }}</span>
+            </div>
+            <span class="material-symbols-outlined docs-pager__icon" aria-hidden="true">{{ 'arrow_back' if lang == 'ar' else 'arrow_forward' }}</span>
+          </a>
+          {% endif %}
+        </nav>
+      </div>
+      
+      <!-- Secondary TOC Column -->
+      <aside class="docs-toc" aria-label="On this page">
+        <p class="docs-toc__heading">{{ 'في هذه الصفحة' if lang == 'ar' else 'On this page' }}</p>
+        <nav id="docs-onpage-toc"></nav>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Footer Placeholder -->
+  <div id="footer-placeholder"></div>
+
+  <!-- Scripts -->
+  <script src="{{ relRoot }}js/utils.js"></script>
+  <script src="{{ relRoot }}i18n/dictionaries/common.js"></script>
+  <script src="{{ relRoot }}js/shared/theme-manager.js"></script>
+  <script src="{{ relRoot }}js/shared/template-loader.js"></script>
+  <script src="{{ relRoot }}js/docs/nav-data.js"></script>
+  <script src="{{ relRoot }}js/docs/docs.js"></script>
+
+  <!-- Floating Help/Guide Button -->
+  <button type="button" class="floating-guide-btn" data-tooltip="{{ 'إرشادات الموقع' if lang == 'ar' else 'Site Guide' }}">
+    <span class="material-symbols-outlined">help</span>
+  </button>
+</body>
+</html>

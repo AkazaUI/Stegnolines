@@ -9,6 +9,24 @@
 // ══════════════════════════════════════════════════════════════
 
 (function() {
+  try {
+    const path = window.location.pathname.toLowerCase();
+    const match = path.match(/^\/(en|ar|fr|zh|la)(\/|$)/);
+    if (match) {
+      const routeLang = match[1];
+      localStorage.setItem('stegoLang', routeLang);
+      document.documentElement.setAttribute('lang', routeLang);
+      document.documentElement.setAttribute('dir', routeLang === 'ar' ? 'rtl' : 'ltr');
+    } else {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramLang = urlParams.get('lang');
+      if (paramLang && (paramLang === 'ar' || paramLang === 'en' || paramLang === 'fr' || paramLang === 'zh' || paramLang === 'la')) {
+        localStorage.setItem('stegoLang', paramLang);
+        document.documentElement.setAttribute('lang', paramLang);
+        document.documentElement.setAttribute('dir', paramLang === 'ar' ? 'rtl' : 'ltr');
+      }
+    }
+  } catch (e) {}
   const savedTheme = localStorage.getItem('stegoTheme') || 'system';
   applyThemeByMode(savedTheme);
 })();
@@ -74,8 +92,43 @@ function initThemeManager() {
   });
 
   // Initialize language, font, and storage stats
-  const savedLang = localStorage.getItem('stegoLang') || 'en';
-  applyLanguageUI(savedLang);
+  const path = window.location.pathname.toLowerCase();
+  const match = path.match(/^\/(en|ar|fr|zh|la)(\/|$)/);
+  let activeLang = 'en';
+
+  if (match) {
+    // 1. Physical subfolder route (/ar/, /fr/, etc.) has highest priority
+    activeLang = match[1];
+  } else {
+    // 2. Query param (?lang=) takes priority for incoming shared links
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramLang = urlParams.get('lang');
+    const savedLang = localStorage.getItem('stegoLang');
+
+    if (paramLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(paramLang)) {
+      activeLang = paramLang;
+    } else if (savedLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(savedLang)) {
+      // 3. User's saved preference in localStorage takes priority when returning to root
+      activeLang = savedLang;
+    } else {
+      // 4. Default to document lang attribute or 'en'
+      const docLang = document.documentElement.getAttribute('lang');
+      activeLang = (docLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(docLang)) ? docLang : 'en';
+    }
+  }
+
+  localStorage.setItem('stegoLang', activeLang);
+
+  // If the document is already pre-rendered statically with this language,
+  // DO NOT overwrite DOM text with client-side translation!
+  const currentDocLang = document.documentElement.getAttribute('lang');
+  const isSsgRendered = document.documentElement.getAttribute('data-ssg-rendered') === 'true' && currentDocLang === activeLang;
+
+  if (isSsgRendered) {
+    updateLanguageControlsOnly(activeLang);
+  } else {
+    applyLanguageUI(activeLang);
+  }
   
   let savedFont = localStorage.getItem('stegoFont') || 'cairo';
   if (savedFont === 'thmanyah') {
@@ -101,23 +154,60 @@ if (document.readyState === 'loading') {
  * @param {string} lang - 'en', 'ar', 'fr', 'zh', or 'la'
  */
 function setLanguage(lang) {
-  localStorage.setItem('stegoLang', lang);
-  
-  // Silk-Smooth i18n Transition animation
+  // 1. Trigger smooth fade/blur transition animation
   document.documentElement.classList.add('i18n-transition-active');
-  
+
   setTimeout(() => {
+    // 2. Persist chosen language in localStorage
+    localStorage.setItem('stegoLang', lang);
+
+    // 3. Instant real-time in-memory translation (DOM switch)
     applyLanguageUI(lang);
-    
-    // Dispatch custom callbacks for specific page components if active
+
+    // 4. Synchronize URL search parameter (?lang=) without page reload
+    try {
+      const url = new URL(window.location.href);
+      if (lang === 'en') {
+        url.searchParams.delete('lang');
+      } else {
+        url.searchParams.set('lang', lang);
+      }
+      window.history.replaceState({}, '', url.toString());
+    } catch (e) {}
+
+    // 5. Dispatch custom callbacks for specific page components if active
     if (typeof renderVisualDiff === 'function') renderVisualDiff();
     if (typeof renderHexMatrix === 'function') renderHexMatrix();
     if (typeof updateCoverMessageCounter === 'function') updateCoverMessageCounter();
     
+    // 6. Smoothly remove transition class after content updates
     setTimeout(() => {
       document.documentElement.classList.remove('i18n-transition-active');
-    }, 60);
-  }, 220);
+    }, 150);
+  }, 100);
+}
+
+function updateLanguageControlsOnly(lang) {
+  document.documentElement.setAttribute('lang', lang);
+  document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+
+  document.querySelectorAll('.lang-pill, .lang-card').forEach(btn => {
+    const btnLang = btn.id.replace('lang-btn-', '');
+    btn.classList.toggle('active', btnLang === lang);
+  });
+
+  const arFontToggle = document.getElementById('ar-font-toggle-wrap');
+  if (arFontToggle) {
+    arFontToggle.style.display = lang === 'ar' ? 'flex' : 'none';
+  }
+
+  if (window.ChatScanner && typeof window.ChatScanner.applyLanguage === 'function') {
+    window.ChatScanner.applyLanguage(lang);
+  }
+
+  if (typeof window.translateInjectedTemplates === 'function') {
+    window.translateInjectedTemplates(lang);
+  }
 }
 
 /**
@@ -183,12 +273,30 @@ function applyLanguageUI(lang) {
           el.setAttribute('data-tooltip', dict[lang][key]);
         }
       });
+
+      // Dynamically update document title & meta description for SEO & AEO
+      const pageTitleKey = document.querySelector('h1[data-i18n]')?.getAttribute('data-i18n');
+      if (pageTitleKey && dict[lang] && dict[lang][pageTitleKey]) {
+        const brandName = lang === 'ar' ? 'السطور المخفية — ' : 'StegoLines — ';
+        document.title = brandName + dict[lang][pageTitleKey];
+      }
+      const pageDescKey = document.querySelector('p[data-i18n]')?.getAttribute('data-i18n');
+      if (pageDescKey && dict[lang] && dict[lang][pageDescKey]) {
+        const metaDescEl = document.querySelector('meta[name="description"]');
+        if (metaDescEl) {
+          metaDescEl.setAttribute('content', dict[lang][pageDescKey]);
+        }
+      }
     }
   }
 
   // Update ChatScanner instance if present on any page
   if (window.ChatScanner && typeof window.ChatScanner.applyLanguage === 'function') {
     window.ChatScanner.applyLanguage(lang);
+  }
+
+  if (typeof window.translateInjectedTemplates === 'function') {
+    window.translateInjectedTemplates(lang);
   }
 }
 

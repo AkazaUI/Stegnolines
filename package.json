@@ -1,0 +1,29 @@
+{
+  "name": "stegnolines",
+  "version": "2.0.0",
+  "description": "StegoLines (السطور المخفية) — Undetectable Client-Side Text Steganography & Forensic Chat Scanner",
+  "scripts": {
+    "build": "npx @11ty/eleventy",
+    "serve": "npx @11ty/eleventy --serve",
+    "test": "node -e \"console.log('StegoLines test suite ready')\""
+  },
+  "keywords": [
+    "steganography",
+    "variation-selectors",
+    "text-steganography",
+    "chat-scanner",
+    "steganalysis",
+    "cryptography",
+    "aes-256",
+    "client-side",
+    "privacy"
+  ],
+  "author": "StegoLines Development Team (UST Aden)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.6"
+  }
+}

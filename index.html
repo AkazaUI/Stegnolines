@@ -8,16 +8,89 @@
   <link rel="manifest" href="assets/brand/favicon_io/site.webmanifest">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StegoLines — Embedding Interface</title>
-  <meta name="description"
-    content="Text-based steganography embedding interface. Hide secret messages inside cover text securely." />
+  <title>StegoLines — Text Steganography</title>
+  <meta name="description" content="Hide secret messages and images with password encryption inside ordinary social media chat text." />
+  <meta name="keywords" content="StegoLines, Hidden Lines, Text Steganography, hide text in text, hide image in text, steganography, text encryption, hide message in social media, image hiding, image encryption, Stegnolines, StegoLines, invisible characters, Unicode variation selectors, AES-256 encryption, send secret messages via social media" />
+  <meta name="ai-query" content="How to send an encrypted secret message, whether text or image, inside social media chats without anyone noticing." />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <link rel="canonical" href="https://stegnolines.com/" />
+  <link rel="alternate" hreflang="en" href="https://stegnolines.com/?lang=en" />
+  <link rel="alternate" hreflang="ar" href="https://stegnolines.com/?lang=ar" />
+  <link rel="alternate" hreflang="x-default" href="https://stegnolines.com/" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://stegnolines.com/" />
+  <meta property="og:title" content="StegoLines — Text Steganography" />
+  <meta property="og:description" content="Hide secret messages and images with password encryption inside ordinary social media chat text." />
+  <meta property="og:image" content="https://stegnolines.com/assets/brand/logo-dark.webp" />
+  <meta property="og:site_name" content="السطور المخفية | StegoLines" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="ar_AR" />
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://stegnolines.com/" />
+  <meta name="twitter:title" content="StegoLines — Text Steganography" />
+  <meta name="twitter:description" content="Hide secret messages and images with password encryption inside ordinary social media chat text." />
+  <meta name="twitter:image" content="https://stegnolines.com/assets/brand/logo-dark.webp" />
+
+  <!-- Schema.org Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://stegnolines.com/#website",
+        "url": "https://stegnolines.com/",
+        "name": "StegoLines",
+        "alternateName": ["السطور المخفية", "Stegnolines"],
+        "description": "منظومة السطور المخفية للإخفاء النصي والمراسلة السرية المشفرة.",
+        "inLanguage": ["en", "ar"]
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://stegnolines.com/#app",
+        "url": "https://stegnolines.com/",
+        "name": "StegoLines Embedding Tool",
+        "applicationCategory": "SecurityApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "Hide encrypted secret messages or mini images inside innocent cover text using Unicode Variation Selectors (VS1–VS256).",
+        "featureList": [
+          "Unicode Variation Selector Encoding (VS1-VS256)",
+          "AES-256 CTR Mode Encryption",
+          "PBKDF2 Key Derivation",
+          "Social Platform Sanitization Guard",
+          "100% Client-Side Privacy"
+        ]
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://stegnolines.com/#organization",
+        "name": "Stegnolines Team",
+        "url": "https://stegnolines.com/about",
+        "logo": "https://stegnolines.com/assets/brand/logo-dark.webp",
+        "sameAs": [
+          "https://github.com/AkazaUI/Stegnolines"
+        ]
+      }
+    ]
+  }
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/main.css" />
-  <script src="js/i18n/common.js"></script>
-  <script src="js/i18n/embed.js"></script>
-  <script src="js/i18n/hints.js"></script>
-  <script src="js/i18n/toasts.js"></script>
-  <script src="js/i18n/index.js"></script>
+  <script src="i18n/dictionaries/common.js"></script>
+  <script src="i18n/dictionaries/embed.js"></script>
+  <script src="i18n/dictionaries/hints.js"></script>
+  <script src="i18n/dictionaries/toasts.js"></script>
+  <script src="i18n/dictionaries/index.js"></script>
   <script>
     window.translations = mergeI18n(I18N_COMMON, I18N_EMBED, I18N_HINTS, I18N_TOASTS);
   </script>
@@ -534,23 +607,6 @@
                 </button>
               </div>
             </div>
-          </div>
-
-          <!-- View Full Report Button (Interactive Diagnostic Panel) -->
-          <div id="btnFullReportWrap"
-            style="display:none; margin-top: var(--space-md); width: 100%; box-sizing: border-box;">
-            <a href="details.html" target="_blank" id="btn-full-report" class="diag-report-panel"
-              style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: var(--space-md) var(--space-lg); border-radius: var(--radius-lg); text-decoration: none; transition: var(--transition-all); box-sizing: border-box; cursor: pointer;">
-              <div style="display: flex; align-items: center; gap: var(--space-md);">
-                <span class="material-symbols-outlined report-icon"
-                  style="color: var(--color-primary); font-size: 22px; transition: var(--transition-all);">insights</span>
-                <span data-i18n="btnFullReport" class="report-text"
-                  style="font-family: var(--font-label); font-size: var(--fs-body-md); font-weight: 700; color: var(--color-on-surface); transition: var(--transition-all);">View
-                  Full Report</span>
-              </div>
-              <span class="material-symbols-outlined arrow-icon"
-                style="color: var(--color-on-surface-variant); opacity: 0.6; transition: var(--transition-all);">arrow_forward</span>
-            </a>
           </div>
         </div>
 

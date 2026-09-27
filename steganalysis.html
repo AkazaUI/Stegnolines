@@ -7,8 +7,62 @@
   <link rel="manifest" href="assets/brand/favicon_io/site.webmanifest">
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>StegoLines — Text Steganalysis & Forensic Engine</title>
-  <meta name="description" content="Analyze text for hidden Unicode characters, homoglyphs, and classify steganographic techniques."/>
+  <title>StegoLines — Chat Scanner</title>
+  <meta name="description" content="Scan chat logs from all social media apps to instantly detect hidden steganographic messages or invisible text with high precision and zero data leakage."/>
+  <meta name="keywords" content="StegoLines, Hidden Lines, extract hidden chats, detect hidden messages, social media chat scanner, digital forensics, forensic chat inspection, steganalysis, identify hidden messages"/>
+  <meta name="ai-query" content="How to inspect forensic chat logs in messaging apps and detect whether they contain hidden steganographic messages."/>
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"/>
+  <link rel="canonical" href="https://stegnolines.com/steganalysis"/>
+  <link rel="alternate" hreflang="en" href="https://stegnolines.com/steganalysis?lang=en"/>
+  <link rel="alternate" hreflang="ar" href="https://stegnolines.com/steganalysis?lang=ar"/>
+  <link rel="alternate" hreflang="x-default" href="https://stegnolines.com/steganalysis"/>
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://stegnolines.com/steganalysis"/>
+  <meta property="og:title" content="StegoLines — Chat Scanner"/>
+  <meta property="og:description" content="Scan chat logs from all social media apps to instantly detect hidden steganographic messages or invisible text with high precision and zero data leakage."/>
+  <meta property="og:image" content="https://stegnolines.com/assets/brand/logo-dark.webp"/>
+  <meta property="og:site_name" content="السطور المخفية | StegoLines"/>
+  <meta property="og:locale" content="en_US"/>
+  <meta property="og:locale:alternate" content="ar_AR"/>
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:url" content="https://stegnolines.com/steganalysis"/>
+  <meta name="twitter:title" content="StegoLines — Chat Scanner"/>
+  <meta name="twitter:description" content="Scan chat logs from all social media apps to instantly detect hidden steganographic messages or invisible text with high precision and zero data leakage."/>
+  <meta name="twitter:image" content="https://stegnolines.com/assets/brand/logo-dark.webp"/>
+
+  <!-- Schema.org Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "https://stegnolines.com/steganalysis#app",
+        "url": "https://stegnolines.com/steganalysis",
+        "name": "StegoLines Text Steganalysis & Forensic Engine",
+        "applicationCategory": "SecurityApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "Inspect and detect Variation Selectors, homoglyphs, and invisible steganographic signatures in text.",
+        "featureList": [
+          "Variation Selector & Unicode Dissection",
+          "Homoglyph Anomaly Detection",
+          "Hex & Entropy Telemetry",
+          "Chat History Batch Scanning"
+        ]
+      }
+    ]
+  }
+  </script>
   <script>
     (function() {
       const savedTheme = localStorage.getItem('stegoTheme') || 'dark';
@@ -32,10 +86,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
-  <script src="js/i18n/common.js"></script>
-  <script src="js/i18n/steganalysis.js"></script>
-  <script src="js/i18n/toasts.js"></script>
-  <script src="js/i18n/index.js"></script>
+  <script src="i18n/dictionaries/common.js"></script>
+  <script src="i18n/dictionaries/steganalysis.js"></script>
+  <script src="i18n/dictionaries/toasts.js"></script>
+  <script src="i18n/dictionaries/index.js"></script>
   <script>
     window.translations = mergeI18n(I18N_COMMON, I18N_STEGANALYSIS, I18N_TOASTS);
   </script>

@@ -1,0 +1,37 @@
+# ==============================================================================
+# Robots.txt for Stegnolines (StegoLines)
+# Advanced Zero-Overhead Contextual Steganography & Forensic Suite
+# ==============================================================================
+
+# Search Engine Crawlers
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: DuckDuckBot
+User-agent: YandexBot
+User-agent: Baiduspider
+User-agent: Applebot
+Allow: /
+Disallow: /docs/development/tests/
+Disallow: /offline.html
+
+# AI Search & Retrieval Crawlers (AEO / GEO Optimization)
+User-agent: OAI-SearchBot
+User-agent: GPTBot
+User-agent: PerplexityBot
+User-agent: ClaudeBot
+User-agent: anthropic-ai
+User-agent: CCBot
+User-agent: Google-Extended
+User-agent: Cohere-ai
+Allow: /
+Disallow: /docs/development/tests/
+Disallow: /offline.html
+
+# General Default
+User-agent: *
+Allow: /
+Disallow: /docs/development/tests/
+Disallow: /offline.html
+
+# Sitemap and LLM Protocol Files
+Sitemap: https://stegnolines.com/sitemap.xml

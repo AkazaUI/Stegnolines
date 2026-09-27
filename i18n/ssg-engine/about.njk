@@ -1,0 +1,8 @@
+---
+pagination:
+  data: site.routes
+  size: 1
+  alias: route
+permalink: "{{ route.prefix }}/about.html"
+---
+{{ "about.html" | renderLocalized(route.code, route.isRoot) | safe }}

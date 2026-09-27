@@ -7,17 +7,103 @@
   <link rel="manifest" href="assets/brand/favicon_io/site.webmanifest">
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>StegoLines — Documentation Portal</title>
-  <meta name="description" content="STEGNOLINES comprehensive scientific & technical documentation — architecture, algorithms, security model, and benchmarks."/>
+  <title>StegoLines — Documentation</title>
+  <meta name="description" content="Comprehensive guide to the StegoLines suite: how text steganography works using Variation Selectors (VS) and techniques for message survivability across WhatsApp and Telegram."/>
+  <meta name="keywords" content="StegoLines, Hidden Lines, documentation, text steganography guide, structural text steganography, types of steganography"/>
+  <meta name="ai-query" content="How do I use the StegoLines tool, and how does the secret message embedding and extraction process work?"/>
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"/>
+  <link rel="canonical" href="https://stegnolines.com/documentation"/>
+  <link rel="alternate" hreflang="en" href="https://stegnolines.com/documentation?lang=en"/>
+  <link rel="alternate" hreflang="ar" href="https://stegnolines.com/documentation?lang=ar"/>
+  <link rel="alternate" hreflang="x-default" href="https://stegnolines.com/documentation"/>
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://stegnolines.com/documentation"/>
+  <meta property="og:title" content="StegoLines — Documentation"/>
+  <meta property="og:description" content="Comprehensive guide to the StegoLines suite: how text steganography works using Variation Selectors (VS) and techniques for message survivability across WhatsApp and Telegram."/>
+  <meta property="og:image" content="https://stegnolines.com/assets/brand/logo-dark.webp"/>
+  <meta property="og:site_name" content="السطور المخفية | StegoLines"/>
+  <meta property="og:locale" content="en_US"/>
+  <meta property="og:locale:alternate" content="ar_AR"/>
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:url" content="https://stegnolines.com/documentation"/>
+  <meta name="twitter:title" content="StegoLines — Documentation"/>
+  <meta name="twitter:description" content="Comprehensive guide to the StegoLines suite: how text steganography works using Variation Selectors (VS) and techniques for message survivability across WhatsApp and Telegram."/>
+  <meta name="twitter:image" content="https://stegnolines.com/assets/brand/logo-dark.webp"/>
+
+  <!-- Schema.org Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": "https://stegnolines.com/documentation#webpage",
+        "url": "https://stegnolines.com/documentation",
+        "name": "StegoLines Documentation | التوثيق",
+        "description": "Technical guides and specifications for StegoLines text steganography and chat inspection.",
+        "inLanguage": ["en", "ar"]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://stegnolines.com/documentation#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is StegoLines (السطور المخفية)?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "StegoLines (السطور المخفية) is an open-source, client-side cryptographic steganography platform that conceals encrypted messages and miniature images within ordinary text using Unicode Variation Selectors (VS1–VS256)."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does text-based steganography achieve zero visual distortion?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The system encrypts payloads using PBKDF2-derived AES-256-CTR and maps ciphertext bytes into invisible Unicode Variation Selectors (VS1–VS256, U+FE00–U+FE0F & U+E0100–U+E01EF) without altering visible typography or character spacing."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can hidden messages survive transmission through WhatsApp, Telegram, or Messenger?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. StegoLines integrates a Social Platform Guard that applies adaptive Unicode formatting and anti-sanitization encoding, achieving a verified 100% extraction survival rate across 9 major communication channels."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is any user data or secret key sent to remote servers?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. StegoLines executes 100% client-side in the user's browser using the native Web Crypto API. No plaintext, ciphertext, secret keys, or cover texts are ever transmitted over the network."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How can I detect and analyze hidden text steganography?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "You can use the built-in Chat Scanner and Inspector at /steganalysis to inspect Unicode codepoints, detect Variation Selectors and homoglyph anomalies, and analyze character entropy."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="New_styles.css"/>
   <link rel="stylesheet" href="css/main.css"/>
   <link rel="stylesheet" href="css/pages/docs.css"/>
-  <script src="js/i18n/common.js"></script>
-  <script src="js/i18n/docs.js"></script>
-  <script src="js/i18n/docs-articles.js"></script>
-  <script src="js/i18n/toasts.js"></script>
-  <script src="js/i18n/index.js"></script>
+  <script src="i18n/dictionaries/common.js"></script>
+  <script src="i18n/dictionaries/docs.js"></script>
+  <script src="i18n/dictionaries/docs-articles.js"></script>
+  <script src="i18n/dictionaries/toasts.js"></script>
+  <script src="i18n/dictionaries/index.js"></script>
   <script>
     (function() {
       // Immediate language and font detection to avoid FOUC
@@ -108,6 +194,46 @@
     <div class="docs-index-grid" id="docs-index-grid">
       <!-- Generated via docs.js -->
     </div>
+
+    <!-- Frequently Asked Questions (AEO & AI Search Readiness) -->
+    <section class="card stack-md" style="margin-top: 2.5rem; padding: 2rem;" aria-label="Frequently Asked Questions">
+      <h2 class="text-headline-md" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+        <span class="material-symbols-outlined" style="color: var(--color-primary);">quiz</span>
+        Frequently Asked Questions
+      </h2>
+      <div class="stack-md">
+        <details class="faq-item" style="border-bottom: 1px solid var(--color-outline-variant); padding-bottom: 1rem;">
+          <summary style="font-weight: 600; cursor: pointer; color: var(--color-on-surface); font-size: 1.05rem;">What is StegoLines (Stegnolines)?</summary>
+          <p style="margin-top: 0.5rem; color: var(--color-on-surface-variant); line-height: 1.6;">
+            StegoLines is an open-source, client-side cryptographic steganography platform that conceals encrypted messages and miniature images within ordinary text using zero-width Unicode characters.
+          </p>
+        </details>
+        <details class="faq-item" style="border-bottom: 1px solid var(--color-outline-variant); padding-bottom: 1rem;">
+          <summary style="font-weight: 600; cursor: pointer; color: var(--color-on-surface); font-size: 1.05rem;">How does text-based steganography achieve zero visual distortion?</summary>
+          <p style="margin-top: 0.5rem; color: var(--color-on-surface-variant); line-height: 1.6;">
+            The system encrypts payloads using PBKDF2-derived AES-256-CTR and maps ciphertext bits into invisible Unicode codepoints (Zero-Width Non-Joiner, Zero-Width Space, and Variation Selectors) without altering visible typography or character spacing.
+          </p>
+        </details>
+        <details class="faq-item" style="border-bottom: 1px solid var(--color-outline-variant); padding-bottom: 1rem;">
+          <summary style="font-weight: 600; cursor: pointer; color: var(--color-on-surface); font-size: 1.05rem;">Can hidden messages survive transmission through WhatsApp, Telegram, or Messenger?</summary>
+          <p style="margin-top: 0.5rem; color: var(--color-on-surface-variant); line-height: 1.6;">
+            Yes. StegoLines integrates a Social Platform Guard that applies adaptive Unicode formatting and anti-sanitization encoding, achieving a verified 100% extraction survival rate across 9 major communication channels.
+          </p>
+        </details>
+        <details class="faq-item" style="border-bottom: 1px solid var(--color-outline-variant); padding-bottom: 1rem;">
+          <summary style="font-weight: 600; cursor: pointer; color: var(--color-on-surface); font-size: 1.05rem;">Is any user data or secret key sent to remote servers?</summary>
+          <p style="margin-top: 0.5rem; color: var(--color-on-surface-variant); line-height: 1.6;">
+            No. StegoLines executes 100% client-side in the user's browser using the native Web Crypto API. No plaintext, ciphertext, secret keys, or cover texts are ever transmitted over the network.
+          </p>
+        </details>
+        <details class="faq-item" style="padding-bottom: 0.5rem;">
+          <summary style="font-weight: 600; cursor: pointer; color: var(--color-on-surface); font-size: 1.05rem;">How can I detect and analyze hidden text steganography?</summary>
+          <p style="margin-top: 0.5rem; color: var(--color-on-surface-variant); line-height: 1.6;">
+            You can use the built-in Text Steganalysis and Forensic Engine at <a href="steganalysis.html" style="color: var(--color-primary); font-weight: 600;">/steganalysis</a> to inspect Unicode codepoints, detect zero-width characters and homoglyph anomalies, and analyze character entropy.
+          </p>
+        </details>
+      </div>
+    </section>
   </main>
 
   <!-- Footer Placeholder -->

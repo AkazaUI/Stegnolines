@@ -1,0 +1,17 @@
+---
+pagination:
+  data: docsData
+  size: 1
+  alias: docItem
+permalink: "{{ docItem.permalink }}"
+layout: layouts/doc-article.njk
+eleventyComputed:
+  lang: "{{ docItem.lang }}"
+  dir: "{{ docItem.dir }}"
+  title: "{{ docItem.title }}"
+  slug: "{{ docItem.slug }}"
+  isRoot: "{{ docItem.isRoot }}"
+  category: "{{ docItem.category }}"
+  name: "{{ docItem.name }}"
+---
+{{ docItem.content | safe }}

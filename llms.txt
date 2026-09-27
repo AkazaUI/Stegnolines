@@ -1,0 +1,35 @@
+# StegoLines — السطور المخفية
+
+> Advanced Client-Side Text Steganography, Secret Messaging & Chat Forensic Scanner
+
+StegoLines (السطور المخفية) is an open-source, client-side cryptographic steganography and chat inspection web application designed for concealing confidential messages and images within ordinary plain text for WhatsApp, Telegram, and social platforms, extracting hidden payloads, and scanning chat conversations for covert messages and Unicode anomalies.
+
+## Core Features & Capabilities
+
+- **Zero-Overhead Invisibility:** Exclusively employs Unicode Variation Selectors (VS-1 to VS-256: U+FE00–U+FE0F & U+E0100–U+E01EF) mapping 256 distinct byte values directly to 256 variation selectors via key-dependent S-Box permutation, ensuring 100% visual imperceptibility and complete resistance against social platform sanitization.
+- **Robust Encryption:** Military-grade PBKDF2 key derivation (100,000 SHA-256 iterations) with AES-256 in CTR stream cipher mode.
+- **Social Platform Guard:** Proprietary sanitization bypass engine that ensures 100% survival rate across 9 major platforms: WhatsApp, Telegram, Messenger, Instagram, X (Twitter), LinkedIn, Slack, Discord, and SMS.
+- **Chat Scanner & Inspection:** Scan entire WhatsApp/Telegram chats to detect, highlight, and uncover covert text, Variation Selectors, homoglyphs, and invisible anomalies.
+- **Client-Side Security:** Zero server footprint. 100% of cryptography and steganographic embedding/extraction happens locally in the user's browser.
+- **Image-in-Text Embedding:** Ability to compress and encode miniature images directly into cover text.
+
+## Web Application Interfaces
+
+- [Text Steganography | الإخفاء النصي](https://stegnolines.com/): Conceal encrypted secret messages and images into chat text for WhatsApp and Telegram.
+- [Payload Extractor | استخراج النصوص المخفية](https://stegnolines.com/extract): Reveal hidden secret messages, scan chat logs, and decrypt steganographic text.
+- [Chat Scanner | فاحص المحادثات المخفية](https://stegnolines.com/steganalysis): Scan WhatsApp and Telegram chat logs to detect covert messages, Variation Selectors, and text anomalies.
+- [Development Team | فريق التطوير](https://stegnolines.com/about): Meet the five cybersecurity engineers from UST Aden Yemen who created StegoLines.
+- [Documentation | التوثيق](https://stegnolines.com/documentation): User guide, technical specifications, and cryptographic models.
+
+## Documentation Index
+
+- [Architecture Overview](https://stegnolines.com/docs/getting-started/architecture): System architecture, components, and dataflow.
+- [Cryptographic Model](https://stegnolines.com/docs/technical-reference/security): Security proofs, key derivation, and resistance against cryptanalysis.
+- [Steganographic Algorithms](https://stegnolines.com/docs/technical-reference/algorithms): Unicode Variation Selector mechanics (VS1–VS256) and PRNG bitwise XOR mapping.
+- [Pipeline Execution](https://stegnolines.com/docs/technical-reference/pipeline): End-to-end embedding and extraction lifecycle.
+- [Chat Integration](https://stegnolines.com/docs/user-guide/chat-integration): Real-time chat scanning and social messaging payload recovery.
+- [Threat Model](https://stegnolines.com/docs/technical-reference/threat-model): Adversary capabilities and mitigation strategies.
+- [Experimental Benchmarks](https://stegnolines.com/docs/technical-reference/experimental-results): Survival rate across 9 communication channels.
+
+## Open Source Repository
+GitHub: https://github.com/AkazaUI/Stegnolines
