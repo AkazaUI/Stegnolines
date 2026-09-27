@@ -7,7 +7,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { renderLocalizedPage } = require('./i18n/ssg-engine/render-helper');
+const { renderLocalizedPage } = require('../../i18n/ssg-engine/render-helper');
 
 module.exports = function(eleventyConfig) {
   // Passthrough copy for static web assets
@@ -33,7 +33,7 @@ module.exports = function(eleventyConfig) {
   // Post-build hook: generate comprehensive multi-lingual sitemap.xml in _site
   eleventyConfig.on('eleventy.after', async ({ dir }) => {
     const outputDir = dir.output;
-    const projectRoot = path.resolve(__dirname);
+    const projectRoot = path.resolve(__dirname, '../..');
 
     // Generate comprehensive multi-lingual sitemap.xml
     generateSitemap(projectRoot, outputDir);

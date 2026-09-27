@@ -3,8 +3,12 @@
   "version": "2.0.0",
   "description": "StegoLines (السطور المخفية) — Undetectable Client-Side Text Steganography & Forensic Chat Scanner",
   "scripts": {
-    "build": "npx @11ty/eleventy",
-    "serve": "npx @11ty/eleventy --serve",
+    "build": "npx @11ty/eleventy --config=build-tools/config/eleventy.config.js && node build-tools/build-css.js && node build-tools/build-js.js && node build-tools/build-html.js",
+    "build:eleventy": "npx @11ty/eleventy --config=build-tools/config/eleventy.config.js",
+    "build:css": "node build-tools/build-css.js",
+    "build:js": "node build-tools/build-js.js",
+    "build:html": "node build-tools/build-html.js",
+    "serve": "npx @11ty/eleventy --config=build-tools/config/eleventy.config.js --serve",
     "test": "node -e \"console.log('StegoLines test suite ready')\""
   },
   "keywords": [
@@ -24,6 +28,11 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "@11ty/eleventy": "^3.1.6"
+    "@11ty/eleventy": "^3.1.6",
+    "cssnano": "^9.0.5",
+    "html-minifier-terser": "^7.2.0",
+    "postcss": "^8.5.28",
+    "purgecss": "^8.0.0",
+    "terser": "^5.51.2"
   }
 }
