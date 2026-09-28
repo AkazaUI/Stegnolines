@@ -72,9 +72,11 @@ function initDashboard() {
   initInfoTooltips();
 
   // Sync settings pills
-  const isHttpsServer = window.location.protocol === 'https:';
+  const isHostinger = typeof window.isHostingerEnvironment === 'function'
+    ? window.isHostingerEnvironment()
+    : (window.location.hostname.includes('stegnolines.com') || window.location.hostname.includes('hostinger'));
   const curLang = localStorage.getItem('stegoLang') || 'en';
-  if (isHttpsServer) {
+  if (isHostinger) {
     if (typeof updateLanguageControlsOnly === 'function') {
       updateLanguageControlsOnly(curLang);
     }

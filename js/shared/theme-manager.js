@@ -18,12 +18,10 @@
       document.documentElement.setAttribute('lang', routeLang);
       document.documentElement.setAttribute('dir', routeLang === 'ar' ? 'rtl' : 'ltr');
     } else {
-      const urlParams = new URLSearchParams(window.location.search);
-      const paramLang = urlParams.get('lang');
-      if (paramLang && (paramLang === 'ar' || paramLang === 'en' || paramLang === 'fr' || paramLang === 'zh' || paramLang === 'la')) {
-        localStorage.setItem('stegoLang', paramLang);
-        document.documentElement.setAttribute('lang', paramLang);
-        document.documentElement.setAttribute('dir', paramLang === 'ar' ? 'rtl' : 'ltr');
+      const savedLang = localStorage.getItem('stegoLang');
+      if (savedLang && (savedLang === 'ar' || savedLang === 'en' || savedLang === 'fr' || savedLang === 'zh' || savedLang === 'la')) {
+        document.documentElement.setAttribute('lang', savedLang);
+        document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
       }
     }
   } catch (e) {}
@@ -71,6 +69,44 @@ function syncThemeToggle(isDark) {
   setThemeMode(isDark ? 'dark' : 'light');
 }
 
+/**
+ * Detects whether the current runtime environment is the live Hostinger production deployment
+ * where physical pre-rendered static language routes (/ar/, /fr/, /zh/, /la/) exist.
+ *
+ * Returns true for:
+ *  - Official Hostinger production domain: stegnolines.com and *.stegnolines.com
+ *  - Hostinger staging/preview domains: *.hostinger.com, *.preview-domain.com, etc.
+ *  - Any path already inside a physical language subfolder: /(ar|fr|zh|la)/
+ *
+ * Returns false for:
+ *  - Standalone local downloads (file://)
+ *  - Local development servers (localhost, 127.0.0.1, 0.0.0.0)
+ *  - GitHub repository clones / GitHub Pages (*.github.io)
+ *
+ * @returns {boolean} True if running on Hostinger / physical routes exist
+ */
+function isHostingerEnvironment() {
+  const hostname = (window.location.hostname || '').toLowerCase();
+  const pathname = (window.location.pathname || '').toLowerCase();
+
+  // 1. Check if already navigating inside an existing physical localized directory (/ar/, /fr/, etc.)
+  const hasPhysicalLangPrefix = /^\/(ar|fr|zh|la)(\/|$)/i.test(pathname);
+  if (hasPhysicalLangPrefix) {
+    return true;
+  }
+
+  // 2. Check for official Hostinger production domain & subdomains
+  const isHostingerDomain = (
+    hostname === 'stegnolines.com' ||
+    hostname.endsWith('.stegnolines.com') ||
+    hostname.includes('hostinger') ||
+    hostname.includes('preview-domain')
+  );
+
+  return isHostingerDomain;
+}
+window.isHostingerEnvironment = isHostingerEnvironment;
+
 // Listen for system/preferences changes dynamically
 function initThemeManager() {
   const savedTheme = localStorage.getItem('stegoTheme') || 'system';
@@ -92,10 +128,10 @@ function initThemeManager() {
   });
 
   // Initialize language, font, and storage stats
-  const isHttpsServer = window.location.protocol === 'https:';
+  const isHostinger = isHostingerEnvironment();
   let activeLang = 'en';
 
-  if (isHttpsServer) {
+  if (isHostinger) {
     const path = window.location.pathname.toLowerCase();
     const match = path.match(/^\/(en|ar|fr|zh|la)(\/|$)/);
 
@@ -103,15 +139,9 @@ function initThemeManager() {
       // 1. Physical subfolder route (/ar/, /fr/, etc.) has highest priority
       activeLang = match[1];
     } else {
-      // 2. Query param (?lang=) takes priority for incoming shared links
-      const urlParams = new URLSearchParams(window.location.search);
-      const paramLang = urlParams.get('lang');
       const savedLang = localStorage.getItem('stegoLang');
-
-      if (paramLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(paramLang)) {
-        activeLang = paramLang;
-      } else if (savedLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(savedLang)) {
-        // 3. User's saved preference in localStorage takes priority when returning to root
+      if (savedLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(savedLang)) {
+        // User's saved preference in localStorage takes priority when returning to root
         activeLang = savedLang;
 
         // Smoothly redirect visitor to their preferred localized SSG route:
@@ -123,24 +153,20 @@ function initThemeManager() {
           }
         }
       } else {
-        // 4. Default to document lang attribute or 'en'
+        // Default to document lang attribute or 'en'
         const docLang = document.documentElement.getAttribute('lang');
         activeLang = (docLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(docLang)) ? docLang : 'en';
       }
     }
 
     localStorage.setItem('stegoLang', activeLang);
-    // On HTTPS deployment: synchronize controls only, do not run in-memory DOM rewrites
+    // On Hostinger deployment: synchronize controls only, do not run in-memory DOM rewrites
     updateLanguageControlsOnly(activeLang);
   } else {
     // ── Local Download / GitHub Repository Mode (file:// or local dev server) ──
-    const urlParams = new URLSearchParams(window.location.search);
-    const paramLang = urlParams.get('lang');
     const savedLang = localStorage.getItem('stegoLang');
 
-    if (paramLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(paramLang)) {
-      activeLang = paramLang;
-    } else if (savedLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(savedLang)) {
+    if (savedLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(savedLang)) {
       activeLang = savedLang;
     } else {
       const docLang = document.documentElement.getAttribute('lang');
@@ -266,10 +292,10 @@ function setLanguage(lang) {
   // 1. Persist chosen language in localStorage
   localStorage.setItem('stegoLang', lang);
 
-  const isHttpsServer = window.location.protocol === 'https:';
+  const isHostinger = isHostingerEnvironment();
 
-  // ── Mode 1: Live HTTPS Production Deployment ──
-  if (isHttpsServer) {
+  // ── Mode 1: Live Hostinger Production Deployment ──
+  if (isHostinger) {
     const targetUrl = resolveLocalizedUrl(window.location.pathname, lang);
     if (targetUrl && targetUrl !== window.location.pathname) {
       document.documentElement.classList.add('i18n-transition-active');
@@ -282,24 +308,13 @@ function setLanguage(lang) {
     return;
   }
 
-  // ── Mode 2: Local Download / GitHub Clone (file:// or local dev server) ──
+  // ── Mode 2: Local Download / GitHub Clone / Standalone (file:// or local dev server) ──
   // Smoothly trigger fade/blur transition animation
   document.documentElement.classList.add('i18n-transition-active');
 
   setTimeout(() => {
     // Instant real-time in-memory DOM translation
     applyLanguageUI(lang);
-
-    // Synchronize URL search parameter (?lang=) without page reload
-    try {
-      const url = new URL(window.location.href);
-      if (lang === 'en') {
-        url.searchParams.delete('lang');
-      } else {
-        url.searchParams.set('lang', lang);
-      }
-      window.history.replaceState({}, '', url.toString());
-    } catch (e) {}
 
     // Dispatch custom callbacks for specific page components if active
     if (typeof renderVisualDiff === 'function') renderVisualDiff();

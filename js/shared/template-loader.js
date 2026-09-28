@@ -904,12 +904,15 @@
     });
 
     // ── Synchronize languages and fonts on load ──
-    const isHttpsServer = window.location.protocol === 'https:';
-    const effectiveLang = isHttpsServer
+    const isHostinger = typeof window.isHostingerEnvironment === 'function'
+      ? window.isHostingerEnvironment()
+      : (window.location.hostname.includes('stegnolines.com') || window.location.hostname.includes('hostinger'));
+
+    const effectiveLang = isHostinger
       ? currentDocLang
       : (localStorage.getItem('stegoLang') || currentDocLang);
 
-    if (isHttpsServer) {
+    if (isHostinger) {
       localStorage.setItem('stegoLang', currentDocLang);
       if (typeof updateLanguageControlsOnly === 'function') {
         updateLanguageControlsOnly(currentDocLang);
