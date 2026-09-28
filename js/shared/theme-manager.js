@@ -110,6 +110,17 @@ function initThemeManager() {
     } else if (savedLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(savedLang)) {
       // 3. User's saved preference in localStorage takes priority when returning to root
       activeLang = savedLang;
+
+      // In deployment (HTTP/HTTPS), if visitor visits root but prefers another language,
+      // smoothly redirect them to their preferred localized SSG route:
+      const isWebServer = window.location.protocol.startsWith('http');
+      if (isWebServer && activeLang !== 'en' && !window.location.search.includes('no-redirect')) {
+        const targetUrl = resolveLocalizedUrl(window.location.pathname, activeLang);
+        if (targetUrl && targetUrl !== window.location.pathname) {
+          window.location.replace(targetUrl + window.location.search + window.location.hash);
+          return;
+        }
+      }
     } else {
       // 4. Default to document lang attribute or 'en'
       const docLang = document.documentElement.getAttribute('lang');
@@ -149,22 +160,78 @@ if (document.readyState === 'loading') {
 // ── GLOBAL PREFERENCES MANAGER ──
 
 /**
+ * Resolves the physical localized static route URL for production deployments.
+ *
+ * @param {string} pathname - Current window.location.pathname
+ * @param {string} targetLang - Target language code ('en', 'ar', 'fr', 'zh', 'la')
+ * @returns {string} Target pathname
+ */
+function resolveLocalizedUrl(pathname, targetLang) {
+  let cleanPath = pathname || '/';
+
+  // Strip existing language subfolder (/en/, /ar/, /fr/, /zh/, /la/)
+  const langMatch = cleanPath.match(/^\/(en|ar|fr|zh|la)(\/.*)?$/i);
+  if (langMatch) {
+    cleanPath = langMatch[2] || '/';
+  }
+
+  if (!cleanPath.startsWith('/')) {
+    cleanPath = '/' + cleanPath;
+  }
+
+  // Normalize root index
+  const isRoot = (cleanPath === '/' || cleanPath === '/index.html');
+
+  // Documentation articles only have 'en' and 'ar' builds
+  const isDocArticle = cleanPath.includes('/docs/');
+  if (isDocArticle && targetLang !== 'en' && targetLang !== 'ar') {
+    targetLang = 'en';
+  }
+
+  if (targetLang === 'en') {
+    return cleanPath;
+  } else {
+    if (isRoot) {
+      return cleanPath.endsWith('.html') ? `/${targetLang}/index.html` : `/${targetLang}/`;
+    }
+    return `/${targetLang}${cleanPath}`;
+  }
+}
+
+/**
  * Update the application UI language.
+ * In deployment environments (HTTP/HTTPS), navigates directly to the dedicated physical SSG route.
+ * In standalone repository mode (file:// protocol), performs dynamic client-side translation.
  *
  * @param {string} lang - 'en', 'ar', 'fr', 'zh', or 'la'
  */
 function setLanguage(lang) {
-  // 1. Trigger smooth fade/blur transition animation
+  // 1. Persist chosen language in localStorage
+  localStorage.setItem('stegoLang', lang);
+
+  // 2. Deployment Mode: Check if running on a live web server (HTTP / HTTPS)
+  const isWebServer = window.location.protocol.startsWith('http');
+
+  if (isWebServer) {
+    const targetUrl = resolveLocalizedUrl(window.location.pathname, lang);
+    if (targetUrl && targetUrl !== window.location.pathname) {
+      document.documentElement.classList.add('i18n-transition-active');
+      setTimeout(() => {
+        window.location.href = targetUrl + window.location.search + window.location.hash;
+      }, 120);
+      return;
+    }
+  }
+
+  // 3. Standalone / GitHub Clone Mode (file:// protocol or already on target route):
+  // Smoothly trigger fade/blur transition animation
   document.documentElement.classList.add('i18n-transition-active');
 
   setTimeout(() => {
-    // 2. Persist chosen language in localStorage
-    localStorage.setItem('stegoLang', lang);
-
-    // 3. Instant real-time in-memory translation (DOM switch)
+    // Real-time in-memory DOM translation
     applyLanguageUI(lang);
 
-    // 4. Synchronize URL search parameter (?lang=) without page reload
+    // Synchronize URL search parameter (?lang=) without page reload
     try {
       const url = new URL(window.location.href);
       if (lang === 'en') {
@@ -175,12 +242,12 @@ function setLanguage(lang) {
       window.history.replaceState({}, '', url.toString());
     } catch (e) {}
 
-    // 5. Dispatch custom callbacks for specific page components if active
+    // Dispatch custom callbacks for specific page components if active
     if (typeof renderVisualDiff === 'function') renderVisualDiff();
     if (typeof renderHexMatrix === 'function') renderHexMatrix();
     if (typeof updateCoverMessageCounter === 'function') updateCoverMessageCounter();
     
-    // 6. Smoothly remove transition class after content updates
+    // Smoothly remove transition class after content updates
     setTimeout(() => {
       document.documentElement.classList.remove('i18n-transition-active');
     }, 150);
