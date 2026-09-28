@@ -34,3 +34,12 @@ jobs:
           local-dir: ./_site/
           server-dir: ./
           dangerous-clean-slate: false # لا يحذف ملفات الاستضافة الأخرى (مثل .htaccess أو شهادات SSL)
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/README.md
+            **/.agent/**
+            **/package*.json
+            **/node_modules/**
+            **/build-tools/**
