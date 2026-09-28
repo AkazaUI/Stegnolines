@@ -50,7 +50,7 @@ function renderLocalizedPage(pageName, langCode, isRoot = false) {
   const titleKey = pageName === 'index.html' ? 'index' : pageName.replace('.html', '');
   const title = (siteData.titles[titleKey] && siteData.titles[titleKey][langCode])
     ? siteData.titles[titleKey][langCode]
-    : `StegoLines — ${titleKey}`;
+    : `StegnoLines — ${titleKey}`;
 
   const domain = (siteData && siteData.domain) ? siteData.domain : 'https://stegnolines.com';
   const cleanSlug = pageName === 'index.html' ? '' : pageName.replace('.html', '');
@@ -82,7 +82,7 @@ function renderLocalizedPage(pageName, langCode, isRoot = false) {
   html = html.replace(/<link rel="canonical"[^>]*\/?>/i, match => `${match}\n  ${hreflangBlock}`);
 
   // 4. Update OpenGraph / Twitter metadata
-  const brandName = isAr ? 'السطور المخفية' : 'StegoLines';
+  const brandName = isAr ? 'السطور المخفية' : 'StegnoLines';
   html = html.replace(/<meta property="og:title"[^>]*\/?>/i, `<meta property="og:title" content="${title}" />`);
   html = html.replace(/<meta property="og:url"[^>]*\/?>/i, `<meta property="og:url" content="${canonicalUrl}" />`);
   html = html.replace(/<meta property="og:site_name"[^>]*\/?>/i, `<meta property="og:site_name" content="${brandName}" />`);
