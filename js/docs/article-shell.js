@@ -295,8 +295,8 @@ function shell(meta) {
   <meta name="description" content="${pageDescription}"/>
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"/>
   <link rel="canonical" href="${pageUrl}"/>
-  <link rel="alternate" hreflang="en" href="${pageUrl}?lang=en"/>
-  <link rel="alternate" hreflang="ar" href="${pageUrl}?lang=ar"/>
+  <link rel="alternate" hreflang="en" href="${pageUrl}"/>
+  <link rel="alternate" hreflang="ar" href="https://stegnolines.com/ar/docs/${cleanPath}"/>
   <link rel="alternate" hreflang="x-default" href="${pageUrl}"/>
 
   <!-- Open Graph / Facebook -->
@@ -389,9 +389,7 @@ function shell(meta) {
       }
 
       // Retrieve language preference immediately
-      const urlParams = new URLSearchParams(window.location.search);
-      const paramLang = urlParams.get('lang');
-      const savedLang = (paramLang && (paramLang === 'ar' || paramLang === 'en')) ? paramLang : (localStorage.getItem('stegoLang') || 'en');
+      const savedLang = localStorage.getItem('stegoLang') || 'en';
       document.documentElement.setAttribute('lang', savedLang);
       document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
 
