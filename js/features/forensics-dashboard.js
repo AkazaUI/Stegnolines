@@ -72,9 +72,18 @@ function initDashboard() {
   initInfoTooltips();
 
   // Sync settings pills
+  const isHttpsServer = window.location.protocol === 'https:';
   const curLang = localStorage.getItem('stegoLang') || 'en';
-  if (typeof updateLanguageControlsOnly === 'function') {
-    updateLanguageControlsOnly(curLang);
+  if (isHttpsServer) {
+    if (typeof updateLanguageControlsOnly === 'function') {
+      updateLanguageControlsOnly(curLang);
+    }
+  } else {
+    if (typeof applyLanguageUI === 'function') {
+      applyLanguageUI(curLang);
+    } else if (typeof updateLanguageControlsOnly === 'function') {
+      updateLanguageControlsOnly(curLang);
+    }
   }
   
   const curFont = localStorage.getItem('stegoFont') || 'cairo';

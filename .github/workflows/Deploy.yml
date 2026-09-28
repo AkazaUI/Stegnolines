@@ -1,9 +1,7 @@
 name: Deploy StegoLines to Hostinger
 
 on:
-  push:
-    branches:
-      - main # يتم التشغيل تلقائياً عند أي Push لفرع main
+  workflow_dispatch: # تشغيل يدوي فقط من خلال زر (Run workflow) في صفحة Actions على GitHub
 
 jobs:
   build-and-deploy:

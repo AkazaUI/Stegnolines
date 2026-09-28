@@ -904,12 +904,24 @@
     });
 
     // ── Synchronize languages and fonts on load ──
-    localStorage.setItem('stegoLang', currentDocLang);
+    const isHttpsServer = window.location.protocol === 'https:';
+    const effectiveLang = isHttpsServer
+      ? currentDocLang
+      : (localStorage.getItem('stegoLang') || currentDocLang);
 
-    if (typeof updateLanguageControlsOnly === 'function') {
-      updateLanguageControlsOnly(currentDocLang);
+    if (isHttpsServer) {
+      localStorage.setItem('stegoLang', currentDocLang);
+      if (typeof updateLanguageControlsOnly === 'function') {
+        updateLanguageControlsOnly(currentDocLang);
+      }
+    } else {
+      if (typeof applyLanguageUI === 'function') {
+        applyLanguageUI(effectiveLang);
+      } else if (typeof updateLanguageControlsOnly === 'function') {
+        updateLanguageControlsOnly(effectiveLang);
+      }
     }
-    translateInjectedTemplates(currentDocLang);
+    translateInjectedTemplates(effectiveLang);
 
     const savedFont = localStorage.getItem('stegoFont') || 'cairo';
     const effectiveFont = savedFont === 'thmanyah' ? 'cairo' : savedFont;

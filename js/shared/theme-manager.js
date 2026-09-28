@@ -92,19 +92,10 @@ function initThemeManager() {
   });
 
   // Initialize language, font, and storage stats
-  const isFileProto = window.location.protocol === 'file:';
+  const isHttpsServer = window.location.protocol === 'https:';
   let activeLang = 'en';
 
-  if (isFileProto) {
-    // In file:// mode, detect language from path
-    const fileLangMatch = window.location.pathname.match(/\/(ar|fr|zh|la)\//i);
-    if (fileLangMatch) {
-      activeLang = fileLangMatch[1].toLowerCase();
-    } else {
-      const docLang = document.documentElement.getAttribute('lang');
-      activeLang = (docLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(docLang)) ? docLang : 'en';
-    }
-  } else {
+  if (isHttpsServer) {
     const path = window.location.pathname.toLowerCase();
     const match = path.match(/^\/(en|ar|fr|zh|la)(\/|$)/);
 
@@ -137,12 +128,29 @@ function initThemeManager() {
         activeLang = (docLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(docLang)) ? docLang : 'en';
       }
     }
+
+    localStorage.setItem('stegoLang', activeLang);
+    // On HTTPS deployment: synchronize controls only, do not run in-memory DOM rewrites
+    updateLanguageControlsOnly(activeLang);
+  } else {
+    // ── Local Download / GitHub Repository Mode (file:// or local dev server) ──
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramLang = urlParams.get('lang');
+    const savedLang = localStorage.getItem('stegoLang');
+
+    if (paramLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(paramLang)) {
+      activeLang = paramLang;
+    } else if (savedLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(savedLang)) {
+      activeLang = savedLang;
+    } else {
+      const docLang = document.documentElement.getAttribute('lang');
+      activeLang = (docLang && ['ar', 'en', 'fr', 'zh', 'la'].includes(docLang)) ? docLang : 'en';
+    }
+
+    localStorage.setItem('stegoLang', activeLang);
+    // Real-time in-memory translation for local/standalone viewing
+    applyLanguageUI(activeLang);
   }
-
-  localStorage.setItem('stegoLang', activeLang);
-
-  // Synchronize controls with document language without client-side DOM rewrites
-  updateLanguageControlsOnly(activeLang);
   
   let savedFont = localStorage.getItem('stegoFont') || 'cairo';
   if (savedFont === 'thmanyah') {
@@ -249,7 +257,8 @@ function resolveLocalizedUrl(pathname, targetLang) {
 
 /**
  * Update the application UI language.
- * Always navigates to the dedicated physical SSG route (works offline/file:// and online).
+ * In deployment environments (HTTPS), navigates to the dedicated physical SSG route.
+ * In standalone repository / local download mode (file:// or local server), performs real-time in-memory DOM translation.
  *
  * @param {string} lang - 'en', 'ar', 'fr', 'zh', or 'la'
  */
@@ -257,19 +266,51 @@ function setLanguage(lang) {
   // 1. Persist chosen language in localStorage
   localStorage.setItem('stegoLang', lang);
 
-  // 2. Resolve localized target URL
-  const targetUrl = resolveLocalizedUrl(window.location.pathname, lang);
+  const isHttpsServer = window.location.protocol === 'https:';
 
-  if (targetUrl && targetUrl !== window.location.pathname) {
-    document.documentElement.classList.add('i18n-transition-active');
-    setTimeout(() => {
-      window.location.href = targetUrl + window.location.search + window.location.hash;
-    }, 120);
+  // ── Mode 1: Live HTTPS Production Deployment ──
+  if (isHttpsServer) {
+    const targetUrl = resolveLocalizedUrl(window.location.pathname, lang);
+    if (targetUrl && targetUrl !== window.location.pathname) {
+      document.documentElement.classList.add('i18n-transition-active');
+      setTimeout(() => {
+        window.location.href = targetUrl + window.location.search + window.location.hash;
+      }, 120);
+      return;
+    }
+    updateLanguageControlsOnly(lang);
     return;
   }
 
-  // 3. Already on target route: synchronize UI controls
-  updateLanguageControlsOnly(lang);
+  // ── Mode 2: Local Download / GitHub Clone (file:// or local dev server) ──
+  // Smoothly trigger fade/blur transition animation
+  document.documentElement.classList.add('i18n-transition-active');
+
+  setTimeout(() => {
+    // Instant real-time in-memory DOM translation
+    applyLanguageUI(lang);
+
+    // Synchronize URL search parameter (?lang=) without page reload
+    try {
+      const url = new URL(window.location.href);
+      if (lang === 'en') {
+        url.searchParams.delete('lang');
+      } else {
+        url.searchParams.set('lang', lang);
+      }
+      window.history.replaceState({}, '', url.toString());
+    } catch (e) {}
+
+    // Dispatch custom callbacks for specific page components if active
+    if (typeof renderVisualDiff === 'function') renderVisualDiff();
+    if (typeof renderHexMatrix === 'function') renderHexMatrix();
+    if (typeof updateCoverMessageCounter === 'function') updateCoverMessageCounter();
+
+    // Smoothly remove transition class after content updates
+    setTimeout(() => {
+      document.documentElement.classList.remove('i18n-transition-active');
+    }, 150);
+  }, 100);
 }
 
 function updateLanguageControlsOnly(lang) {
