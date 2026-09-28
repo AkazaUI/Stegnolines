@@ -302,19 +302,19 @@ function shell(meta) {
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="article"/>
   <meta property="og:url" content="${pageUrl}"/>
-  <meta property="og:title" content="StegoLines — ${meta.title}"/>
+  <meta property="og:title" content="StegnoLines — ${meta.title}"/>
   <meta property="og:description" content="${pageDescription}"/>
-  <meta property="og:image" content="https://stegnolines.com/assets/brand/logo-dark.webp"/>
-  <meta property="og:site_name" content="Stegnolines"/>
+  <meta property="og:image" content="https://stegnolines.com/assets/brand/favicon_io/android-chrome-512x512.png"/>
+  <meta property="og:site_name" content="StegnoLines"/>
   <meta property="og:locale" content="en_US"/>
   <meta property="og:locale:alternate" content="ar_AR"/>
 
   <!-- Twitter Cards -->
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:url" content="${pageUrl}"/>
-  <meta name="twitter:title" content="StegoLines — ${meta.title}"/>
+  <meta name="twitter:title" content="StegnoLines — ${meta.title}"/>
   <meta name="twitter:description" content="${pageDescription}"/>
-  <meta name="twitter:image" content="https://stegnolines.com/assets/brand/logo-dark.webp"/>
+  <meta name="twitter:image" content="https://stegnolines.com/assets/brand/favicon_io/android-chrome-512x512.png"/>
 
   <!-- Schema.org Structured Data (JSON-LD) -->
   <script type="application/ld+json">

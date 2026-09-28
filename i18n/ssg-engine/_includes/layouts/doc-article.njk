@@ -25,17 +25,17 @@
   <meta property="og:type" content="article"/>
   <meta property="og:url" content="{{ currentUrl }}"/>
   <meta property="og:title" content="{{ title }}"/>
-  <meta property="og:description" content="StegoLines Technical Documentation: {{ name }} ({{ category }})."/>
-  <meta property="og:image" content="{{ domain }}/assets/brand/logo-dark.webp"/>
-  <meta property="og:site_name" content="{{ 'السطور المخفية' if lang == 'ar' else 'StegoLines' }}"/>
+  <meta property="og:description" content="StegnoLines Technical Documentation: {{ name }} ({{ category }})."/>
+  <meta property="og:image" content="{{ domain }}/assets/brand/favicon_io/android-chrome-512x512.png"/>
+  <meta property="og:site_name" content="{{ 'السطور المخفية' if lang == 'ar' else 'StegnoLines' }}"/>
   <meta property="og:locale" content="{{ 'ar_AR' if lang == 'ar' else 'en_US' }}"/>
 
   <!-- Twitter Cards -->
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:url" content="{{ currentUrl }}"/>
   <meta name="twitter:title" content="{{ title }}"/>
-  <meta name="twitter:description" content="StegoLines Technical Documentation: {{ name }} ({{ category }})."/>
-  <meta name="twitter:image" content="{{ domain }}/assets/brand/logo-dark.webp"/>
+  <meta name="twitter:description" content="StegnoLines Technical Documentation: {{ name }} ({{ category }})."/>
+  <meta name="twitter:image" content="{{ domain }}/assets/brand/favicon_io/android-chrome-512x512.png"/>
 
   <!-- Schema.org Structured Data -->
   <script type="application/ld+json">
@@ -46,13 +46,13 @@
         "@type": "TechArticle",
         "@id": "{{ currentUrl }}#article",
         "headline": "{{ name }}",
-        "description": "StegoLines Technical Documentation: {{ name }} ({{ category }}). In-depth analysis, architecture, algorithms, and security reference.",
+        "description": "StegnoLines Technical Documentation: {{ name }} ({{ category }}). In-depth analysis, architecture, algorithms, and security reference.",
         "url": "{{ currentUrl }}",
         "inLanguage": "{{ lang }}",
         "isPartOf": {
           "@type": "WebSite",
           "@id": "https://stegnolines.com/#website",
-          "name": "{{ 'السطور المخفية' if lang == 'ar' else 'StegoLines' }}",
+          "name": "{{ 'السطور المخفية' if lang == 'ar' else 'StegnoLines' }}",
           "url": "https://stegnolines.com/"
         }
       },
