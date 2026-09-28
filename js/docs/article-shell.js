@@ -305,12 +305,18 @@ function shell(meta) {
   <meta property="og:title" content="StegnoLines — ${meta.title}"/>
   <meta property="og:description" content="${pageDescription}"/>
   <meta property="og:image" content="https://stegnolines.com/assets/brand/favicon_io/android-chrome-512x512.png"/>
+  <meta property="og:image:width" content="512"/>
+  <meta property="og:image:height" content="512"/>
+  <meta property="og:image:type" content="image/png"/>
+  <meta property="og:image" content="https://stegnolines.com/assets/brand/logo-dark.webp"/>
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
   <meta property="og:site_name" content="StegnoLines"/>
   <meta property="og:locale" content="en_US"/>
   <meta property="og:locale:alternate" content="ar_AR"/>
 
-  <!-- Twitter Cards -->
-  <meta name="twitter:card" content="summary_large_image"/>
+  <!-- Twitter Cards (summary: compact square thumbnail for WhatsApp & Twitter) -->
+  <meta name="twitter:card" content="summary"/>
   <meta name="twitter:url" content="${pageUrl}"/>
   <meta name="twitter:title" content="StegnoLines — ${meta.title}"/>
   <meta name="twitter:description" content="${pageDescription}"/>

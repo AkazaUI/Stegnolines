@@ -73,10 +73,8 @@ function initDashboard() {
 
   // Sync settings pills
   const curLang = localStorage.getItem('stegoLang') || 'en';
-  if (typeof applyLanguageUI === 'function') {
-    applyLanguageUI(curLang);
-  } else {
-    applyLanguageUI_local(curLang);
+  if (typeof updateLanguageControlsOnly === 'function') {
+    updateLanguageControlsOnly(curLang);
   }
   
   const curFont = localStorage.getItem('stegoFont') || 'cairo';
