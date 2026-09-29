@@ -304,23 +304,23 @@ function shell(meta) {
   <meta property="og:url" content="${pageUrl}"/>
   <meta property="og:title" content="StegnoLines — ${meta.title}"/>
   <meta property="og:description" content="${pageDescription}"/>
-  <meta property="og:image" content="https://stegnolines.com/assets/brand/favicon_io/android-chrome-512x512.png"/>
-  <meta property="og:image:width" content="512"/>
-  <meta property="og:image:height" content="512"/>
+  <meta property="og:image" content="https://stegnolines.com/assets/brand/openGraph.png"/>
+  <meta property="og:image:secure_url" content="https://stegnolines.com/assets/brand/openGraph.png"/>
   <meta property="og:image:type" content="image/png"/>
-  <meta property="og:image" content="https://stegnolines.com/assets/brand/logo-dark.webp"/>
-  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:width" content="1260"/>
   <meta property="og:image:height" content="630"/>
+  <meta property="og:image:alt" content="StegnoLines — ${meta.title}"/>
   <meta property="og:site_name" content="StegnoLines"/>
   <meta property="og:locale" content="en_US"/>
   <meta property="og:locale:alternate" content="ar_AR"/>
 
-  <!-- Twitter Cards (summary: compact square thumbnail for WhatsApp & Twitter) -->
-  <meta name="twitter:card" content="summary"/>
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:url" content="${pageUrl}"/>
   <meta name="twitter:title" content="StegnoLines — ${meta.title}"/>
   <meta name="twitter:description" content="${pageDescription}"/>
-  <meta name="twitter:image" content="https://stegnolines.com/assets/brand/favicon_io/android-chrome-512x512.png"/>
+  <meta name="twitter:image" content="https://stegnolines.com/assets/brand/openGraph.png"/>
+  <meta name="twitter:image:alt" content="StegnoLines — ${meta.title}"/>
 
   <!-- Schema.org Structured Data (JSON-LD) -->
   <script type="application/ld+json">
