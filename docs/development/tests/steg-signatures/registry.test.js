@@ -39,11 +39,11 @@ function loadAllProfiles(registry) {
   }
 }
 
-runTest('Registers all 12 profiles from manifest without errors', () => {
+runTest('Registers all 13 profiles from manifest without errors', () => {
   const reg = new SignatureRegistryStore();
   loadAllProfiles(reg);
-  assert.strictEqual(reg.getProfiles().length, 12);
-  assert.strictEqual(reg.getModes().length, 13);
+  assert.strictEqual(reg.getProfiles().length, 13);
+  assert.strictEqual(reg.getModes().length, 14);
 });
 
 runTest('Both StegZero modes resolve through one producer profile', () => {

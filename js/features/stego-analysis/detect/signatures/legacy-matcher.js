@@ -25,6 +25,8 @@
     const nonBenign = candidateObservations || [];
     const foundSet = new Set(nonBenign.map(r => r.codePoint));
     let matches = [];
+    /** @type {Map<Object, Set<number>>} Alphabet actually matched per exact-symbol match. */
+    const matchedAlphabets = new Map();
 
     for (let i = 0; i < registry.length; i++) {
       const sig = registry[i];
@@ -96,15 +98,33 @@
           const targetSet = hasAllPrimary ? sigSet : altSet;
           const matchingObs = nonBenign.filter(o => targetSet.has(o.codePoint));
           if (matchingObs.length >= sig.minCount) {
-            matches.push({
+            const match = {
               signature: sig,
               positions: matchingObs.map(o => o.position),
               reasonCode: 'SIGNATURE_MATCH'
-            });
+            };
+            matchedAlphabets.set(match, targetSet);
+            matches.push(match);
           }
         }
       }
     }
+
+    // ── Alphabet Dominance (Most-Specific Producer Wins) ──
+    // A tool whose alphabet is a strict subset of another matched tool's alphabet cannot
+    // explain the extra symbols present in the text. Example: ZeroSteg {200C, 200D} must not
+    // match a text carrying {200C, 200D, 202C, FEFF} from Unicode Steganography (330k).
+    const isStrictSubset = (a, b) => a.size < b.size && [...a].every(cp => b.has(cp));
+    matches = matches.filter(m => {
+      const own = matchedAlphabets.get(m);
+      if (!own) return true;
+      for (const [other, otherSet] of matchedAlphabets) {
+        if (other !== m && matches.includes(other) && isStrictSubset(own, otherSet)) {
+          return false;
+        }
+      }
+      return true;
+    });
 
     // ── Mode Disambiguation & Mutual Exclusion ──
     // For StegZero: Standard Mode (3-bit) and Compatibility Mode (1-bit) are mutually exclusive.

@@ -114,5 +114,20 @@ runTest('StegZero mode output is strictly mutually exclusive based on detected m
   assert.strictEqual(res1.matchedSignatures[0].encodingTableTitle, '2. Compatibility Mode — 1 bit/symbol');
 });
 
+runTest('Subset alphabet (ZeroSteg) never co-matches a superset producer (Unicode Steganography 330k)', () => {
+  // 330k default alphabet: 200C, 200D, 202C, FEFF -> only 330k, never ZeroSteg
+  const text330k = 'The ' + String.fromCodePoint(0x200C, 0x200D, 0x202C, 0xFEFF) + 'quick brown ' +
+    String.fromCodePoint(0xFEFF, 0x202C, 0x200D, 0x200C) + 'fox';
+  const ids330k = StegDetectEngine.analyzeText(text330k).matchedSignatures.map(s => s.id);
+  assert.ok(ids330k.includes('tool_unicode_steganography'), 'Must match Unicode Steganography (330k)');
+  assert.ok(!ids330k.includes('tool_zerosteg'), 'Must NOT match ZeroSteg when extra symbols exist');
+
+  // Pure ZeroSteg alphabet: 200C, 200D only -> ZeroSteg
+  const textZero = 'Hel' + String.fromCodePoint(0x200C, 0x200D) + 'lo wo' + String.fromCodePoint(0x200D, 0x200C) + 'rld';
+  const idsZero = StegDetectEngine.analyzeText(textZero).matchedSignatures.map(s => s.id);
+  assert.ok(idsZero.includes('tool_zerosteg'), 'Must match ZeroSteg for its exact two-symbol alphabet');
+  assert.ok(!idsZero.includes('tool_unicode_steganography'), 'Must NOT match 330k without 202C/FEFF');
+});
+
 console.log('\nLegacy Equivalence Summary: ' + passed + '/' + total + ' passed.');
 if (passed !== total) process.exit(1);

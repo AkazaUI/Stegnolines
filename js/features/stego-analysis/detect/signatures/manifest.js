@@ -39,6 +39,11 @@
       legacyIds: ['tool_zerosteg']
     },
     {
+      id: 'tool.unicode_steganography',
+      path: 'profiles/tools/unicode-steganography.js',
+      legacyIds: ['tool_unicode_steganography']
+    },
+    {
       id: 'research.multilayer-huffman',
       path: 'profiles/research/multilayer-huffman.js',
       legacyIds: ['research_multilayer_huffman']

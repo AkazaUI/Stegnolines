@@ -404,6 +404,27 @@
         `;
       }
 
+      const githubUrl = (sig.url && sig.url.includes('github.com')) ? sig.url : (sig.secondaryUrl && sig.secondaryUrl.includes('github.com') ? sig.secondaryUrl : null);
+      const websiteUrl = (sig.url && !sig.url.includes('github.com')) ? sig.url : (sig.secondaryUrl && !sig.secondaryUrl.includes('github.com') ? sig.secondaryUrl : null);
+
+      let headerLinksHtml = '';
+      if (websiteUrl) {
+        headerLinksHtml += `
+          <a href="${escSafe(websiteUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn--outline stego-signature-card__link-btn">
+            <span>${isAr ? 'الموقع الرسمي' : (t('signatureOpenLink') || 'Official Site')}</span>
+            <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span>
+          </a>
+        `;
+      }
+      if (githubUrl) {
+        headerLinksHtml += `
+          <a href="${escSafe(githubUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn--outline stego-signature-card__link-btn" title="GitHub Repository">
+            <span class="material-symbols-outlined" style="font-size: 16px;">code</span>
+            <span>GitHub</span>
+          </a>
+        `;
+      }
+
       cardsHtml += `
         <div class="stego-signature-card" id="sig-card-${sig.id}">
           <div class="stego-signature-card__header">
@@ -422,12 +443,7 @@
                 </div>
               </div>
             </div>
-            ${sig.url ? `
-              <a href="${sig.url}" target="_blank" rel="noopener noreferrer" class="btn btn--outline stego-signature-card__link-btn">
-                <span>${t('signatureOpenLink')}</span>
-                <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span>
-              </a>
-            ` : ''}
+            ${headerLinksHtml}
           </div>
 
           ${descHtml}
@@ -435,9 +451,18 @@
           ${candidateToolsHtml}
 
           <div class="stego-signature-table-wrap">
-            <div class="stego-signature-table__title">
-              <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary);">table_chart</span>
-              <span>${sig.encodingTableTitle ? `${t('signatureEncodingTableTitle')} — ${escSafe(sig.encodingTableTitle)}` : t('signatureEncodingTableTitle')}</span>
+            <div class="stego-signature-table__title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary);">table_chart</span>
+                <span>${sig.encodingTableTitle ? `${t('signatureEncodingTableTitle')} — ${escSafe(sig.encodingTableTitle)}` : t('signatureEncodingTableTitle')}</span>
+              </div>
+              ${githubUrl ? `
+                <a href="${escSafe(githubUrl)}" target="_blank" rel="noopener noreferrer" class="stego-signature-table__source-link" style="display:inline-flex; align-items:center; gap:4px; font-size:12px; color:var(--color-primary); text-decoration:none; font-weight:500;">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">code</span>
+                  <span>${isAr ? 'المصدر: GitHub' : 'Source: GitHub'}</span>
+                  <span class="material-symbols-outlined" style="font-size: 12px;">open_in_new</span>
+                </a>
+              ` : ''}
             </div>
             <div class="steganalysis-table-container">
               <table class="stego-signature-table">

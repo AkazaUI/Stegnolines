@@ -412,6 +412,51 @@
     ]
   },
   {
+    "id": "tool_unicode_steganography",
+    "type": "tool",
+    "name": "Unicode Steganography (330k)",
+    "titleAr": "أداة Unicode Steganography with Zero-Width Characters (330k)",
+    "titleEn": "Unicode Steganography with Zero-Width Characters (330k)",
+    "descAr": "أداة إخفاء نصوص مفتوحة المصدر تستخدم رموز بعرض صفري وتخزنها قبل أو بعد الكلمات والمقاطع النصية. المجموعة الافتراضية تعتمد 4 رموز (U+200C, U+200D, U+202C, U+FEFF)، مع إمكانية تخصيص الأبجدية من بين 10 رموز غير مرئية.",
+    "descEn": "Open-source zero-width text steganography tool embedding data before or after words/text segments. Default mode uses 4 symbols (U+200C, U+200D, U+202C, U+FEFF) with support for customizable 10-symbol alphabets.",
+    "url": "https://330k.github.io/misc_tools/unicode_steganography.html",
+    "secondaryUrl": "https://github.com/330k/misc_tools",
+    "exactSymbols": [
+      8204,
+      8205,
+      8236,
+      65279
+    ],
+    "minCount": 4,
+    "encodingTableTitle": "Default Mode — 4 symbols (Base 4 / 2 bits per symbol)",
+    "encodingTable": [
+      {
+        "charName": "Zero-Width Non-Joiner (ZWNJ)",
+        "hex": "U+200C",
+        "bits": "00",
+        "desc": "Digit 0 (Default)"
+      },
+      {
+        "charName": "Zero-Width Joiner (ZWJ)",
+        "hex": "U+200D",
+        "bits": "01",
+        "desc": "Digit 1 (Default)"
+      },
+      {
+        "charName": "Pop Directional Formatting (PDF)",
+        "hex": "U+202C",
+        "bits": "10",
+        "desc": "Digit 2 (Default)"
+      },
+      {
+        "charName": "Zero-Width No-Break Space (ZWNBSP)",
+        "hex": "U+FEFF",
+        "bits": "11",
+        "desc": "Digit 3 (Default)"
+      }
+    ]
+  },
+  {
     "id": "research_multilayer_huffman",
     "type": "research",
     "name": "Multilayer Encoding & Huffman (IJACSA 2022)",
