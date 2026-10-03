@@ -9,7 +9,9 @@
     "build:js": "node build-tools/build-js.js",
     "build:html": "node build-tools/build-html.js",
     "serve": "npx @11ty/eleventy --config=build-tools/config/eleventy.config.js --serve",
-    "test": "node -e \"console.log('StegoLines test suite ready')\""
+    "test": "npm run test:signatures && npm run test:steganalysis",
+    "test:signatures": "node docs/development/tests/steg-signatures/contract.test.js && node docs/development/tests/steg-signatures/registry.test.js && node docs/development/tests/steg-signatures/legacy-equivalence.test.js && node docs/development/tests/steg-signatures/loader-parity.test.js",
+    "test:steganalysis": "node docs/development/tests/steganalysis-detection.test.js"
   },
   "keywords": [
     "steganography",

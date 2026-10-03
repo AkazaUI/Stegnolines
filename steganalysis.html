@@ -269,8 +269,37 @@
   <script src="js/shared/ui-helpers.js"></script>
   <script src="js/features/chat-parsers.js"></script>
 
-  <!-- ═══ Detection Engine & UI Controller ═══ -->
-  <script src="js/features/F_text_steganalysis.js"></script>
+  <!-- ═══ Modular Forensic Steganalysis Signatures ═══ -->
+  <script src="js/features/stego-analysis/detect/signatures/contract.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/registry.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/profiles/tools/steganography-tools.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/profiles/tools/whitespace.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/profiles/tools/doublespeak.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/profiles/tools/stegzero.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/profiles/tools/stegoline.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/profiles/research/multilayer-huffman.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/profiles/research/aitsteg.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/profiles/research/pos-fpe.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/profiles/research/lisat-2015.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/profiles/watermarks/homoglyph-substitution.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/profiles/watermarks/social-media.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/legacy-adapter.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/legacy-matcher.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures/index.js"></script>
+  <script src="js/features/stego-analysis/detect/signatures.js"></script>
+  <script src="js/features/stego-analysis/shared/unicode-context.js"></script>
+  <script src="js/features/stego-analysis/detect/detectors/detect-snow.js"></script>
+  <script src="js/features/stego-analysis/detect/detectors/detect-zwc.js"></script>
+  <script src="js/features/stego-analysis/detect/detectors/detect-vs.js"></script>
+  <script src="js/features/stego-analysis/detect/detectors/detect-homoglyphs.js"></script>
+  <script src="js/features/stego-analysis/detect/detectors/detect-bidi.js"></script>
+  <script src="js/features/stego-analysis/detect/evidence-assessor.js"></script>
+  <script src="js/features/stego-analysis/detect/detect-engine.js"></script>
+  <script src="js/features/stego-analysis/detect/shared/chat-importer.js"></script>
+  <script src="js/features/stego-analysis/detect/shared/date-filter.js"></script>
+  <script src="js/features/stego-analysis/detect/ui/visual-diff-map.js"></script>
+  <script src="js/features/stego-analysis/detect/ui/threat-dashboard.js"></script>
+  <script src="js/features/stego-analysis/detect/steganalysis-controller.js"></script>
 
   <!-- ═══ Dynamic Templates Loader ═══ -->
   <script src="js/shared/template-loader.js"></script>

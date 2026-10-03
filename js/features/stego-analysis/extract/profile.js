@@ -26,10 +26,16 @@
   }
 
   function isJoinerScriptLetter(cp) {
+    if (global.UnicodeContext && typeof global.UnicodeContext.isJoinerScriptLetter === 'function') {
+      return global.UnicodeContext.isJoinerScriptLetter(cp);
+    }
     return isArabicLetter(cp) || isDevanagariLetter(cp);
   }
 
   function isEmojiRelated(cp) {
+    if (global.UnicodeContext && typeof global.UnicodeContext.isEmojiBase === 'function') {
+      return global.UnicodeContext.isEmojiBase(cp) || cp === 0xFE0F || cp === 0xFE0E;
+    }
     return (
       (cp >= 0x1F300 && cp <= 0x1F9FF) ||
       (cp >= 0x1F600 && cp <= 0x1F64F) ||

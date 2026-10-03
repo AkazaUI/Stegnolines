@@ -22,8 +22,30 @@ const I18N_STEGANALYSIS = {
 
     // Metric cards
     metricTotalHidden: "Hidden / Evasive Chars",
+    metricObservations: "Unicode Observations",
+    metricActionable: "Actionable Suspect Carriers",
     metricDistinctTypes: "Distinct Types",
     metricAnalysisTime: "Analysis Duration",
+    catBenign: "Benign / Typography",
+    catAmbiguous: "Isolated / Ambiguous",
+    evidenceScoreLabel: "Threat Score",
+    evidenceVerdictLabel: "Evidence Verdict",
+
+    // Contextual Clean States
+    steganalysisCleanWithObsTitle: "Benign Unicode Observed — No Covert Channel",
+    steganalysisCleanWithObsSubtitle: "Special Unicode characters were identified, but contextual evaluation confirmed they are legitimate typography, language orthography, or balanced controls.",
+
+    // Evidence Reason Codes
+    REASON_MIXED_SCRIPT_CONFUSABLE: "Mixed-Script Confusable (Homoglyph Attack)",
+    REASON_MIXED_WIDTH_TOKEN: "Mixed ASCII & Fullwidth Characters",
+    REASON_COVERT_CARRIER_RUN: "Consecutive Covert Carrier Run",
+    REASON_ORPHAN_VS_RUN: "Orphan Variation Selector Run",
+    REASON_MIXED_SPACE_RUN: "Mixed Space Steganography Run",
+    REASON_MIXED_CARRIER_WINDOW: "High Carrier Density Window",
+    REASON_BIDI_WITH_COVERT_CARRIER: "Unmatched BiDi with Covert Carrier",
+    REASON_REPEATED_ORPHAN_CONTROL: "Repeated Orphan BiDi Control",
+    REASON_SIGNATURE_MATCH: "Validated Steganography Signature",
+    REASON_SNOW_PATTERN: "Whitespace Steganography Pattern (SNOW)",
 
     // Risk levels
     riskClean: "Clean",
@@ -127,10 +149,14 @@ const I18N_STEGANALYSIS = {
     signatureMatchedTitle: "Identified Steganography Signature / Tool",
     signatureMatchedSubtitle: "The detected character set strictly matches a known tool or research paper specification without extra or missing characters.",
     signatureTypeTool: "Software Tool",
+    signatureTypeTechnique: "Stego Technique",
     signatureTypeResearch: "Academic Research Paper",
     signatureTypeWatermark: "Digital Watermark",
     signatureExactBadge: "Exact Match (100%)",
     signatureOpenLink: "View Tool / Paper Source",
+    signatureCandidateToolsTitle: "Suggested Candidate Tools",
+    signatureCandidateToolsSubtitle: "Known tools and implementations that produce or rely on this whitespace technique:",
+    signatureCandidateOpenTool: "View Tool",
     signatureEncodingTableTitle: "Official Encoding Scheme & Symbol Table",
     signatureColChar: "Character",
     signatureColHex: "Hex Code",
@@ -229,8 +255,30 @@ const I18N_STEGANALYSIS = {
     visualMapTitle: "مخطط مقارنة الفروق المرئية للنص",
 
     metricTotalHidden: "أحرف مخفية / متجانسة",
+    metricObservations: "ملاحظات يونيكود المرصودة",
+    metricActionable: "المحارف المشتبه بها جنائياً",
     metricDistinctTypes: "أنواع مميزة",
     metricAnalysisTime: "مدة التحليل",
+    catBenign: "طبيعي / طباعي",
+    catAmbiguous: "معزول / ملتبس",
+    evidenceScoreLabel: "درجة الخطورة",
+    evidenceVerdictLabel: "الحكم الجنائي",
+
+    // Contextual Clean States
+    steganalysisCleanWithObsTitle: "ملاحظات يونيكود طبيعية — لم يُرصد نمط إخفاء",
+    steganalysisCleanWithObsSubtitle: "تم رصد محارف يونيكود خاصة، لكن التحليل السياقي أثبت أنها جزء طبيعي من قواعد اللغة أو التنسيق الطباعي ولا تمثل قنوات إخفاء.",
+
+    // Evidence Reason Codes
+    REASON_MIXED_SCRIPT_CONFUSABLE: "تجانس عبر النصوص (هجوم خلط الحروف)",
+    REASON_MIXED_WIDTH_TOKEN: "خلط محارف عريضة ومحارف قياسية",
+    REASON_COVERT_CARRIER_RUN: "تتابع محارف إخفاء خفية",
+    REASON_ORPHAN_VS_RUN: "تتابع محددات تباين معزولة",
+    REASON_MIXED_SPACE_RUN: "تتابع مسافات متنوعة مشبوهة",
+    REASON_MIXED_CARRIER_WINDOW: "نافذة ذات كثافة محارف إخفاء مشبوهة",
+    REASON_BIDI_WITH_COVERT_CARRIER: "تحكم اتجاه نص غير متطابق مع محارف إخفاء",
+    REASON_REPEATED_ORPHAN_CONTROL: "تكرار محارف تحكم اتجاه معزولة",
+    REASON_SIGNATURE_MATCH: "بصمة أداة إخفاء مؤكدة",
+    REASON_SNOW_PATTERN: "نمط إخفاء بالفراغات بنهايات الأسطر (SNOW)",
 
     riskClean: "نظيف",
     riskLow: "خطر منخفض",
@@ -329,10 +377,14 @@ const I18N_STEGANALYSIS = {
     signatureMatchedTitle: "بصمة أداة / بحث إخفاء متطابقة",
     signatureMatchedSubtitle: "مجموعة الرموز المستخدمة في الرسالة تطابق تماماً بصمة الترميز المعتمدة لأداة أو بحث علمي دون زيادة أو نقصان.",
     signatureTypeTool: "أداة برمجية",
+    signatureTypeTechnique: "تقنية إخفاء",
     signatureTypeResearch: "ورقة بحثية محكمة",
     signatureTypeWatermark: "علامة مائية رقمية",
     signatureExactBadge: "تطابق دقيق (100%)",
     signatureOpenLink: "زيارة الأداة / البحث",
+    signatureCandidateToolsTitle: "الأدوات المقترحة المحتمل استخدامها",
+    signatureCandidateToolsSubtitle: "أدوات وبرمجيات معروفة تعتمد هذه التقنية وتنتج هذا النمط من الفراغات:",
+    signatureCandidateOpenTool: "معاينة الأداة",
     signatureEncodingTableTitle: "جدول الترميز المعتمد في الأداة / البحث",
     signatureColChar: "المحرف / الرمز",
     signatureColHex: "كود اليونيكود",
@@ -431,8 +483,30 @@ const I18N_STEGANALYSIS = {
     visualMapTitle: "Carte visuelle du texte médico-légal",
 
     metricTotalHidden: "Caractères cachés / homoglyphes",
+    metricObservations: "Observations Unicode",
+    metricActionable: "Porteurs suspects actionnables",
     metricDistinctTypes: "Types distincts",
     metricAnalysisTime: "Durée de l'analyse",
+    catBenign: "Bénin / Typographie",
+    catAmbiguous: "Isolé / Ambigu",
+    evidenceScoreLabel: "Score de menace",
+    evidenceVerdictLabel: "Verdict",
+
+    // Contextual Clean States
+    steganalysisCleanWithObsTitle: "Unicode bénin observé — Aucun canal dissimulé",
+    steganalysisCleanWithObsSubtitle: "Des caractères Unicode spécifiques ont été observés, mais l'évaluation contextuelle confirme une typographie légitime ou une orthographe naturelle.",
+
+    // Evidence Reason Codes
+    REASON_MIXED_SCRIPT_CONFUSABLE: "Homoglyphe inter-scripts suspect",
+    REASON_MIXED_WIDTH_TOKEN: "Mélange de caractères pleine chasse et ASCII",
+    REASON_COVERT_CARRIER_RUN: "Suite consécutive de porteurs invisibles",
+    REASON_ORPHAN_VS_RUN: "Séquence de sélecteurs de variante orphelins",
+    REASON_MIXED_SPACE_RUN: "Séquence d'espaces stéganographiques mixtes",
+    REASON_MIXED_CARRIER_WINDOW: "Fenêtre à forte densité de porteurs",
+    REASON_BIDI_WITH_COVERT_CARRIER: "Contrôle BiDi non apparié avec porteur secret",
+    REASON_REPEATED_ORPHAN_CONTROL: "Contrôle BiDi orphelin répété",
+    REASON_SIGNATURE_MATCH: "Signature d'outil stéganographique validée",
+    REASON_SNOW_PATTERN: "Motif d'espaces de fin de ligne (SNOW)",
 
     riskClean: "Propre",
     riskLow: "Risque faible",
@@ -562,8 +636,30 @@ const I18N_STEGANALYSIS = {
     visualMapTitle: "视觉法医文本地图",
 
     metricTotalHidden: "隐藏/同型字符",
+    metricObservations: "Unicode 观测记录",
+    metricActionable: "可疑隐写载体",
     metricDistinctTypes: "不同类型",
     metricAnalysisTime: "分析持续时间",
+    catBenign: "良性 / 正规排版",
+    catAmbiguous: "独立 / 模糊",
+    evidenceScoreLabel: "威胁评分",
+    evidenceVerdictLabel: "分析结论",
+
+    // Contextual Clean States
+    steganalysisCleanWithObsTitle: "观测到正常 Unicode — 未检测到隐写通道",
+    steganalysisCleanWithObsSubtitle: "识别到特殊 Unicode 字符，但上下文分析证实其为正常排版、正字法或成对控制符，不存在隐写模式。",
+
+    // Evidence Reason Codes
+    REASON_MIXED_SCRIPT_CONFUSABLE: "跨文字混淆同形字 (Homoglyph)",
+    REASON_MIXED_WIDTH_TOKEN: "ASCII 与全角字符混用",
+    REASON_COVERT_CARRIER_RUN: "连续隐形载体序列",
+    REASON_ORPHAN_VS_RUN: "孤立变体选择符序列",
+    REASON_MIXED_SPACE_RUN: "混合特殊空格序列",
+    REASON_MIXED_CARRIER_WINDOW: "高密度载体滑动窗口",
+    REASON_BIDI_WITH_COVERT_CARRIER: "未配对双向控制符及隐形载体",
+    REASON_REPEATED_ORPHAN_CONTROL: "重复孤立双向控制符",
+    REASON_SIGNATURE_MATCH: "已验证的隐写工具指纹",
+    REASON_SNOW_PATTERN: "行尾空白隐写模式 (SNOW)",
 
     riskClean: "干净",
     riskLow: "低风险",
@@ -693,8 +789,30 @@ const I18N_STEGANALYSIS = {
     visualMapTitle: "Tabula Visualis Textus Forensis",
 
     metricTotalHidden: "Characteres Occulti / Homoglypha",
+    metricObservations: "Observationes Unicode",
+    metricActionable: "Vectores suspecti",
     metricDistinctTypes: "Genera Distincta",
     metricAnalysisTime: "Duratio Analyseos",
+    catBenign: "Innocuum / Typographia",
+    catAmbiguous: "Singulare / Ambiguum",
+    evidenceScoreLabel: "Gradus periculi",
+    evidenceVerdictLabel: "Iudicium forense",
+
+    // Contextual Clean States
+    steganalysisCleanWithObsTitle: "Unicode innocuum observatum — Nullus canalis occultus",
+    steganalysisCleanWithObsSubtitle: "Characteres Unicode peculiares inventi sunt, sed contextus confirmat eos ad orthographiam vel typographicam legitimam pertinere.",
+
+    // Evidence Reason Codes
+    REASON_MIXED_SCRIPT_CONFUSABLE: "Homoglypha inter-scripta suspecta",
+    REASON_MIXED_WIDTH_TOKEN: "Characteres pleni et ASCII mixti",
+    REASON_COVERT_CARRIER_RUN: "Series vectorum occultorum continua",
+    REASON_ORPHAN_VS_RUN: "Series selectorum variationis orborum",
+    REASON_MIXED_SPACE_RUN: "Series spatiorum mixtorum suspecta",
+    REASON_MIXED_CARRIER_WINDOW: "Fenestra spissa vectoribus occultis",
+    REASON_BIDI_WITH_COVERT_CARRIER: "Moderamina BiDi non paria cum vectore",
+    REASON_REPEATED_ORPHAN_CONTROL: "Moderamen BiDi orbum iteratum",
+    REASON_SIGNATURE_MATCH: "Signatura instrumenti steganographici confirmata",
+    REASON_SNOW_PATTERN: "Forma spatiorum extremorum (SNOW)",
 
     riskClean: "Mundus",
     riskLow: "Periculum Parvum",
