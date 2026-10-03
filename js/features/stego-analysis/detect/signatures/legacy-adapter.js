@@ -72,6 +72,10 @@
       legacy.candidateTools = JSON.parse(JSON.stringify(mode.presentation.candidateTools));
     }
 
+    if (mode.presentation && mode.presentation.encodingTableTitle !== undefined) {
+      legacy.encodingTableTitle = mode.presentation.encodingTableTitle;
+    }
+
     if (mode.presentation && mode.presentation.encodingTable !== undefined) {
       legacy.encodingTable = JSON.parse(JSON.stringify(mode.presentation.encodingTable));
     }

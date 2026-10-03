@@ -24,7 +24,7 @@
 
     const nonBenign = candidateObservations || [];
     const foundSet = new Set(nonBenign.map(r => r.codePoint));
-    const matches = [];
+    let matches = [];
 
     for (let i = 0; i < registry.length; i++) {
       const sig = registry[i];
@@ -104,6 +104,17 @@
           }
         }
       }
+    }
+
+    // ── Mode Disambiguation & Mutual Exclusion ──
+    // For StegZero: Standard Mode (3-bit) and Compatibility Mode (1-bit) are mutually exclusive.
+    // If 3-bit mode matched, or if text contains any symbols exclusive to 3-bit mode
+    // (0x200D, 0x2060, 0x2062, 0x2063, 0x2064, 0xFEFF), Compatibility Mode (1-bit) is excluded.
+    const hasStegzero3bit = matches.some(m => m.signature && m.signature.id === 'tool_stegzero_3bit');
+    const has3bitSymbols = [0x200D, 0x2060, 0x2062, 0x2063, 0x2064, 0xFEFF].some(cp => foundSet.has(cp));
+
+    if (hasStegzero3bit || has3bitSymbols) {
+      matches = matches.filter(m => !(m.signature && m.signature.id === 'tool_stegzero_1bit'));
     }
 
     return matches;

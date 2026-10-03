@@ -73,6 +73,24 @@ runTest('Both StegZero modes resolve through one producer profile', () => {
   assert.strictEqual(res1.mode.id, '1bit');
 });
 
+runTest('StegZero modes contain verified supplied placement signatures', () => {
+  const reg = new SignatureRegistryStore();
+  loadAllProfiles(reg);
+
+  const profile = reg.getProfile('tool.stegzero');
+  for (const mode of profile.modes) {
+    assert.strictEqual(mode.placementSignatures.status, 'supplied');
+    assert.strictEqual(mode.placementSignatures.definitions.length, 1);
+    const def = mode.placementSignatures.definitions[0];
+    assert.strictEqual(def.region.value, 'whole');
+    assert.strictEqual(def.anchor.value, 'after');
+    assert.strictEqual(def.scope.value, 'whole-text');
+    assert.strictEqual(def.distribution.value, 'regular');
+    assert.strictEqual(def.source.kind, 'source-code');
+    assert.strictEqual(def.source.locator, 'interleavePayload()');
+  }
+});
+
 runTest('Every legacy ID in manifest resolves to its profile and mode', () => {
   const reg = new SignatureRegistryStore();
   loadAllProfiles(reg);

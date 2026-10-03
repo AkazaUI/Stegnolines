@@ -92,5 +92,28 @@ runTest('Matcher and analyzeText produce identical forensic results across all 1
   }
 });
 
+runTest('StegZero mode output is strictly mutually exclusive based on detected mode', () => {
+  // 1. Text with 3-bit payload including repeated 1-bit symbols:
+  // Must match ONLY 3-bit Standard Mode and NEVER 1-bit Compatibility Mode
+  const text3bitRepeated = 'Cover ' + String.fromCodePoint(
+    0x200B, 0x200C, 0x200D, 0x2060, 0x2062, 0x2063, 0x2064, 0xFEFF,
+    0x200B, 0x200C, 0x200B, 0x200C
+  ) + ' msg';
+  const res3 = StegDetectEngine.analyzeText(text3bitRepeated);
+  const matched3 = res3.matchedSignatures.map(s => s.id);
+  assert.deepStrictEqual(matched3, ['tool_stegzero_3bit'], 'Must match only 3-bit mode');
+  assert.strictEqual(res3.matchedSignatures[0].encodingTableTitle, '1. Standard Mode — 3 bits/symbol');
+
+  // 2. Text with 1-bit payload only:
+  // Must match ONLY 1-bit Compatibility Mode and NEVER 3-bit Standard Mode
+  const text1bitOnly = 'Cover ' + String.fromCodePoint(
+    0x200B, 0x200C, 0x200B, 0x200C, 0x200B, 0x200C
+  ) + ' msg';
+  const res1 = StegDetectEngine.analyzeText(text1bitOnly);
+  const matched1 = res1.matchedSignatures.map(s => s.id);
+  assert.deepStrictEqual(matched1, ['tool_stegzero_1bit'], 'Must match only 1-bit mode');
+  assert.strictEqual(res1.matchedSignatures[0].encodingTableTitle, '2. Compatibility Mode — 1 bit/symbol');
+});
+
 console.log('\nLegacy Equivalence Summary: ' + passed + '/' + total + ' passed.');
 if (passed !== total) process.exit(1);

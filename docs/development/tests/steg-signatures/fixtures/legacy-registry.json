@@ -264,9 +264,9 @@
   {
     "id": "tool_stegzero_3bit",
     "type": "tool",
-    "name": "StegZero (3-bit)",
-    "titleAr": "أداة StegZero (نظام 3 بت)",
-    "titleEn": "StegZero (3-bit Mode)",
+    "name": "StegZero (1. Standard Mode — 3 bits/symbol)",
+    "titleAr": "أداة StegZero (1. Standard Mode — 3 bits/symbol)",
+    "titleEn": "StegZero (1. Standard Mode — 3 bits/symbol)",
     "url": "https://stegzero.com/",
     "exactSymbols": [
       8203,
@@ -279,6 +279,7 @@
       65279
     ],
     "minCount": 4,
+    "encodingTableTitle": "1. Standard Mode — 3 bits/symbol",
     "encodingTable": [
       {
         "charName": "Zero-Width Space (ZWSP)",
@@ -333,15 +334,16 @@
   {
     "id": "tool_stegzero_1bit",
     "type": "tool",
-    "name": "StegZero (1-bit)",
-    "titleAr": "أداة StegZero (نظام 1 بت الثنائي)",
-    "titleEn": "StegZero (1-bit Binary Mode)",
+    "name": "StegZero (2. Compatibility Mode — 1 bit/symbol)",
+    "titleAr": "أداة StegZero (2. Compatibility Mode — 1 bit/symbol)",
+    "titleEn": "StegZero (2. Compatibility Mode — 1 bit/symbol)",
     "url": "https://stegzero.com/",
     "exactSymbols": [
       8203,
       8204
     ],
     "minCount": 4,
+    "encodingTableTitle": "2. Compatibility Mode — 1 bit/symbol",
     "encodingTable": [
       {
         "charName": "Zero-Width Space (ZWSP)",

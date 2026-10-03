@@ -437,7 +437,7 @@
           <div class="stego-signature-table-wrap">
             <div class="stego-signature-table__title">
               <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-primary);">table_chart</span>
-              <span>${t('signatureEncodingTableTitle')}</span>
+              <span>${sig.encodingTableTitle ? `${t('signatureEncodingTableTitle')} — ${escSafe(sig.encodingTableTitle)}` : t('signatureEncodingTableTitle')}</span>
             </div>
             <div class="steganalysis-table-container">
               <table class="stego-signature-table">
