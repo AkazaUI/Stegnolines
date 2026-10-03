@@ -56,16 +56,15 @@ function runTest(name, fn) {
   }
 }
 
-runTest('Flattened registry has exactly 12 entries in identical order', () => {
-  assert.strictEqual(modernRegistry.length, 12);
-  assert.strictEqual(goldenRegistry.length, 12);
-  for (let i = 0; i < 12; i++) {
+runTest('Flattened registry matches expected entry count and ordering', () => {
+  assert.strictEqual(modernRegistry.length, goldenRegistry.length);
+  for (let i = 0; i < goldenRegistry.length; i++) {
     assert.strictEqual(modernRegistry[i].id, goldenRegistry[i].id);
   }
 });
 
 runTest('Every flattened entry matches golden entry 100% deep strictly equal', () => {
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < goldenRegistry.length; i++) {
     assert.deepStrictEqual(modernRegistry[i], goldenRegistry[i], `Mismatch in entry ${goldenRegistry[i].id}`);
   }
 });
@@ -97,7 +96,7 @@ runTest('StegZero mode output is strictly mutually exclusive based on detected m
   // Must match ONLY 3-bit Standard Mode and NEVER 1-bit Compatibility Mode
   const text3bitRepeated = 'Cover ' + String.fromCodePoint(
     0x200B, 0x200C, 0x200D, 0x2060, 0x2062, 0x2063, 0x2064, 0xFEFF,
-    0x200B, 0x200C, 0x200B, 0x200C
+    0x200B, 0x200B, 0x200B, 0x200B
   ) + ' msg';
   const res3 = StegDetectEngine.analyzeText(text3bitRepeated);
   const matched3 = res3.matchedSignatures.map(s => s.id);

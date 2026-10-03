@@ -34,6 +34,11 @@
       legacyIds: ['tool_stegoline_emoji']
     },
     {
+      id: 'tool.zerosteg',
+      path: 'profiles/tools/zerosteg.js',
+      legacyIds: ['tool_zerosteg']
+    },
+    {
       id: 'research.multilayer-huffman',
       path: 'profiles/research/multilayer-huffman.js',
       legacyIds: ['research_multilayer_huffman']

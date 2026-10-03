@@ -385,6 +385,33 @@
     ]
   },
   {
+    "id": "tool_zerosteg",
+    "type": "tool",
+    "name": "ZeroSteg",
+    "titleAr": "أداة ZeroSteg",
+    "titleEn": "ZeroSteg",
+    "url": "https://github.com/jasonkimprojects/zerosteg",
+    "exactSymbols": [
+      8204,
+      8205
+    ],
+    "minCount": 4,
+    "encodingTable": [
+      {
+        "charName": "Zero-Width Non-Joiner (ZWNJ)",
+        "hex": "U+200C",
+        "bits": "0",
+        "desc": "Bit 0 carrier"
+      },
+      {
+        "charName": "Zero-Width Joiner (ZWJ)",
+        "hex": "U+200D",
+        "bits": "1",
+        "desc": "Bit 1 carrier"
+      }
+    ]
+  },
+  {
     "id": "research_multilayer_huffman",
     "type": "research",
     "name": "Multilayer Encoding & Huffman (IJACSA 2022)",

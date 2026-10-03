@@ -69,7 +69,7 @@ runTest('Browser-style script evaluation produces identical flattened registry t
 
   const browserRegistry = sandbox.window.STEGO_SIGNATURES_REGISTRY;
   assert.ok(Array.isArray(browserRegistry), 'Browser registry must be an array');
-  assert.strictEqual(browserRegistry.length, 12);
+  assert.strictEqual(browserRegistry.length, 13);
   assert.deepStrictEqual(
     JSON.parse(JSON.stringify(browserRegistry)),
     JSON.parse(JSON.stringify(nodeIndex.STEGO_SIGNATURES_REGISTRY))
