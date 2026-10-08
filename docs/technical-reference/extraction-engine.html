@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <link rel="apple-touch-icon" sizes="180x180" href="../../assets/brand/favicon_io/apple-touch-icon.png">
@@ -61,13 +61,12 @@
         <article class="docs-article">
           <h1>Hidden Message Extraction Engine Architecture</h1>
           
-          <p>This technical reference details the architecture of the zero-key multi-scheme steganography extraction engine located at <code>js/features/stego-analysis/extract/</code>.</p>
+          <p>This technical reference details the architecture of the zero-key multi-scheme steganography extraction engine located at <code>js/features/scanner/engine/</code>.</p>
 
           <h2>Engine Architecture</h2>
           <ul>
             <li><code>carriers.js</code> — Canonical frozen registry of invisible & evasive Unicode code points.</li>
-            <li><code>profile.js</code> — Code point iteration, statistical metrics, gap analysis, and Arabic/Emoji orthographic legitimacy classification.</li>
-            <li><code>schemes/</code> — Extensible steganographic scheme registry (stegnolines, unicodeTags, variationSel, binary, baseN, positional).</li>
+            <li><code>profile.js</code> — Code point iteration, statistical metrics, gap analysis, and StegnoLines Variation Selector candidate detection.</li>
             <li><code>decapsulate.js</code> — Multi-layer decapsulated payload ladder (Base64/Hex -> gzip/deflate -> XOR -> entropy analysis).</li>
             <li><code>sanitize.js</code> — Strips suspect carriers while preserving legitimate orthographic joiners.</li>
             <li><code>analyze.js</code> — Main orchestrator scoring candidate hypotheses and performing prompt-injection & nested payload checks.</li>
@@ -86,15 +85,6 @@
   isPromptInjection: boolean,
   hasNestedPayload: boolean
 }</code></pre>
-
-          <h2>Adding a New Scheme</h2>
-          <p>To add a new steganographic scheme, export an object implementing the scheme contract in <code>schemes/</code>:</p>
-          <pre><code>export const myNewScheme = {
-  id: 'myScheme',
-  label: 'Custom Scheme',
-  canApply(profile) { return profile.suspectCarrierCount > 0; },
-  decode(carrierSeq, profile) { return [ /* Candidates */ ]; }
-};</code></pre>
         </article>
         
         <!-- Pager -->

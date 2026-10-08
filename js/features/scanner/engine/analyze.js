@@ -117,6 +117,8 @@
         bytes: decapsulation.finalBytes,
         text: decText,
         confidence,
+        signatureVerified: cand.signatureVerified || false,
+        signature: cand.signature || null,
         notes: cand.notes,
         decapsulation,
         isPromptInjection,
@@ -151,4 +153,4 @@
   if (typeof exports === 'object' && typeof module !== 'undefined') {
     module.exports = StegAnalyze;
   }
-})(typeof window !== 'undefined' ? window : this);
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));

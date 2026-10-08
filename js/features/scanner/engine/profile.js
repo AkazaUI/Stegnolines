@@ -11,41 +11,68 @@
     return global.StegCarriers || {};
   }
 
-  function isArabicLetter(cp) {
+  function getUnicodeContext() {
+    if (global.UnicodeContext && typeof global.UnicodeContext.isJoinerScriptLetter === 'function') {
+      return global.UnicodeContext;
+    }
+    if (typeof require === 'function') {
+      try {
+        return require('../../../shared/unicode/unicode-context.js');
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Resolves whether a code point is a joiner script letter (Arabic, Syriac, Indic).
+   * Delegates cleanly to the shared UnicodeContext source of truth.
+   */
+  function isJoinerScriptLetter(cp) {
+    const uctx = getUnicodeContext();
+    if (uctx && typeof uctx.isJoinerScriptLetter === 'function') {
+      return uctx.isJoinerScriptLetter(cp);
+    }
     return (
       (cp >= 0x0600 && cp <= 0x06FF) ||
       (cp >= 0x0750 && cp <= 0x077F) ||
       (cp >= 0x08A0 && cp <= 0x08FF) ||
       (cp >= 0xFB50 && cp <= 0xFDFF) ||
-      (cp >= 0xFE70 && cp <= 0xFEFF)
+      (cp >= 0xFE70 && cp <= 0xFEFF) ||
+      (cp >= 0x0900 && cp <= 0x097F)
     );
   }
 
-  function isDevanagariLetter(cp) {
-    return cp >= 0x0900 && cp <= 0x097F;
-  }
-
-  function isJoinerScriptLetter(cp) {
-    if (global.UnicodeContext && typeof global.UnicodeContext.isJoinerScriptLetter === 'function') {
-      return global.UnicodeContext.isJoinerScriptLetter(cp);
-    }
-    return isArabicLetter(cp) || isDevanagariLetter(cp);
-  }
-
+  /**
+   * Resolves whether a code point is an emoji base or variation selector.
+   * Delegates cleanly to the shared UnicodeContext source of truth.
+   */
   function isEmojiRelated(cp) {
-    if (global.UnicodeContext && typeof global.UnicodeContext.isEmojiBase === 'function') {
-      return global.UnicodeContext.isEmojiBase(cp) || cp === 0xFE0F || cp === 0xFE0E;
+    const uctx = getUnicodeContext();
+    if (uctx && typeof uctx.isEmojiBase === 'function') {
+      return uctx.isEmojiBase(cp) || cp === 0xFE0F || cp === 0xFE0E;
     }
     return (
-      (cp >= 0x1F300 && cp <= 0x1F9FF) ||
+      (cp >= 0x1F300 && cp <= 0x1FAFF) ||
       (cp >= 0x1F600 && cp <= 0x1F64F) ||
       (cp >= 0x1F680 && cp <= 0x1F6FF) ||
       (cp >= 0x2600 && cp <= 0x27BF) ||
       (cp >= 0x1F1E6 && cp <= 0x1F1FF) ||
-      (cp >= 0x1F900 && cp <= 0x1F9FF) ||
-      (cp >= 0x1FA70 && cp <= 0x1FAFF) ||
       cp === 0xFE0F || cp === 0xFE0E
     );
+  }
+
+  /**
+   * Checks whether a code point is a Variation Selector utilized by StegnoLines
+   * (VS1–VS16: 0xFE00–0xFE0F, VS17–VS256: 0xE0100–0xE01EF).
+   * StegnoLines operates exclusively on this carrier set.
+   *
+   * @param {number} cp - Code point.
+   * @returns {boolean}
+   */
+  function isStegnolinesVS(cp) {
+    return (cp >= 0xFE00 && cp <= 0xFE0F) || (cp >= 0xE0100 && cp <= 0xE01EF);
   }
 
   function profileText(text) {
@@ -100,6 +127,11 @@
     const suspectCarrierCount = suspectOccurrences.length;
     const legitimateCarrierCount = occurrences.length - suspectCarrierCount;
 
+    // ── Dedicated StegnoLines Variation Selector Metrics ──
+    const vsOccurrences = occurrences.filter(o => isStegnolinesVS(o.codePoint));
+    const suspectVsOccurrences = suspectOccurrences.filter(o => isStegnolinesVS(o.codePoint));
+    const isStegnolinesCandidate = suspectVsOccurrences.length >= 2;
+
     let longestConsecutiveRun = 0;
     let currentRun = 0;
     let prevPos = -2;
@@ -151,15 +183,23 @@
       carrierEntropy,
       divBy7: suspectCarrierCount > 0 && suspectCarrierCount % 7 === 0,
       divBy8: suspectCarrierCount > 0 && suspectCarrierCount % 8 === 0,
-      divBy16: suspectCarrierCount > 0 && suspectCarrierCount % 16 === 0
+      divBy16: suspectCarrierCount > 0 && suspectCarrierCount % 16 === 0,
+
+      // StegnoLines Variation Selector focus & signature indicators
+      isStegnolinesCandidate,
+      vsOccurrences,
+      suspectVsOccurrences,
+      vsCount: vsOccurrences.length,
+      suspectVsCount: suspectVsOccurrences.length
     };
   }
 
   const StegProfile = {
-    isArabicLetter,
-    isDevanagariLetter,
+    isArabicLetter: (cp) => isJoinerScriptLetter(cp),
+    isDevanagariLetter: (cp) => isJoinerScriptLetter(cp),
     isJoinerScriptLetter,
     isEmojiRelated,
+    isStegnolinesVS,
     profileText
   };
 
@@ -167,4 +207,4 @@
   if (typeof exports === 'object' && typeof module !== 'undefined') {
     module.exports = StegProfile;
   }
-})(typeof window !== 'undefined' ? window : this);
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));

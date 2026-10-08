@@ -797,105 +797,10 @@ html.light .diag-panel__title {
   box-sizing: border-box;
 }
 
-#vsVisualizationHtml {
-  max-height: 380px;
-  min-height: 100px;
-}
-
 html.light .diag-panel__viewport {
   background: #FDFDF7;
   color: #2e302f;
   border-color: rgba(95, 116, 32, 0.1);
-}
-
-/* Responsive VS Bytes Grid and Premium Card style */
-.vs-bytes-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 8px 12px;
-  padding: 4px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.byte-line {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(54, 52, 56, 0.35);
-  border: 1px solid rgba(94, 92, 96, 0.18);
-  border-radius: var(--radius-default);
-  padding: 8px 14px;
-  font-family: 'Sora', sans-serif;
-  font-size: 0.72rem;
-  transition: all 0.25s ease;
-  box-sizing: border-box;
-  width: 100%;
-}
-
-html.light .byte-line {
-  background: rgba(0, 0, 0, 0.015);
-  border-color: rgba(0, 0, 0, 0.04);
-}
-
-.byte-line:hover {
-  background: rgba(187, 209, 0, 0.06);
-  border-color: rgba(187, 209, 0, 0.2);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-html.light .byte-line:hover {
-  background: rgba(125, 163, 0, 0.03);
-  border-color: rgba(125, 163, 0, 0.15);
-}
-
-.byte-line .idx {
-  color: rgba(176, 176, 176, 0.6);
-  font-weight: 600;
-  font-size: 0.68rem;
-}
-
-html.light .byte-line .idx {
-  color: rgba(0, 0, 0, 0.45);
-}
-
-.byte-line .bin {
-  color: var(--color-on-surface-variant);
-  font-weight: 500;
-  letter-spacing: 0.2px;
-}
-
-html.light .byte-line .bin {
-  color: #2e302f;
-}
-
-.byte-line .arrow {
-  color: rgba(176, 176, 176, 0.35);
-  font-size: 0.75rem;
-}
-
-html.light .byte-line .arrow {
-  color: rgba(0, 0, 0, 0.25);
-}
-
-.byte-line .hex {
-  color: #E6A817;
-  /* Amber Gold */
-  font-weight: 600;
-}
-
-html.light .byte-line .hex {
-  color: #A87000;
-}
-
-.byte-line .vs {
-  color: var(--color-primary);
-  font-weight: 700;
-}
-
-html.light .byte-line .vs {
-  color: var(--color-tertiary);
 }
 
 /* Premium Full-Width Diagnostic Report Panel */

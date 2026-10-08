@@ -15,7 +15,7 @@ const { STEGO_SIGNATURES_REGISTRY, matchSignaturesDetailed } = require(path.join
 global.STEGO_SIGNATURES_REGISTRY = STEGO_SIGNATURES_REGISTRY;
 global.StegSignatures = { STEGO_SIGNATURES_REGISTRY, matchSignaturesDetailed };
 
-const UnicodeContext = require(path.join(rootDir, 'js/features/stego-analysis/shared/unicode-context.js'));
+const UnicodeContext = require(path.join(rootDir, 'js/features/shared/unicode/unicode-context.js'));
 global.UnicodeContext = UnicodeContext;
 
 const StegDetectSnow = require(path.join(rootDir, 'js/features/stego-analysis/detect/detectors/detect-snow.js'));

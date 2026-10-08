@@ -23,7 +23,7 @@ const facade = require(path.join(rootDir, 'js/features/stego-analysis/detect/sig
 // Initialize full detection pipeline dependencies
 global.STEGO_SIGNATURES_REGISTRY = modernRegistry;
 global.StegSignatures = { STEGO_SIGNATURES_REGISTRY: modernRegistry, matchSignaturesDetailed: modernMatcher };
-global.UnicodeContext = require(path.join(rootDir, 'js/features/stego-analysis/shared/unicode-context.js'));
+global.UnicodeContext = require(path.join(rootDir, 'js/features/shared/unicode/unicode-context.js'));
 global.StegDetectSnow = require(path.join(rootDir, 'js/features/stego-analysis/detect/detectors/detect-snow.js'));
 global.StegDetectZwc = require(path.join(rootDir, 'js/features/stego-analysis/detect/detectors/detect-zwc.js'));
 global.StegDetectVs = require(path.join(rootDir, 'js/features/stego-analysis/detect/detectors/detect-vs.js'));

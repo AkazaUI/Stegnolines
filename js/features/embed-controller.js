@@ -458,12 +458,6 @@ async function performEmbedding() {
       showToast('✅ Key generated and embedded in the cover!');
     }
 
-    if (typeof updateVSVisualization === 'function') {
-      updateVSVisualization(trace.xorKey, trace.bytesArr);
-    }
-    if (typeof updateKeySizeMeter === 'function') {
-      updateKeySizeMeter(trace.bytesArr.length, coverText.length);
-    }
     if (hint && typeof saveHint === 'function') {
       saveHint({
         type: 'sent',

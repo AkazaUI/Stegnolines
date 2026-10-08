@@ -126,7 +126,7 @@
     }
 
     // ── Step 1: Build O(n) Unicode Context Index ──
-    const unicodeContextModule = getModule('UnicodeContext', '../shared/unicode-context.js') || {
+    const unicodeContextModule = getModule('UnicodeContext', '../../shared/unicode/unicode-context.js') || {
       build: (t) => {
         const chars = Array.from(t);
         return {

@@ -183,4 +183,4 @@
   if (typeof exports === 'object' && typeof module !== 'undefined') {
     module.exports = StegDecapsulate;
   }
-})(typeof window !== 'undefined' ? window : this);
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
