@@ -74,6 +74,7 @@
   </script>
   <link rel="stylesheet" href="css/main.css"/>
   <link rel="stylesheet" href="css/chat-scanner.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
   <script src="i18n/dictionaries/common.js"></script>
   <script src="i18n/dictionaries/extract.js"></script>
   <script src="i18n/dictionaries/hints.js"></script>
@@ -890,84 +891,17 @@
   <script src="js/features/F_stego_hint.js"></script>
   <script src="js/features/extract-controller.js"></script>
 
-  <!-- ═══ Dynamic On-Demand Lazy Loaders (Scanner & Image Extract) ═══ -->
-  <script>
-    (function() {
-      let _scannerLoaded = false;
-      let _imageExtractLoaded = false;
-
-      function loadScript(src) {
-        return new Promise((resolve) => {
-          if (document.querySelector(`script[src="${src}"]`)) return resolve();
-          const s = document.createElement('script');
-          s.src = src;
-          s.onload = resolve;
-          s.onerror = (e) => {
-            console.warn(`[lazy-load] Error loading ${src}:`, e);
-            resolve();
-          };
-          document.body.appendChild(s);
-        });
-      }
-
-      function loadCss(href) {
-        if (document.querySelector(`link[href="${href}"]`)) return;
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = href;
-        document.head.appendChild(link);
-      }
-
-      window.loadChatScannerOnDemand = async function() {
-        if (_scannerLoaded) return;
-        _scannerLoaded = true;
-
-        // Load Flatpickr CSS & JS on demand
-        loadCss('https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css');
-        await loadScript('https://cdn.jsdelivr.net/npm/flatpickr');
-        await loadScript('https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js');
-
-        // Load Scanner logic in dependency order
-        await loadScript('js/features/shared/unicode/unicode-context.js');
-        await loadScript('js/features/shared/chat/chat-parsers.js');
-        await loadScript('js/features/shared/chat/chat-export.js');
-        await loadScript('js/features/scanner/chat-scanner.js');
-        await loadScript('js/features/scanner/F_chat_parser.js');
-        await loadScript('js/features/scanner/F_chat_scanner.js');
-        await loadScript('js/features/scanner/chat-scanner-controller.js');
-      };
-
-      window.loadImageExtractOnDemand = async function() {
-        if (_imageExtractLoaded) return;
-        _imageExtractLoaded = true;
-        await loadScript('js/features/image-extract-controller.js');
-      };
-
-      function bindLazyTabs() {
-        const scannerTabBtn = document.querySelector('.tab-btn[data-tab="scanner"]');
-        if (scannerTabBtn) {
-          scannerTabBtn.addEventListener('click', () => window.loadChatScannerOnDemand(), { once: true });
-        }
-        const imageTabBtn = document.querySelector('.tab-btn[data-tab="image"]');
-        if (imageTabBtn) {
-          imageTabBtn.addEventListener('click', () => window.loadImageExtractOnDemand(), { once: true });
-        }
-
-        // Check initial hash
-        if (window.location.hash === '#scanner') {
-          window.loadChatScannerOnDemand();
-        } else if (window.location.hash === '#image') {
-          window.loadImageExtractOnDemand();
-        }
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', bindLazyTabs);
-      } else {
-        bindLazyTabs();
-      }
-    })();
-  </script>
+  <!-- ═══ Chat Extractor & Scanner Modules ═══ -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+  <script src="js/features/shared/unicode/unicode-context.js"></script>
+  <script src="js/features/shared/chat/chat-parsers.js"></script>
+  <script src="js/features/shared/chat/chat-export.js"></script>
+  <script src="js/features/scanner/chat-scanner.js"></script>
+  <script src="js/features/scanner/F_chat_parser.js"></script>
+  <script src="js/features/scanner/F_chat_scanner.js"></script>
+  <script src="js/features/scanner/chat-scanner-controller.js"></script>
+  <script src="js/features/image-extract-controller.js"></script>
 
   <!-- ═══ Dynamic Templates Loader ═══ -->
   <script src="js/shared/template-loader.js"></script>

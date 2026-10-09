@@ -21,6 +21,9 @@
 'use strict';
 
 const StegoWorkerService = (function () {
+  const _MODULE_SCRIPT_URL = (typeof document !== 'undefined' && document.currentScript && document.currentScript.src)
+    ? document.currentScript.src
+    : null;
   let _worker = null;
   let _requestId = 0;
   const _pendingRequests = new Map();
@@ -40,12 +43,26 @@ const StegoWorkerService = (function () {
    * @returns {string}
    */
   function _resolveWorkerUrl() {
+    if (_MODULE_SCRIPT_URL) {
+      try {
+        return new URL('stego-engine.worker.js', _MODULE_SCRIPT_URL).href;
+      } catch (_) {}
+    }
     if (typeof document !== 'undefined' && document.currentScript && document.currentScript.src) {
       try {
         return new URL('stego-engine.worker.js', document.currentScript.src).href;
       } catch (_) {}
     }
-    return 'js/core/stego/stego-engine.worker.js';
+    // Dynamic depth prefix resolution for subfolder routes (/ar/, /fr/, /zh/, /la/, /docs/...)
+    let prefix = '';
+    if (typeof window !== 'undefined' && window.location && window.location.pathname) {
+      const path = window.location.pathname.replace(/\\/g, '/');
+      const matches = path.match(/\/(ar|en|fr|zh|la|docs)\b/gi) || [];
+      if (matches.length > 0) {
+        prefix = '../'.repeat(matches.length);
+      }
+    }
+    return prefix + 'js/core/stego/stego-engine.worker.js';
   }
 
   /**

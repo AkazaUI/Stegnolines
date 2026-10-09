@@ -6,6 +6,10 @@
 //   CompressStream, DecompressStream, BrotliStreamResultCode functions)
 // ══════════════════════════════════════════════════════════════
 
+const _BROTLI_SERVICE_SCRIPT_URL = (typeof document !== 'undefined' && document.currentScript && document.currentScript.src)
+    ? document.currentScript.src
+    : null;
+
 // ===== Block Compression =====
 class BrotliStreamResult {
     static __wrap(ptr) {
@@ -190,12 +194,34 @@ let _brotliCapacityWorker = null;
 let _brotliReqId = 0;
 const _brotliPendingRequests = new Map();
 
+function _resolveBrotliCapacityWorkerUrl() {
+    if (_BROTLI_SERVICE_SCRIPT_URL) {
+        try {
+            return new URL('brotli-capacity.worker.js', _BROTLI_SERVICE_SCRIPT_URL).href;
+        } catch (_) {}
+    }
+    if (typeof document !== 'undefined' && document.currentScript && document.currentScript.src) {
+        try {
+            return new URL('brotli-capacity.worker.js', document.currentScript.src).href;
+        } catch (_) {}
+    }
+    let prefix = '';
+    if (typeof window !== 'undefined' && window.location && window.location.pathname) {
+        const path = window.location.pathname.replace(/\\/g, '/');
+        const matches = path.match(/\/(ar|en|fr|zh|la|docs)\b/gi) || [];
+        if (matches.length > 0) {
+            prefix = '../'.repeat(matches.length);
+        }
+    }
+    return prefix + 'js/core/compression/brotli-capacity.worker.js';
+}
+
 function _getCapacityWorker() {
     if (_brotliCapacityWorker) return _brotliCapacityWorker;
     if (typeof Worker === 'undefined') return null;
 
     try {
-        _brotliCapacityWorker = new Worker('js/core/compression/brotli-capacity.worker.js');
+        _brotliCapacityWorker = new Worker(_resolveBrotliCapacityWorkerUrl());
         _brotliCapacityWorker.onmessage = function (e) {
             const { id, success, rawBytesLength, compressedBytesLength, finalBytesLength, isCompressed, savingsPercent, error } = e.data || {};
             if (_brotliPendingRequests.has(id)) {
