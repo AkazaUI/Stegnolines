@@ -515,15 +515,18 @@ async function runEmbeddingPipeline() {
   }
 }
 
-// ── Password strength (zxcvbn) ──
+// ── Password strength evaluation (Fast client-side entropy) ──
 function assessStrength(value) {
   if (!value || value.length === 0) return 0;
-  if (typeof zxcvbn !== 'function') {
-    if (value.length < 8) return 1;
-    if (value.length < 12) return 2;
-    return 3;
+  if (typeof zxcvbn === 'function') {
+    return Math.min(zxcvbn(value).score + 1, 4);
   }
-  return Math.min(zxcvbn(value).score + 1, 4);
+  let score = 0;
+  if (value.length >= 8) score++;
+  if (value.length >= 12) score++;
+  if (/[0-9]/.test(value) && /[a-zA-Z]/.test(value)) score++;
+  if (/[^a-zA-Z0-9]/.test(value)) score++;
+  return Math.max(1, Math.min(score, 4));
 }
 
 function updateStrengthBars(level) {

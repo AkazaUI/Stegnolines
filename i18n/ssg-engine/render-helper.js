@@ -120,12 +120,6 @@ function renderLocalizedPage(pageName, langCode, isRoot = false) {
     }
   }
 
-  // 6. Add Cairo font preload for Arabic
-  if (isAr && !html.includes('family=Cairo')) {
-    const cairoLink = `<link rel="preconnect" href="https://fonts.googleapis.com">\n  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />`;
-    html = html.replace('</head>', `  ${cairoLink}\n</head>`);
-  }
-
   // 6. Translate tags with data-i18n
   // Two passes to handle nested containers safely
   for (let pass = 0; pass < 2; pass++) {

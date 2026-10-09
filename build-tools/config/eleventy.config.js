@@ -18,6 +18,7 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy("robots.txt");
   eleventyConfig.addPassthroughCopy("llms.txt");
   eleventyConfig.addPassthroughCopy("llms-full.txt");
+  eleventyConfig.addPassthroughCopy(".htaccess");
 
   // Nunjucks filter for localized page rendering
   eleventyConfig.addFilter("renderLocalized", function(pageName, langCode, isRoot) {

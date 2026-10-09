@@ -8,7 +8,7 @@
   font-family: 'Material Symbols Outlined';
   font-style: normal;
   font-weight: 100 700;
-  font-display: block; /* Avoids text flicker (e.g. showing "wifi_off" text before font loads) */
+  font-display: swap;
   src: url('../../assets/fonts/MaterialSymbolsOutlined.ttf') format('truetype');
 }
 

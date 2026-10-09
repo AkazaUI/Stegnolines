@@ -717,7 +717,7 @@ function _t(key, fallback) {
 }
 
 // ── DOM Initialization ──
-document.addEventListener('DOMContentLoaded', () => {
+function _initChatScannerDOM() {
   /* ── Helper to bind eye toggle to an input element ── */
   function bindEyeToggle(btn, input) {
     if (!btn || !input) return;
@@ -895,4 +895,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof updateScannerOneClickButtonState === 'function') {
     updateScannerOneClickButtonState();
   }
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _initChatScannerDOM);
+} else {
+  _initChatScannerDOM();
+}
