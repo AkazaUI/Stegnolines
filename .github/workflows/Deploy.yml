@@ -53,5 +53,4 @@ jobs:
             **/node_modules/**
             **/package*.json
             **/README.md
-            **/.htaccess
             **/.well-known/**
