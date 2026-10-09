@@ -17,3 +17,7 @@ Thumbs.db
 *.heic
 *.HEIC
 *.log
+
+# Development tests & internal refactor drafts
+docs/development/
+

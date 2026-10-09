@@ -126,6 +126,7 @@ module.exports = {
       /^tour-/
     ]
   },
+  fontFace: false,
   keyframes: true,
   variables: true
 };

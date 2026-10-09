@@ -1,0 +1,973 @@
+[
+  {
+    "id": "tool_stego_tools",
+    "type": "tool",
+    "name": "steganography-tools",
+    "titleAr": "أداة steganography-tools (priyansh-15)",
+    "titleEn": "steganography-tools (priyansh-15)",
+    "url": "https://github.com/priyansh-15/steganography-tools",
+    "exactSymbols": [
+      8204,
+      8236,
+      8206,
+      8237
+    ],
+    "minCount": 4,
+    "encodingTable": [
+      {
+        "charName": "Zero Width Non-Joiner (ZWNJ)",
+        "hex": "U+200C",
+        "bits": "00",
+        "desc": "Zero Width Non-Joiner"
+      },
+      {
+        "charName": "Pop Directional Formatting (PDF)",
+        "hex": "U+202C",
+        "bits": "01",
+        "desc": "Pop Directional Formatting"
+      },
+      {
+        "charName": "Left-to-Right Mark (LRM)",
+        "hex": "U+200E",
+        "bits": "10",
+        "desc": "Left-to-Right Mark"
+      },
+      {
+        "charName": "Left-to-Right Override (LRO)",
+        "hex": "U+202D",
+        "bits": "11",
+        "desc": "Left-to-Right Override"
+      }
+    ]
+  },
+  {
+    "id": "technique_whitespace",
+    "type": "technique",
+    "name": "Whitespace Steganography",
+    "titleAr": "تقنية إخفاء البيانات بالفراغات (Whitespace Steganography)",
+    "titleEn": "Whitespace Steganography (Tabs & Spaces)",
+    "descAr": "تقنية إخفاء وحقن بتات سرية بنهايات الأسطر بالاعتماد على التتابع المنطقي لمحارف المسافات والتابات (Trailing Whitespace).",
+    "descEn": "Steganography technique that conceals secret data at line endings using sequences of tabs and spaces.",
+    "isSnow": true,
+    "isWhitespace": true,
+    "minCount": 3,
+    "candidateTools": [
+      {
+        "name": "SNOW (Matthew Kwan)",
+        "tag": "الأصلية الكلاسيكية",
+        "tagEn": "Classic Original",
+        "url": "https://darkside.com.au/snow/",
+        "descAr": "أداة SNOW الأصلية والأكثر شهرة المعتمدة على الترميز الثماني (Tab + من 0 إلى 7 مسافات = 3 بت لكل مجموعة).",
+        "descEn": "The original and widely referenced tool using 3-bit octal encoding (Tab + 0 to 7 spaces)."
+      },
+      {
+        "name": "snow2 (systemslibrarian)",
+        "tag": "محدثة مفتوحة المصدر",
+        "tagEn": "Modern Open-Source",
+        "url": "https://github.com/systemslibrarian/snow2",
+        "descAr": "تطوير حديث ومفتوح المصدر مستند إلى خوارزمية وبروتوكول SNOW مع تحسينات في التوافقية والأداء.",
+        "descEn": "Modern open-source reimplementation of the SNOW whitespace steganography tool."
+      },
+      {
+        "name": "StegoToolkit Whitespace Hider",
+        "tag": "أداة ويب تفاعلية",
+        "tagEn": "Web App",
+        "url": "https://stegotoolkit.com/steganography/whitespace-steganography-hider",
+        "descAr": "أداة ويب سحابية حديثة تتيح إخفاء واستخراج النصوص المشفرة عبر توليد أنماط المسافات والتابات.",
+        "descEn": "Interactive web-based utility for hiding and extracting secret text via whitespace and tab characters."
+      },
+      {
+        "name": "stegsnow (Debian / Linux)",
+        "tag": "حزمة نظام سطر أوامر",
+        "tagEn": "Linux CLI Package",
+        "url": "https://manpages.debian.org/testing/stegsnow/stegsnow.1.en.html",
+        "descAr": "حزمة أدوات سطر الأوامر الرسمية المتوفرة على توزيعات لينكس (Debian/Ubuntu/Kali) للفحص الجنائي.",
+        "descEn": "Standard Linux package for trailing whitespace concealment in text files."
+      }
+    ],
+    "encodingTable": [
+      {
+        "charName": "Tab",
+        "hex": "U+0009",
+        "bits": "000 (0)",
+        "desc": "Tab (0)"
+      },
+      {
+        "charName": "Tab + 1 space",
+        "hex": "U+0009 + 0x0020",
+        "bits": "001 (1)",
+        "desc": "Tab + 1 space (1)"
+      },
+      {
+        "charName": "Tab + 2 spaces",
+        "hex": "U+0009 + 2x0x0020",
+        "bits": "010 (2)",
+        "desc": "Tab + 2 spaces (2)"
+      },
+      {
+        "charName": "Tab + 3 spaces",
+        "hex": "U+0009 + 3x0x0020",
+        "bits": "011 (3)",
+        "desc": "Tab + 3 spaces (3)"
+      },
+      {
+        "charName": "Tab + 4 spaces",
+        "hex": "U+0009 + 4x0x0020",
+        "bits": "100 (4)",
+        "desc": "Tab + 4 spaces (4)"
+      },
+      {
+        "charName": "Tab + 5 spaces",
+        "hex": "U+0009 + 5x0x0020",
+        "bits": "101 (5)",
+        "desc": "Tab + 5 spaces (5)"
+      },
+      {
+        "charName": "Tab + 6 spaces",
+        "hex": "U+0009 + 6x0x0020",
+        "bits": "110 (6)",
+        "desc": "Tab + 6 spaces (6)"
+      },
+      {
+        "charName": "Tab + 7 spaces",
+        "hex": "U+0009 + 7x0x0020",
+        "bits": "111 (7)",
+        "desc": "Tab + 7 spaces (7)"
+      }
+    ]
+  },
+  {
+    "id": "tool_doublespeak",
+    "type": "tool",
+    "name": "Doublespeak",
+    "titleAr": "أداة Doublespeak (dblspk)",
+    "titleEn": "Doublespeak Covert Text Web-App",
+    "url": "https://github.com/dblspk/web-app",
+    "exactSymbols": [
+      8204,
+      8205,
+      8288,
+      8289,
+      8290,
+      8291,
+      8292,
+      8298,
+      8299,
+      8300,
+      8301,
+      8302,
+      8303,
+      65024,
+      65025,
+      65279
+    ],
+    "minCount": 4,
+    "encodingTable": [
+      {
+        "charName": "zero-width non-joiner",
+        "hex": "U+200C",
+        "bits": "0000 (0 / 0x0)",
+        "desc": "Zero-Width Non-Joiner"
+      },
+      {
+        "charName": "zero-width joiner",
+        "hex": "U+200D",
+        "bits": "0001 (1 / 0x1)",
+        "desc": "Zero-Width Joiner"
+      },
+      {
+        "charName": "word joiner",
+        "hex": "U+2060",
+        "bits": "0010 (2 / 0x2)",
+        "desc": "Word Joiner"
+      },
+      {
+        "charName": "function application",
+        "hex": "U+2061",
+        "bits": "0011 (3 / 0x3)",
+        "desc": "Function Application"
+      },
+      {
+        "charName": "invisible times",
+        "hex": "U+2062",
+        "bits": "0100 (4 / 0x4)",
+        "desc": "Invisible Times"
+      },
+      {
+        "charName": "invisible separator",
+        "hex": "U+2063",
+        "bits": "0101 (5 / 0x5)",
+        "desc": "Invisible Separator"
+      },
+      {
+        "charName": "invisible plus",
+        "hex": "U+2064",
+        "bits": "0110 (6 / 0x6)",
+        "desc": "Invisible Plus"
+      },
+      {
+        "charName": "inhibit symmetric swapping",
+        "hex": "U+206A",
+        "bits": "0111 (7 / 0x7)",
+        "desc": "Inhibit Symmetric Swapping"
+      },
+      {
+        "charName": "activate symmetric swapping",
+        "hex": "U+206B",
+        "bits": "1000 (8 / 0x8)",
+        "desc": "Activate Symmetric Swapping"
+      },
+      {
+        "charName": "inhibit Arabic form shaping",
+        "hex": "U+206C",
+        "bits": "1001 (9 / 0x9)",
+        "desc": "Inhibit Arabic Form Shaping"
+      },
+      {
+        "charName": "activate Arabic form shaping",
+        "hex": "U+206D",
+        "bits": "1010 (10 / 0xA)",
+        "desc": "Activate Arabic Form Shaping"
+      },
+      {
+        "charName": "national digit shapes",
+        "hex": "U+206E",
+        "bits": "1011 (11 / 0xB)",
+        "desc": "National Digit Shapes"
+      },
+      {
+        "charName": "nominal digit shapes",
+        "hex": "U+206F",
+        "bits": "1100 (12 / 0xC)",
+        "desc": "Nominal Digit Shapes"
+      },
+      {
+        "charName": "variation selector-1",
+        "hex": "U+FE00",
+        "bits": "1101 (13 / 0xD)",
+        "desc": "Variation Selector-1"
+      },
+      {
+        "charName": "variation selector-2",
+        "hex": "U+FE01",
+        "bits": "1110 (14 / 0xE)",
+        "desc": "Variation Selector-2"
+      },
+      {
+        "charName": "zero-width non-breaking space",
+        "hex": "U+FEFF",
+        "bits": "1111 (15 / 0xF)",
+        "desc": "ZWNBSP / BOM"
+      }
+    ]
+  },
+  {
+    "id": "tool_stegzero_3bit",
+    "type": "tool",
+    "name": "StegZero (1. Standard Mode — 3 bits/symbol)",
+    "titleAr": "أداة StegZero (1. Standard Mode — 3 bits/symbol)",
+    "titleEn": "StegZero (1. Standard Mode — 3 bits/symbol)",
+    "url": "https://stegzero.com/",
+    "exactSymbols": [
+      8203,
+      8204,
+      8205,
+      8288,
+      8290,
+      8291,
+      8292,
+      65279
+    ],
+    "minCount": 4,
+    "encodingTableTitle": "1. Standard Mode — 3 bits/symbol",
+    "encodingTable": [
+      {
+        "charName": "Zero-Width Space (ZWSP)",
+        "hex": "U+200B",
+        "bits": "000",
+        "desc": "Zero-Width Space"
+      },
+      {
+        "charName": "Zero-Width Non-Joiner (ZWNJ)",
+        "hex": "U+200C",
+        "bits": "001",
+        "desc": "Zero-Width Non-Joiner"
+      },
+      {
+        "charName": "Zero-Width Joiner (ZWJ)",
+        "hex": "U+200D",
+        "bits": "010",
+        "desc": "Zero-Width Joiner"
+      },
+      {
+        "charName": "Word Joiner (WJ)",
+        "hex": "U+2060",
+        "bits": "011",
+        "desc": "Word Joiner"
+      },
+      {
+        "charName": "Invisible Times",
+        "hex": "U+2062",
+        "bits": "100",
+        "desc": "Invisible Times"
+      },
+      {
+        "charName": "Invisible Separator",
+        "hex": "U+2063",
+        "bits": "101",
+        "desc": "Invisible Separator"
+      },
+      {
+        "charName": "Invisible Plus",
+        "hex": "U+2064",
+        "bits": "110",
+        "desc": "Invisible Plus"
+      },
+      {
+        "charName": "Zero-Width No-Break Space / BOM",
+        "hex": "U+FEFF",
+        "bits": "111",
+        "desc": "ZWNBS / BOM"
+      }
+    ]
+  },
+  {
+    "id": "tool_stegzero_1bit",
+    "type": "tool",
+    "name": "StegZero (2. Compatibility Mode — 1 bit/symbol)",
+    "titleAr": "أداة StegZero (2. Compatibility Mode — 1 bit/symbol)",
+    "titleEn": "StegZero (2. Compatibility Mode — 1 bit/symbol)",
+    "url": "https://stegzero.com/",
+    "exactSymbols": [
+      8203,
+      8204
+    ],
+    "minCount": 4,
+    "encodingTableTitle": "2. Compatibility Mode — 1 bit/symbol",
+    "encodingTable": [
+      {
+        "charName": "Zero-Width Space (ZWSP)",
+        "hex": "U+200B",
+        "bits": "0",
+        "desc": "Zero-Width Space"
+      },
+      {
+        "charName": "Zero-Width Non-Joiner (ZWNJ)",
+        "hex": "U+200C",
+        "bits": "1",
+        "desc": "Zero-Width Non-Joiner"
+      }
+    ]
+  },
+  {
+    "id": "tool_stegoline_emoji",
+    "type": "tool",
+    "name": "Stegoline – Emoji encoder",
+    "titleAr": "Stegoline – مشفر الرموز التعبيرية (Emoji Encoder)",
+    "titleEn": "Stegoline – Emoji Encoder",
+    "url": "https://stegnolines.com/",
+    "secondaryUrl": "https://emoji-encoder.vercel.app/?mode=encode",
+    "isVariationSelectorScheme": true,
+    "minCount": 2,
+    "encodingTable": [
+      {
+        "charName": "Basic variation selectors (VS1–VS16)",
+        "hex": "U+FE00 – U+FE0F",
+        "bits": "16 characters (4-bit nibble)",
+        "desc": "Basic Variation Selectors"
+      },
+      {
+        "charName": "Variation selectors supplement (VS17–VS256)",
+        "hex": "U+E0100 – U+E01EF",
+        "bits": "240 characters (8-bit byte)",
+        "desc": "Variation Selectors Supplement"
+      }
+    ]
+  },
+  {
+    "id": "tool_zerosteg",
+    "type": "tool",
+    "name": "ZeroSteg",
+    "titleAr": "أداة ZeroSteg",
+    "titleEn": "ZeroSteg",
+    "url": "https://github.com/jasonkimprojects/zerosteg",
+    "exactSymbols": [
+      8204,
+      8205
+    ],
+    "minCount": 4,
+    "encodingTable": [
+      {
+        "charName": "Zero-Width Non-Joiner (ZWNJ)",
+        "hex": "U+200C",
+        "bits": "0",
+        "desc": "Bit 0 carrier"
+      },
+      {
+        "charName": "Zero-Width Joiner (ZWJ)",
+        "hex": "U+200D",
+        "bits": "1",
+        "desc": "Bit 1 carrier"
+      }
+    ]
+  },
+  {
+    "id": "tool_unicode_steganography",
+    "type": "tool",
+    "name": "Unicode Steganography (330k)",
+    "titleAr": "أداة Unicode Steganography with Zero-Width Characters (330k)",
+    "titleEn": "Unicode Steganography with Zero-Width Characters (330k)",
+    "descAr": "أداة إخفاء نصوص مفتوحة المصدر تستخدم رموز بعرض صفري وتخزنها قبل أو بعد الكلمات والمقاطع النصية. المجموعة الافتراضية تعتمد 4 رموز (U+200C, U+200D, U+202C, U+FEFF)، مع إمكانية تخصيص الأبجدية من بين 10 رموز غير مرئية.",
+    "descEn": "Open-source zero-width text steganography tool embedding data before or after words/text segments. Default mode uses 4 symbols (U+200C, U+200D, U+202C, U+FEFF) with support for customizable 10-symbol alphabets.",
+    "url": "https://330k.github.io/misc_tools/unicode_steganography.html",
+    "secondaryUrl": "https://github.com/330k/misc_tools",
+    "exactSymbols": [
+      8204,
+      8205,
+      8236,
+      65279
+    ],
+    "minCount": 4,
+    "encodingTableTitle": "Default Mode — 4 symbols (Base 4 / 2 bits per symbol)",
+    "encodingTable": [
+      {
+        "charName": "Zero-Width Non-Joiner (ZWNJ)",
+        "hex": "U+200C",
+        "bits": "00",
+        "desc": "Digit 0 (Default)"
+      },
+      {
+        "charName": "Zero-Width Joiner (ZWJ)",
+        "hex": "U+200D",
+        "bits": "01",
+        "desc": "Digit 1 (Default)"
+      },
+      {
+        "charName": "Pop Directional Formatting (PDF)",
+        "hex": "U+202C",
+        "bits": "10",
+        "desc": "Digit 2 (Default)"
+      },
+      {
+        "charName": "Zero-Width No-Break Space (ZWNBSP)",
+        "hex": "U+FEFF",
+        "bits": "11",
+        "desc": "Digit 3 (Default)"
+      }
+    ]
+  },
+  {
+    "id": "research_multilayer_huffman",
+    "type": "research",
+    "name": "Multilayer Encoding & Huffman (IJACSA 2022)",
+    "titleAr": "بحث الإخفاء متعدد الطبقات وتشفير هافمان (IJACSA 2022)",
+    "titleEn": "Multilayer Encoding with Format-Preserving Encryption & Huffman Coding",
+    "doi": "10.14569/IJACSA.2022.0131222",
+    "url": "https://doi.org/10.14569/IJACSA.2022.0131222",
+    "exactSymbols": [
+      8203,
+      8205,
+      8204,
+      8292,
+      8291,
+      8298,
+      8709,
+      8234
+    ],
+    "altExactSymbols": [
+      8203,
+      8205,
+      8204,
+      8292,
+      8291,
+      8298,
+      8234
+    ],
+    "minCount": 4,
+    "encodingTable": [
+      {
+        "charName": "Zero width character (ZWC)",
+        "hex": "U+200B",
+        "bits": "000",
+        "desc": "Zero-Width Character"
+      },
+      {
+        "charName": "Zero width joiner (ZWJ)",
+        "hex": "U+200D",
+        "bits": "001",
+        "desc": "Zero-Width Joiner"
+      },
+      {
+        "charName": "Zero width no-joiner (ZWNJ)",
+        "hex": "U+200C",
+        "bits": "010",
+        "desc": "Zero-Width Non-Joiner"
+      },
+      {
+        "charName": "Invisible plus (IP)",
+        "hex": "U+2064",
+        "bits": "011",
+        "desc": "Invisible Plus"
+      },
+      {
+        "charName": "Invisible separator (IS)",
+        "hex": "U+2063",
+        "bits": "100",
+        "desc": "Invisible Separator"
+      },
+      {
+        "charName": "Inhibit Symmetric Swapping (ISS)",
+        "hex": "U+206A",
+        "bits": "101",
+        "desc": "Inhibit Symmetric Swapping"
+      },
+      {
+        "charName": "Empty string (∅)",
+        "hex": "U+2205",
+        "bits": "110",
+        "desc": "Empty String Symbol"
+      },
+      {
+        "charName": "Left-To-Right Embedding (LRE)",
+        "hex": "U+202A",
+        "bits": "111",
+        "desc": "Left-To-Right Embedding"
+      }
+    ]
+  },
+  {
+    "id": "research_aitsteg",
+    "type": "research",
+    "name": "AITSteg: Text Steganography via Social Media (IEEE ACCESS 2018)",
+    "titleAr": "بحث AITSteg للإخفاء عبر وسائل التواصل (IEEE ACCESS 2018)",
+    "titleEn": "AITSteg: Innovative Technique for Hidden Transmission via Social Media",
+    "doi": "10.1109/ACCESS.2018.2866063",
+    "url": "https://doi.org/10.1109/ACCESS.2018.2866063",
+    "exactSymbols": [
+      8204,
+      8236,
+      8237,
+      8206
+    ],
+    "minCount": 4,
+    "encodingTable": [
+      {
+        "charName": "ZWNJ - Zero Width Non-Joiner",
+        "hex": "U+200C",
+        "bits": "00",
+        "desc": "Zero-Width Non-Joiner"
+      },
+      {
+        "charName": "PDF - Pop Directional Formatting",
+        "hex": "U+202C",
+        "bits": "01",
+        "desc": "Pop Directional Formatting"
+      },
+      {
+        "charName": "LRO - Left-to-Right Override",
+        "hex": "U+202D",
+        "bits": "10",
+        "desc": "Left-to-Right Override"
+      },
+      {
+        "charName": "LRM - Left-to-Right Mark",
+        "hex": "U+200E",
+        "bits": "11",
+        "desc": "Left-to-Right Mark"
+      }
+    ]
+  },
+  {
+    "id": "research_pos_fpe",
+    "type": "research",
+    "name": "Text Steganography Based on POS Tagging & FPE",
+    "titleAr": "بحث الإخفاء بوسم أقسام الكلام والتشفير المحافظ على التنسيق (POS & FPE)",
+    "titleEn": "Text Steganography Based on Part-of-Speech Tagging & FPE",
+    "url": "https://scholar.google.com/scholar?q=New+Text+Steganography+Technique+Based+on+Part-of-Speech+Tagging+and+Format-Preserving+Encryption",
+    "exactSymbols": [
+      8203,
+      8205,
+      8204,
+      8292,
+      8291,
+      8298,
+      8290,
+      8709,
+      8234,
+      8237,
+      8236,
+      8288,
+      8294,
+      8296
+    ],
+    "minCount": 4,
+    "encodingTable": [
+      {
+        "charName": "Zero width space (ZWS)",
+        "hex": "U+200B",
+        "bits": "0000",
+        "desc": "Zero Width Space"
+      },
+      {
+        "charName": "Zero width joiner (ZWJ)",
+        "hex": "U+200D",
+        "bits": "0001",
+        "desc": "Zero Width Joiner"
+      },
+      {
+        "charName": "Zero width no-joiner (ZWNJ)",
+        "hex": "U+200C",
+        "bits": "0010",
+        "desc": "Zero Width Non-Joiner"
+      },
+      {
+        "charName": "Invisible plus (IP)",
+        "hex": "U+2064",
+        "bits": "0011",
+        "desc": "Invisible Plus"
+      },
+      {
+        "charName": "Invisible separator (IS)",
+        "hex": "U+2063",
+        "bits": "0100",
+        "desc": "Invisible Separator"
+      },
+      {
+        "charName": "Inhibit Symmetric Swapping (ISS)",
+        "hex": "U+206A",
+        "bits": "0101",
+        "desc": "Inhibit Symmetric Swapping"
+      },
+      {
+        "charName": "Invisible Time (IT)",
+        "hex": "U+2062",
+        "bits": "0110",
+        "desc": "Invisible Time"
+      },
+      {
+        "charName": "Empty string ('''')",
+        "hex": "U+2205",
+        "bits": "0111",
+        "desc": "Empty String Symbol"
+      },
+      {
+        "charName": "Left-To-Right Embedding (LRE)",
+        "hex": "U+202A",
+        "bits": "1000",
+        "desc": "Left-To-Right Embedding"
+      },
+      {
+        "charName": "Left-To-Right Override (LRO)",
+        "hex": "U+202D",
+        "bits": "1001",
+        "desc": "Left-To-Right Override"
+      },
+      {
+        "charName": "Pop Directional Formatting (PDF)",
+        "hex": "U+202C",
+        "bits": "1010",
+        "desc": "Pop Directional Formatting"
+      },
+      {
+        "charName": "Word Joiner (WJ)",
+        "hex": "U+2060",
+        "bits": "1011",
+        "desc": "Word Joiner"
+      },
+      {
+        "charName": "Left-To-Right Isolate (LRI)",
+        "hex": "U+2066",
+        "bits": "1100",
+        "desc": "Left-To-Right Isolate"
+      },
+      {
+        "charName": "First Strong Isolate (FSI)",
+        "hex": "U+2068",
+        "bits": "1101",
+        "desc": "First Strong Isolate"
+      }
+    ]
+  },
+  {
+    "id": "research_lisat_2015",
+    "type": "research",
+    "name": "Highly efficient novel text steganography algorithms (LISAT 2015)",
+    "titleAr": "بحث خوارزميات الإخفاء النصي عالية الكفاءة (IEEE LISAT 2015)",
+    "titleEn": "Highly Efficient Novel Text Steganography Algorithms (IEEE LISAT 2015)",
+    "doi": "10.1109/LISAT.2015.7160209",
+    "url": "https://doi.org/10.1109/LISAT.2015.7160209",
+    "exactSymbols": [
+      8204,
+      8206,
+      8207,
+      8205
+    ],
+    "minCount": 4,
+    "encodingTable": [
+      {
+        "charName": "Zero-Width-Non-Joiner (ZWNJ)",
+        "hex": "U+200C",
+        "bits": "Decimal 8204",
+        "desc": "Zero-Width Non-Joiner"
+      },
+      {
+        "charName": "Left-To-Right Mark (LRM)",
+        "hex": "U+200E",
+        "bits": "Decimal 8206",
+        "desc": "Left-To-Right Mark"
+      },
+      {
+        "charName": "Right-To-Left Mark (RLM)",
+        "hex": "U+200F",
+        "bits": "Decimal 8207",
+        "desc": "Right-To-Left Mark"
+      },
+      {
+        "charName": "Zero-Width-Joiner (ZWJ)",
+        "hex": "U+200D",
+        "bits": "Decimal 8205",
+        "desc": "Zero-Width Joiner"
+      }
+    ]
+  },
+  {
+    "id": "watermark_homoglyphs_sub",
+    "type": "watermark",
+    "name": "Content-preserving Text Watermarking through Unicode Homoglyph Substitution",
+    "titleAr": "بحث العلامة المائية المحافظة على المحتوى عبر متجانسات يونيكود (ACM 2016)",
+    "titleEn": "Content-preserving Text Watermarking through Unicode Homoglyph Substitution",
+    "doi": "10.1145/2938503.2938510",
+    "url": "https://doi.org/10.1145/2938503.2938510",
+    "isWatermark": true,
+    "exactSymbols": [
+      8208,
+      894,
+      8557,
+      8558,
+      8490,
+      8556,
+      8559,
+      8548,
+      8553,
+      8573,
+      8574,
+      8560,
+      1112,
+      8572,
+      8564,
+      8569
+    ],
+    "minCount": 3,
+    "encodingTable": [
+      {
+        "charName": "Hyphen (‐)",
+        "hex": "0x2010 (vs 0x002D)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "الواصلة"
+      },
+      {
+        "charName": "Greek Question Mark (;)",
+        "hex": "0x037E (vs 0x003B)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "الفاصلة المنقوطة"
+      },
+      {
+        "charName": "Roman Numeral C (Ⅽ)",
+        "hex": "0x216D (vs 0x0043)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "C كبير"
+      },
+      {
+        "charName": "Roman Numeral D (Ⅾ)",
+        "hex": "0x216E (vs 0x0044)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "D كبير"
+      },
+      {
+        "charName": "Kelvin Sign (K)",
+        "hex": "0x212A (vs 0x004B)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "K كبير"
+      },
+      {
+        "charName": "Roman Numeral L (Ⅼ)",
+        "hex": "0x216C (vs 0x004C)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "L كبير"
+      },
+      {
+        "charName": "Roman Numeral M (Ⅿ)",
+        "hex": "0x216F (vs 0x004D)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "M كبير"
+      },
+      {
+        "charName": "Roman Numeral V (Ⅴ)",
+        "hex": "0x2164 (vs 0x0056)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "V كبير"
+      },
+      {
+        "charName": "Roman Numeral X (Ⅹ)",
+        "hex": "0x2169 (vs 0x0058)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "X كبير"
+      },
+      {
+        "charName": "Small Roman Numeral c (ⅽ)",
+        "hex": "0x217D (vs 0x0063)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "c صغير"
+      },
+      {
+        "charName": "Small Roman Numeral d (ⅾ)",
+        "hex": "0x217E (vs 0x0064)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "d صغير"
+      },
+      {
+        "charName": "Small Roman Numeral i (ⅰ)",
+        "hex": "0x2170 (vs 0x0069)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "i صغير"
+      },
+      {
+        "charName": "Cyrillic Small Je (ј)",
+        "hex": "0x0458 (vs 0x006A)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "j صغير"
+      },
+      {
+        "charName": "Small Roman Numeral l (ⅼ)",
+        "hex": "0x217C (vs 0x006C)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "l صغير"
+      },
+      {
+        "charName": "Small Roman Numeral v (ⅴ)",
+        "hex": "0x2174 (vs 0x0076)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "v صغير"
+      },
+      {
+        "charName": "Small Roman Numeral x (ⅹ)",
+        "hex": "0x2179 (vs 0x0078)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "x صغير"
+      }
+    ]
+  },
+  {
+    "id": "watermark_social_media",
+    "type": "watermark",
+    "name": "Text Watermarking in Social Media (ACM 2017)",
+    "titleAr": "بحث العلامات المائية النصية في وسائل التواصل (ACM 2017)",
+    "titleEn": "Text Watermarking in Social Media (ACM 2017)",
+    "doi": "10.1145/3110025.3116203",
+    "url": "https://doi.org/10.1145/3110025.3116203",
+    "isWatermark": true,
+    "exactSymbols": [
+      8208,
+      8557,
+      8558,
+      8556,
+      8559,
+      8548,
+      8553,
+      8573,
+      8574,
+      8560,
+      1112,
+      8572,
+      8564,
+      8569
+    ],
+    "minCount": 3,
+    "encodingTable": [
+      {
+        "charName": "Hyphen (‐)",
+        "hex": "0x2010 (vs 0x002D)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "الواصلة"
+      },
+      {
+        "charName": "Roman Numeral C (Ⅽ)",
+        "hex": "0x216D (vs 0x0043)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "C كبير"
+      },
+      {
+        "charName": "Roman Numeral D (Ⅾ)",
+        "hex": "0x216E (vs 0x0044)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "D كبير"
+      },
+      {
+        "charName": "Roman Numeral L (Ⅼ)",
+        "hex": "0x216C (vs 0x004C)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "L كبير"
+      },
+      {
+        "charName": "Roman Numeral M (Ⅿ)",
+        "hex": "0x216F (vs 0x004D)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "M كبير"
+      },
+      {
+        "charName": "Roman Numeral V (Ⅴ)",
+        "hex": "0x2164 (vs 0x0056)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "V كبير"
+      },
+      {
+        "charName": "Roman Numeral X (Ⅹ)",
+        "hex": "0x2169 (vs 0x0058)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "X كبير"
+      },
+      {
+        "charName": "Small Roman Numeral c (ⅽ)",
+        "hex": "0x217D (vs 0x0063)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "c صغير"
+      },
+      {
+        "charName": "Small Roman Numeral d (ⅾ)",
+        "hex": "0x217E (vs 0x0064)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "d صغير"
+      },
+      {
+        "charName": "Small Roman Numeral i (ⅰ)",
+        "hex": "0x2170 (vs 0x0069)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "i صغير"
+      },
+      {
+        "charName": "Cyrillic Small Je (ј)",
+        "hex": "0x0458 (vs 0x006A)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "j صغير"
+      },
+      {
+        "charName": "Small Roman Numeral l (ⅼ)",
+        "hex": "0x217C (vs 0x006C)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "l صغير"
+      },
+      {
+        "charName": "Small Roman Numeral v (ⅴ)",
+        "hex": "0x2174 (vs 0x0076)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "v صغير"
+      },
+      {
+        "charName": "Small Roman Numeral x (ⅹ)",
+        "hex": "0x2179 (vs 0x0078)",
+        "bits": "Bit 1 (Alt) vs Bit 0 (Orig)",
+        "desc": "x صغير"
+      }
+    ]
+  }
+]

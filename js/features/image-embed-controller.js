@@ -29,6 +29,53 @@ function toWesternDigits(str) {
     .replace(/[٩۹]/g, '9');
 }
 
+// ── Lazy Loading for AVIF WASM Engine ──
+let _avifLoadPromise = null;
+function ensureAvifEngineLoaded() {
+  if (window.avifReady && typeof window.compressToAvif === 'function') return Promise.resolve();
+  if (_avifLoadPromise) return _avifLoadPromise;
+
+  _avifLoadPromise = new Promise((resolve) => {
+    function loadScript(src) {
+      return new Promise((res) => {
+        if (document.querySelector(`script[src="${src}"]`)) {
+          return res();
+        }
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = res;
+        s.onerror = (e) => {
+          console.warn(`[avif-loader] Failed to load ${src}`, e);
+          res();
+        };
+        document.body.appendChild(s);
+      });
+    }
+
+    loadScript('js/core/compression/avif/avif-engine.js')
+      .then(() => loadScript('js/core/compression/avif/avif-bridge.js'))
+      .then(() => loadScript('js/core/compression/avif/avif-service.js'))
+      .then(() => {
+        if (window.avifReady) {
+          resolve();
+        } else {
+          const onReady = () => {
+            window.removeEventListener('avif-ready', onReady);
+            resolve();
+          };
+          window.addEventListener('avif-ready', onReady, { once: true });
+          setTimeout(resolve, 3000);
+        }
+      })
+      .catch((err) => {
+        console.warn('[avif-loader] Error in AVIF script injection:', err);
+        resolve();
+      });
+  });
+
+  return _avifLoadPromise;
+}
+
 // DOM References (Initialized on DOMContentLoaded)
 const TRANSLATIONS_EMBED = window.translations;
 let $imgCoverText;
@@ -118,6 +165,7 @@ async function processUploadedImage() {
       // 3. Apply AVIF WASM Compression with robust fallback
       const compStartTime = performance.now();
       try {
+        await ensureAvifEngineLoaded();
         compressedData = await window.compressToAvif(fileToCompress, { quality, speed });
         compDurationMs = performance.now() - compStartTime;
       } catch (e) {
@@ -2407,4 +2455,16 @@ function updateSegCopyProgressTracker() {
   // Initialize dropdowns
   initImgPlatformGuardDropdowns();
   updateImgCapacityMeter();
+
+  // Preload AVIF engine on user intent (tab click, URL hash, or dropzone hover)
+  const imgTabBtn = document.querySelector('.tab-btn[data-tab="image"]');
+  if (imgTabBtn) {
+    imgTabBtn.addEventListener('click', () => ensureAvifEngineLoaded(), { once: true });
+  }
+  if (window.location.hash === '#image') {
+    ensureAvifEngineLoaded();
+  }
+  if ($imgUploadArea) {
+    $imgUploadArea.addEventListener('pointerenter', () => ensureAvifEngineLoaded(), { once: true });
+  }
 });

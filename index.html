@@ -93,7 +93,6 @@
     ]
   }
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/main.css" />
   <script src="i18n/dictionaries/common.js"></script>
   <script src="i18n/dictionaries/embed.js"></script>
@@ -105,9 +104,6 @@
   </script>
   <script src="js/shared/theme-manager.js"></script>
   <script src="js/shared/connection-monitor.js"></script>
-  <!-- zxcvbn password strength estimator (Dropbox) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js" crossorigin="anonymous"
-    referrerpolicy="no-referrer"></script>
   <!-- Page-specific styles are loaded via css/main.css -->
 </head>
 
@@ -124,8 +120,6 @@
       </linearGradient>
     </defs>
   </svg>
-
-  <script src="js/features/page-loader.js"></script>
 
   <!-- Top Navigation Placeholder -->
   <div id="navbar-placeholder"></div>
@@ -1191,17 +1185,12 @@
   <!-- ═══ UI Features & Controllers ═══ -->
   <script src="js/features/F_stego_capacity.js"></script>
   <script src="js/features/F_stego_hint.js"></script>
-  <script src="js/features/F_stego_analysis.js"></script>
   <script src="js/features/embed-controller.js"></script>
   <script src="js/features/image-embed-controller.js"></script>
 
   <!-- ═══ Dynamic Templates Loader ═══ -->
   <script src="js/shared/template-loader.js"></script>
 
-  <!-- ═══ AVIF WASM Compression modules ═══ -->
-  <script src="js/core/compression/avif/avif-engine.js"></script>
-  <script src="js/core/compression/avif/avif-bridge.js"></script>
-  <script src="js/core/compression/avif/avif-service.js"></script>
 
   <!-- Image Embedding Engine moved to js/features/image-embed-controller.js -->
 

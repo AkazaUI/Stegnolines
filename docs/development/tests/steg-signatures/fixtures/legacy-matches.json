@@ -1,0 +1,201 @@
+[
+  {
+    "caseId": "tool_stego_tools",
+    "text": "Clean ‌‬‎‭ text",
+    "matchedSignatureIds": [
+      "tool_stego_tools",
+      "research_aitsteg"
+    ],
+    "actionablePositions": [],
+    "eventCodes": [
+      "BIDI_WITH_COVERT_CARRIER",
+      "SIGNATURE_MATCH"
+    ]
+  },
+  {
+    "caseId": "technique_whitespace",
+    "text": "First line with stego\t   \nSecond line with stego\t  \nThird line clean",
+    "matchedSignatureIds": [
+      "technique_whitespace"
+    ],
+    "actionablePositions": [],
+    "eventCodes": [
+      "SNOW_PATTERN"
+    ]
+  },
+  {
+    "caseId": "tool_doublespeak",
+    "text": "Start ‌‍⁠⁡⁢⁣⁤⁪⁫⁬⁭⁮⁯︀︁﻿ end",
+    "matchedSignatureIds": [],
+    "actionablePositions": [],
+    "eventCodes": [
+      "COVERT_CARRIER_RUN",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW"
+    ]
+  },
+  {
+    "caseId": "tool_stegzero_3bit",
+    "text": "Cover ​‌‍⁠⁢⁣⁤﻿ msg",
+    "matchedSignatureIds": [
+      "tool_stegzero_3bit"
+    ],
+    "actionablePositions": [],
+    "eventCodes": [
+      "COVERT_CARRIER_RUN",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "SIGNATURE_MATCH"
+    ]
+  },
+  {
+    "caseId": "tool_stegzero_1bit",
+    "text": "Cover ​‌​‌ msg",
+    "matchedSignatureIds": [
+      "tool_stegzero_1bit"
+    ],
+    "actionablePositions": [],
+    "eventCodes": [
+      "COVERT_CARRIER_RUN",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "SIGNATURE_MATCH"
+    ]
+  },
+  {
+    "caseId": "tool_stegoline_emoji",
+    "text": "︀︁ Hello emoji covert",
+    "matchedSignatureIds": [
+      "tool_stegoline_emoji"
+    ],
+    "actionablePositions": [],
+    "eventCodes": [
+      "ORPHAN_VS_RUN",
+      "SIGNATURE_MATCH"
+    ]
+  },
+  {
+    "caseId": "research_multilayer_huffman_primary",
+    "text": "Payload ​‍‌⁤⁣⁪∅‪",
+    "matchedSignatureIds": [
+      "research_multilayer_huffman"
+    ],
+    "actionablePositions": [],
+    "eventCodes": [
+      "COVERT_CARRIER_RUN",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "SIGNATURE_MATCH"
+    ]
+  },
+  {
+    "caseId": "research_multilayer_huffman_alt",
+    "text": "Payload ​‍‌⁤⁣⁪‪",
+    "matchedSignatureIds": [
+      "research_multilayer_huffman"
+    ],
+    "actionablePositions": [],
+    "eventCodes": [
+      "COVERT_CARRIER_RUN",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "MIXED_CARRIER_WINDOW",
+      "SIGNATURE_MATCH"
+    ]
+  },
+  {
+    "caseId": "research_aitsteg",
+    "text": "Payload ‌‬‭‎",
+    "matchedSignatureIds": [
+      "tool_stego_tools",
+      "research_aitsteg"
+    ],
+    "actionablePositions": [],
+    "eventCodes": [
+      "BIDI_WITH_COVERT_CARRIER",
+      "SIGNATURE_MATCH"
+    ]
+  },
+  {
+    "caseId": "research_pos_fpe",
+    "text": "Payload ​‍‌⁤⁣⁪⁢∅‪‭‬⁠⁦⁨",
+    "matchedSignatureIds": [
+      "research_multilayer_huffman"
+    ],
+    "actionablePositions": [],
+    "eventCodes": [
+      "COVERT_CARRIER_RUN",
+      "BIDI_WITH_COVERT_CARRIER",
+      "MIXED_CARRIER_WINDOW",
+      "BIDI_WITH_COVERT_CARRIER",
+      "MIXED_CARRIER_WINDOW",
+      "BIDI_WITH_COVERT_CARRIER",
+      "MIXED_CARRIER_WINDOW",
+      "BIDI_WITH_COVERT_CARRIER",
+      "MIXED_CARRIER_WINDOW",
+      "BIDI_WITH_COVERT_CARRIER",
+      "MIXED_CARRIER_WINDOW",
+      "BIDI_WITH_COVERT_CARRIER",
+      "BIDI_WITH_COVERT_CARRIER",
+      "BIDI_WITH_COVERT_CARRIER",
+      "SIGNATURE_MATCH"
+    ]
+  },
+  {
+    "caseId": "research_lisat_2015",
+    "text": "Payload ‌‎‏‍",
+    "matchedSignatureIds": [
+      "research_lisat_2015"
+    ],
+    "actionablePositions": [],
+    "eventCodes": [
+      "SIGNATURE_MATCH"
+    ]
+  },
+  {
+    "caseId": "watermark_homoglyphs_sub",
+    "text": "Payload ‐;ⅭⅮ",
+    "matchedSignatureIds": [],
+    "actionablePositions": [],
+    "eventCodes": []
+  },
+  {
+    "caseId": "watermark_social_media",
+    "text": "Payload ‐ⅭⅮⅬ",
+    "matchedSignatureIds": [],
+    "actionablePositions": [],
+    "eventCodes": []
+  },
+  {
+    "caseId": "no_match_clean",
+    "text": "This is clean text with no hidden information.",
+    "matchedSignatureIds": [],
+    "actionablePositions": [],
+    "eventCodes": []
+  },
+  {
+    "caseId": "ambiguous_sub_threshold",
+    "text": "Only two ‌‌ joiners",
+    "matchedSignatureIds": [],
+    "actionablePositions": [],
+    "eventCodes": [
+      "COVERT_CARRIER_RUN"
+    ]
+  },
+  {
+    "caseId": "normal_emoji_no_vs_match",
+    "text": "Normal emoji ❤️❤️ test",
+    "matchedSignatureIds": [],
+    "actionablePositions": [],
+    "eventCodes": []
+  }
+]

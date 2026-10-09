@@ -387,7 +387,7 @@ function hideImgExtractResultsPanel() {
 }
 
 // Bind Eye toggle visibility for imgExtractKey and setup button listeners
-document.addEventListener('DOMContentLoaded', () => {
+function _initImageExtractDOM() {
   const imgExtractBtn = document.getElementById('img-extract-btn');
   if (imgExtractBtn) {
     imgExtractBtn.addEventListener('click', performImageExtraction);
@@ -424,4 +424,10 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem('stegoKeyPayload');
     }
   }
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _initImageExtractDOM);
+} else {
+  _initImageExtractDOM();
+}

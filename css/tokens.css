@@ -1,11 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+/* ============================================================
+   STEGNOLINES TYPOGRAPHY — Self-Hosted High Performance Fonts
+   WOFF2 with font-display: swap. Zero external network dependencies.
+   ============================================================ */
+
+@font-face {
+  font-family: 'Sora';
+  src: url('../assets/fonts/sora-regular.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Alexandria';
+  src: url('../assets/fonts/alexandria-regular.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 @font-face {
   font-family: 'Cairo';
-  src: url('../assets/fonts/Cairo-VariableFont_slnt,wght.ttf') format('truetype');
-  font-weight: 200 1000;
+  src: url('../assets/fonts/Cairo-600.woff2') format('woff2');
+  font-weight: 200 900;
   font-style: normal;
   font-display: swap;
 }
@@ -37,9 +54,6 @@
   --color-outline-variant:         #D1D1C2;
   --color-on-surface-variant:      #4B4B44;
 
-  /* —— Page Loader Overlay variables —— */
-  --loader-bg-overlay:             rgba(243, 243, 231, 0.45);
-  --loader-logo-filter:            drop-shadow(0 0 10px rgba(0, 0, 0, 0.05));
 
   /* —— Scrollbar Tokens (Light Mode - Default) —— */
   --scrollbar-thumb:               rgba(122, 122, 110, 0.4);
