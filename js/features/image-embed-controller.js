@@ -52,9 +52,18 @@ function ensureAvifEngineLoaded() {
       });
     }
 
-    loadScript('js/core/compression/avif/avif-engine.js')
-      .then(() => loadScript('js/core/compression/avif/avif-bridge.js'))
-      .then(() => loadScript('js/core/compression/avif/avif-service.js'))
+    let prefix = '';
+    if (typeof window !== 'undefined' && window.location && window.location.pathname) {
+      const path = window.location.pathname.replace(/\\/g, '/');
+      const matches = path.match(/\/(ar|en|fr|zh|la|docs)\b/gi) || [];
+      if (matches.length > 0) {
+        prefix = '../'.repeat(matches.length);
+      }
+    }
+
+    loadScript(prefix + 'js/core/compression/avif/avif-engine.js')
+      .then(() => loadScript(prefix + 'js/core/compression/avif/avif-bridge.js'))
+      .then(() => loadScript(prefix + 'js/core/compression/avif/avif-service.js'))
       .then(() => {
         if (window.avifReady) {
           resolve();
