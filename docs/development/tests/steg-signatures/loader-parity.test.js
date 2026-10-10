@@ -82,7 +82,7 @@ runTest('steganalysis.html loads signatures in deterministic manifest order', ()
   const htmlContent = fs.readFileSync(path.join(rootDir, 'steganalysis.html'), 'utf8');
 
   // Extract all signature-related script src attributes
-  const regex = /<script\s+src="([^"]*features\/stego-analysis\/detect\/signatures[^"]*)"><\/script>/g;
+  const regex = /<script\s+(?:defer\s+)?src="([^"]*features\/stego-analysis\/detect\/signatures[^"]*)"><\/script>/g;
   const scriptTags = [];
   let match;
   while ((match = regex.exec(htmlContent)) !== null) {

@@ -31,3 +31,31 @@ function mergeI18n(...dicts) {
   
   return merged;
 }
+
+/**
+ * Automatically detects all loaded dictionary objects in global scope
+ * and initializes window.translations if not already populated.
+ */
+function autoInitTranslations() {
+  if (typeof window === 'undefined') return;
+  const candidateDicts = [
+    typeof I18N_COMMON !== 'undefined' ? I18N_COMMON : null,
+    typeof I18N_EMBED !== 'undefined' ? I18N_EMBED : null,
+    typeof I18N_EXTRACT !== 'undefined' ? I18N_EXTRACT : null,
+    typeof I18N_STEGANALYSIS !== 'undefined' ? I18N_STEGANALYSIS : null,
+    typeof I18N_ABOUT !== 'undefined' ? I18N_ABOUT : null,
+    typeof I18N_CONTACT !== 'undefined' ? I18N_CONTACT : null,
+    typeof I18N_DOCS !== 'undefined' ? I18N_DOCS : null,
+    typeof I18N_OFFLINE !== 'undefined' ? I18N_OFFLINE : null,
+    typeof I18N_HINTS !== 'undefined' ? I18N_HINTS : null,
+    typeof I18N_TOASTS !== 'undefined' ? I18N_TOASTS : null
+  ].filter(Boolean);
+
+  if (candidateDicts.length > 0) {
+    window.translations = mergeI18n(...candidateDicts);
+  }
+}
+
+if (typeof window !== 'undefined') {
+  autoInitTranslations();
+}

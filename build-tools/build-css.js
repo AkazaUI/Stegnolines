@@ -45,10 +45,61 @@ function formatBytes(bytes) {
   return `${(bytes / 1024).toFixed(2)} KB`;
 }
 
+/**
+ * Inlines all @import url(...) statements inside main.css recursively.
+ * Rewrites subfolder relative asset paths (e.g. components/ -> ../assets).
+ * Preserves modular files in development while producing a single-request production bundle.
+ */
+function bundleCssMain(mainCssPath, baseCssDir) {
+  if (!fs.existsSync(mainCssPath)) return;
+
+  function inlineImports(filePath, visited = new Set()) {
+    const norm = path.resolve(filePath).replace(/\\/g, '/');
+    if (visited.has(norm)) return '';
+    visited.add(norm);
+
+    if (!fs.existsSync(norm)) {
+      console.warn(`⚠️ Warning: CSS file not found for inlining: ${norm}`);
+      return '';
+    }
+
+    const fileDir = path.dirname(norm);
+    let content = fs.readFileSync(norm, 'utf8');
+
+    // Match @import url('...') or @import "..." or @import '...';
+    const importRegex = /@import\s+(?:url\(['"]?([^'"\)]+)['"]?\)|['"]([^'"]+)['"])\s*;/g;
+
+    content = content.replace(importRegex, (match, url1, url2) => {
+      const target = (url1 || url2).trim();
+      const resolved = path.resolve(fileDir, target).replace(/\\/g, '/');
+      if (!fs.existsSync(resolved)) {
+        console.warn(`⚠️ Warning: Cannot inline nonexistent import: ${target} in ${norm}`);
+        return '';
+      }
+
+      let inlined = inlineImports(resolved, visited);
+
+      // Adjust relative asset URLs if the imported file was in a subfolder (e.g. components/ or pages/)
+      const relDir = path.relative(baseCssDir, path.dirname(resolved)).replace(/\\/g, '/');
+      if (relDir && relDir !== '.') {
+        inlined = inlined.replace(/url\((['"]?)\.\.\/\.\.\/assets\//g, 'url($1../assets/');
+      }
+
+      return `\n/* ── Inlined: ${target} ── */\n${inlined}\n`;
+    });
+
+    return content;
+  }
+
+  const bundled = inlineImports(mainCssPath);
+  fs.writeFileSync(mainCssPath, bundled, 'utf8');
+  console.log(`✅ Bundled all CSS imports into ${path.basename(mainCssPath)}`);
+}
+
 async function optimizeCss() {
   console.log('='.repeat(75));
   console.log('🚀 StegoLines Production CSS Optimization');
-  console.log('   Pipeline: Source CSS -> PurgeCSS -> cssnano -> Production CSS');
+  console.log('   Pipeline: Source CSS -> Inlining -> PurgeCSS -> cssnano -> Production CSS');
   console.log('='.repeat(75));
 
   if (!fs.existsSync(OUTPUT_CSS_DIR)) {
@@ -56,6 +107,10 @@ async function optimizeCss() {
     console.error('   Please run Eleventy build first (e.g. npm run build:eleventy).');
     process.exit(1);
   }
+
+  // 1. First, bundle all @import rules inside _site/css/main.css into a single file
+  const mainCssFile = path.join(OUTPUT_CSS_DIR, 'main.css').replace(/\\/g, '/');
+  bundleCssMain(mainCssFile, OUTPUT_CSS_DIR);
 
   const cssFiles = getAllFiles(OUTPUT_CSS_DIR, '.css');
 
@@ -96,6 +151,7 @@ async function optimizeCss() {
         content: contentPatterns,
         css: [{ raw: originalCss }],
         safelist: purgeConfig.safelist,
+        fontFace: false,
         keyframes: false,
         variables: false
       });

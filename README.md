@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/logo-light.webp" alt="StegnoLines Logo" width="360" />
+  <img src="assets/brand/logo-light.png" alt="StegnoLines Logo" width="360" />
 </p>
 
 <p align="center">

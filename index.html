@@ -85,7 +85,7 @@
         "@id": "https://stegnolines.com/#organization",
         "name": "Stegnolines Team",
         "url": "https://stegnolines.com/about",
-        "logo": "https://stegnolines.com/assets/brand/logo-dark.webp",
+        "logo": "https://stegnolines.com/assets/brand/logo-dark.png",
         "sameAs": [
           "https://github.com/AkazaUI/Stegnolines"
         ]
@@ -94,16 +94,13 @@
   }
   </script>
   <link rel="stylesheet" href="css/main.css" />
-  <script src="i18n/dictionaries/common.js"></script>
-  <script src="i18n/dictionaries/embed.js"></script>
-  <script src="i18n/dictionaries/hints.js"></script>
-  <script src="i18n/dictionaries/toasts.js"></script>
-  <script src="i18n/dictionaries/index.js"></script>
-  <script>
-    window.translations = mergeI18n(I18N_COMMON, I18N_EMBED, I18N_HINTS, I18N_TOASTS);
-  </script>
+  <script defer src="i18n/dictionaries/common.js"></script>
+  <script defer src="i18n/dictionaries/embed.js"></script>
+  <script defer src="i18n/dictionaries/hints.js"></script>
+  <script defer src="i18n/dictionaries/toasts.js"></script>
+  <script defer src="i18n/dictionaries/index.js"></script>
   <script src="js/shared/theme-manager.js"></script>
-  <script src="js/shared/connection-monitor.js"></script>
+  <script defer src="js/shared/connection-monitor.js"></script>
   <!-- Page-specific styles are loaded via css/main.css -->
 </head>
 
@@ -1165,31 +1162,31 @@
   <!-- Inline UI Helpers moved to js/features/embed-controller.js -->
 
   <!-- ═══ Brotli WASM & Web Cryptography modules ═══ -->
-  <script src="js/core/compression/wasm-engine.js"></script>
-  <script src="js/core/compression/wasm-bridge.js"></script>
-  <script src="js/core/compression/brotli-service.js"></script>
-  <script src="js/core/crypto/sha256.js"></script>
-  <script src="js/core/crypto/aes-ctr.js"></script>
+  <script defer src="js/core/compression/wasm-engine.js"></script>
+  <script defer src="js/core/compression/wasm-bridge.js"></script>
+  <script defer src="js/core/compression/brotli-service.js"></script>
+  <script defer src="js/core/crypto/sha256.js"></script>
+  <script defer src="js/core/crypto/aes-ctr.js"></script>
 
   <!-- ═══ Stego Core Logic Steps ═══ -->
-  <script src="js/shared/text_codec.js"></script>
-  <script src="js/shared/ui-helpers.js"></script>
-  <script src="js/core/stego/payload-codec.js"></script>
-  <script src="js/core/stego/prng-generator.js"></script>
-  <script src="js/core/stego/xor-mask.js"></script>
-  <script src="js/core/stego/vs-codec.js"></script>
-  <script src="js/core/stego/multi-message-protocol.js"></script>
-  <script src="js/core/stego/stego-composer.js"></script>
-  <script src="js/core/stego/stego-worker-service.js"></script>
+  <script defer src="js/shared/text_codec.js"></script>
+  <script defer src="js/shared/ui-helpers.js"></script>
+  <script defer src="js/core/stego/payload-codec.js"></script>
+  <script defer src="js/core/stego/prng-generator.js"></script>
+  <script defer src="js/core/stego/xor-mask.js"></script>
+  <script defer src="js/core/stego/vs-codec.js"></script>
+  <script defer src="js/core/stego/multi-message-protocol.js"></script>
+  <script defer src="js/core/stego/stego-composer.js"></script>
+  <script defer src="js/core/stego/stego-worker-service.js"></script>
 
   <!-- ═══ UI Features & Controllers ═══ -->
-  <script src="js/features/F_stego_capacity.js"></script>
-  <script src="js/features/F_stego_hint.js"></script>
-  <script src="js/features/embed-controller.js"></script>
-  <script src="js/features/image-embed-controller.js"></script>
+  <script defer src="js/features/F_stego_capacity.js"></script>
+  <script defer src="js/features/F_stego_hint.js"></script>
+  <script defer src="js/features/embed-controller.js"></script>
+  <script defer src="js/features/image-embed-controller.js"></script>
 
   <!-- ═══ Dynamic Templates Loader ═══ -->
-  <script src="js/shared/template-loader.js"></script>
+  <script defer src="js/shared/template-loader.js"></script>
 
 
   <!-- Image Embedding Engine moved to js/features/image-embed-controller.js -->

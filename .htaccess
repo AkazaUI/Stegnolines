@@ -17,6 +17,7 @@
   RewriteRule ^about%20us(\.html)?$ /about [R=301,L]
   RewriteRule ^contact%20team(\.html)?$ /contact [R=301,L]
   RewriteRule ^details(\.html)?$ / [R=301,L]
+  RewriteRule ^(ar/)?docs/user-guide/documentation(\.html)?$ /$1documentation [R=301,L]
 
   # Clean URLs: Serve .html transparently without showing extension
   # If requested URL exists as an actual file or directory, serve it directly

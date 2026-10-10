@@ -38,7 +38,6 @@
 /* ── 4. PAGE-SPECIFIC STYLE OVERRIDES ── */
 @import url('pages/embed.css');
 @import url('pages/extract.css');
-@import url('pages/details.css');
 @import url('pages/docs.css');
 @import url('pages/steganalysis.css');
 @import url('pages/offline.css');
