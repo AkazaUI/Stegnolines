@@ -11,14 +11,10 @@
   <meta name="robots" content="noindex, nofollow" />
   <link rel="stylesheet" href="css/main.css"/>
   
-  <script src="i18n/dictionaries/common.js"></script>
-  <script src="i18n/dictionaries/offline.js"></script>
-  <script src="i18n/dictionaries/toasts.js"></script>
-  <script src="i18n/dictionaries/index.js"></script>
-  <script>
-    // Merge translations for navigation, footer, offline content, and toasts
-    window.translations = mergeI18n(I18N_COMMON, I18N_OFFLINE, I18N_TOASTS);
-  </script>
+  <script defer src="i18n/dictionaries/common.js"></script>
+  <script defer src="i18n/dictionaries/offline.js"></script>
+  <script defer src="i18n/dictionaries/toasts.js"></script>
+  <script defer src="i18n/dictionaries/index.js"></script>
   <script src="js/shared/theme-manager.js"></script>
 </head>
 <body>
@@ -84,8 +80,8 @@
   <div id="footer-placeholder"></div>
 
   <!-- ═══ Core Libraries ═══ -->
-  <script src="js/shared/ui-helpers.js"></script>
-  <script src="js/shared/template-loader.js"></script>
+  <script defer src="js/shared/ui-helpers.js"></script>
+  <script defer src="js/shared/template-loader.js"></script>
 
   <!-- Connection Test Logic -->
   <script>

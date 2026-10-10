@@ -123,8 +123,8 @@
       <div class="top-nav__inner">
         <!-- Brand logo -->
         <a class="top-nav__brand" href="${prefix}index.html" id="brand-link">
-          <img class="top-nav__brand-logo top-nav__brand-logo--light" src="${assetPrefix}assets/brand/logo-dark.webp" alt="STEGNOLINES" onerror="this.style.display='none'"/>
-          <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="${assetPrefix}assets/brand/logo-light.webp" alt="STEGNOLINES" onerror="this.style.display='none'"/>
+          <img class="top-nav__brand-logo top-nav__brand-logo--light" src="${assetPrefix}assets/brand/logo-dark.png" alt="STEGNOLINES" width="500" height="150" fetchpriority="high" onerror="this.style.display='none'"/>
+          <img class="top-nav__brand-logo top-nav__brand-logo--dark" src="${assetPrefix}assets/brand/logo-light.png" alt="STEGNOLINES" width="500" height="146" fetchpriority="high" onerror="this.style.display='none'"/>
         </a>
 
         <!-- Desktop Navigation Links -->

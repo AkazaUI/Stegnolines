@@ -75,16 +75,13 @@
   <link rel="stylesheet" href="css/main.css"/>
   <link rel="stylesheet" href="css/chat-scanner.css"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
-  <script src="i18n/dictionaries/common.js"></script>
-  <script src="i18n/dictionaries/extract.js"></script>
-  <script src="i18n/dictionaries/hints.js"></script>
-  <script src="i18n/dictionaries/toasts.js"></script>
-  <script src="i18n/dictionaries/index.js"></script>
-  <script>
-    window.translations = mergeI18n(I18N_COMMON, I18N_EXTRACT, I18N_HINTS, I18N_TOASTS);
-  </script>
+  <script defer src="i18n/dictionaries/common.js"></script>
+  <script defer src="i18n/dictionaries/extract.js"></script>
+  <script defer src="i18n/dictionaries/hints.js"></script>
+  <script defer src="i18n/dictionaries/toasts.js"></script>
+  <script defer src="i18n/dictionaries/index.js"></script>
   <script src="js/shared/theme-manager.js"></script>
-  <script src="js/shared/connection-monitor.js"></script>
+  <script defer src="js/shared/connection-monitor.js"></script>
   <!-- Page-specific styles are loaded via css/main.css -->
 </head>
 <body>
@@ -869,42 +866,42 @@
   <!-- Inline UI Helpers moved to js/features/extract-controller.js -->
 
   <!-- ═══ Brotli WASM & Web Cryptography modules ═══ -->
-  <script src="js/core/compression/wasm-engine.js"></script>
-  <script src="js/core/compression/wasm-bridge.js"></script>
-  <script src="js/core/compression/brotli-service.js"></script>
-  <script src="js/core/crypto/sha256.js"></script>
-  <script src="js/core/crypto/aes-ctr.js"></script>
+  <script defer src="js/core/compression/wasm-engine.js"></script>
+  <script defer src="js/core/compression/wasm-bridge.js"></script>
+  <script defer src="js/core/compression/brotli-service.js"></script>
+  <script defer src="js/core/crypto/sha256.js"></script>
+  <script defer src="js/core/crypto/aes-ctr.js"></script>
 
   <!-- ═══ Stego Core Logic Steps ═══ -->
-  <script src="js/shared/text_codec.js"></script>
-  <script src="js/shared/ui-helpers.js"></script>
-  <script src="js/core/stego/payload-codec.js"></script>
-  <script src="js/core/stego/prng-generator.js"></script>
-  <script src="js/core/stego/xor-mask.js"></script>
-  <script src="js/core/stego/vs-codec.js"></script>
-  <script src="js/core/stego/multi-message-protocol.js"></script>
-  <script src="js/core/stego/stego-composer.js"></script>
-  <script src="js/core/stego/stego-worker-service.js"></script>
+  <script defer src="js/shared/text_codec.js"></script>
+  <script defer src="js/shared/ui-helpers.js"></script>
+  <script defer src="js/core/stego/payload-codec.js"></script>
+  <script defer src="js/core/stego/prng-generator.js"></script>
+  <script defer src="js/core/stego/xor-mask.js"></script>
+  <script defer src="js/core/stego/vs-codec.js"></script>
+  <script defer src="js/core/stego/multi-message-protocol.js"></script>
+  <script defer src="js/core/stego/stego-composer.js"></script>
+  <script defer src="js/core/stego/stego-worker-service.js"></script>
 
   <!-- ═══ UI Features & Standard Extraction Controller ═══ -->
-  <script src="js/features/F_stego_capacity.js"></script>
-  <script src="js/features/F_stego_hint.js"></script>
-  <script src="js/features/extract-controller.js"></script>
+  <script defer src="js/features/F_stego_capacity.js"></script>
+  <script defer src="js/features/F_stego_hint.js"></script>
+  <script defer src="js/features/extract-controller.js"></script>
 
   <!-- ═══ Chat Extractor & Scanner Modules ═══ -->
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
-  <script src="js/features/shared/unicode/unicode-context.js"></script>
-  <script src="js/features/shared/chat/chat-parsers.js"></script>
-  <script src="js/features/shared/chat/chat-export.js"></script>
-  <script src="js/features/scanner/chat-scanner.js"></script>
-  <script src="js/features/scanner/F_chat_parser.js"></script>
-  <script src="js/features/scanner/F_chat_scanner.js"></script>
-  <script src="js/features/scanner/chat-scanner-controller.js"></script>
-  <script src="js/features/image-extract-controller.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+  <script defer src="js/features/shared/unicode/unicode-context.js"></script>
+  <script defer src="js/features/shared/chat/chat-parsers.js"></script>
+  <script defer src="js/features/shared/chat/chat-export.js"></script>
+  <script defer src="js/features/scanner/chat-scanner.js"></script>
+  <script defer src="js/features/scanner/F_chat_parser.js"></script>
+  <script defer src="js/features/scanner/F_chat_scanner.js"></script>
+  <script defer src="js/features/scanner/chat-scanner-controller.js"></script>
+  <script defer src="js/features/image-extract-controller.js"></script>
 
   <!-- ═══ Dynamic Templates Loader ═══ -->
-  <script src="js/shared/template-loader.js"></script>
+  <script defer src="js/shared/template-loader.js"></script>
   <!-- Dropdown helpers moved to features controllers -->
 
   <!-- Floating Help/Guide Button -->

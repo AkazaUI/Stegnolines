@@ -92,18 +92,15 @@
   <link rel="stylesheet" href="css/main.css"/>
   <link rel="stylesheet" href="css/chat-scanner.css"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
-  <script src="i18n/dictionaries/common.js"></script>
-  <script src="i18n/dictionaries/steganalysis.js"></script>
-  <script src="i18n/dictionaries/toasts.js"></script>
-  <script src="i18n/dictionaries/index.js"></script>
-  <script>
-    window.translations = mergeI18n(I18N_COMMON, I18N_STEGANALYSIS, I18N_TOASTS);
-  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+  <script defer src="i18n/dictionaries/common.js"></script>
+  <script defer src="i18n/dictionaries/steganalysis.js"></script>
+  <script defer src="i18n/dictionaries/toasts.js"></script>
+  <script defer src="i18n/dictionaries/index.js"></script>
   <script src="js/shared/theme-manager.js"></script>
-  <script src="js/shared/connection-monitor.js"></script>
-  <script src="js/core/crypto/sha256.js"></script>
+  <script defer src="js/shared/connection-monitor.js"></script>
+  <script defer src="js/core/crypto/sha256.js"></script>
   <link rel="stylesheet" href="css/pages/steganalysis.css"/>
 </head>
 <body>
@@ -263,45 +260,45 @@
   <div id="footer-placeholder"></div>
 
   <!-- ═══ Core Libraries ═══ -->
-  <script src="js/shared/ui-helpers.js"></script>
-  <script src="js/features/shared/chat/chat-parsers.js"></script>
+  <script defer src="js/shared/ui-helpers.js"></script>
+  <script defer src="js/features/shared/chat/chat-parsers.js"></script>
 
   <!-- ═══ Modular Forensic Steganalysis Signatures ═══ -->
-  <script src="js/features/stego-analysis/detect/signatures/contract.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/registry.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/tools/steganography-tools.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/tools/whitespace.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/tools/doublespeak.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/tools/stegzero.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/tools/stegoline.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/tools/zerosteg.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/tools/unicode-steganography.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/research/multilayer-huffman.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/research/aitsteg.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/research/pos-fpe.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/research/lisat-2015.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/watermarks/homoglyph-substitution.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/profiles/watermarks/social-media.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/legacy-adapter.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/legacy-matcher.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures/index.js"></script>
-  <script src="js/features/stego-analysis/detect/signatures.js"></script>
-  <script src="js/features/shared/unicode/unicode-context.js"></script>
-  <script src="js/features/stego-analysis/detect/detectors/detect-snow.js"></script>
-  <script src="js/features/stego-analysis/detect/detectors/detect-zwc.js"></script>
-  <script src="js/features/stego-analysis/detect/detectors/detect-vs.js"></script>
-  <script src="js/features/stego-analysis/detect/detectors/detect-homoglyphs.js"></script>
-  <script src="js/features/stego-analysis/detect/detectors/detect-bidi.js"></script>
-  <script src="js/features/stego-analysis/detect/evidence-assessor.js"></script>
-  <script src="js/features/stego-analysis/detect/detect-engine.js"></script>
-  <script src="js/features/shared/chat/chat-importer.js"></script>
-  <script src="js/features/shared/chat/date-filter.js"></script>
-  <script src="js/features/stego-analysis/detect/ui/visual-diff-map.js"></script>
-  <script src="js/features/stego-analysis/detect/ui/threat-dashboard.js"></script>
-  <script src="js/features/stego-analysis/detect/steganalysis-controller.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/contract.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/registry.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/tools/steganography-tools.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/tools/whitespace.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/tools/doublespeak.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/tools/stegzero.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/tools/stegoline.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/tools/zerosteg.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/tools/unicode-steganography.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/research/multilayer-huffman.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/research/aitsteg.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/research/pos-fpe.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/research/lisat-2015.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/watermarks/homoglyph-substitution.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/profiles/watermarks/social-media.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/legacy-adapter.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/legacy-matcher.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures/index.js"></script>
+  <script defer src="js/features/stego-analysis/detect/signatures.js"></script>
+  <script defer src="js/features/shared/unicode/unicode-context.js"></script>
+  <script defer src="js/features/stego-analysis/detect/detectors/detect-snow.js"></script>
+  <script defer src="js/features/stego-analysis/detect/detectors/detect-zwc.js"></script>
+  <script defer src="js/features/stego-analysis/detect/detectors/detect-vs.js"></script>
+  <script defer src="js/features/stego-analysis/detect/detectors/detect-homoglyphs.js"></script>
+  <script defer src="js/features/stego-analysis/detect/detectors/detect-bidi.js"></script>
+  <script defer src="js/features/stego-analysis/detect/evidence-assessor.js"></script>
+  <script defer src="js/features/stego-analysis/detect/detect-engine.js"></script>
+  <script defer src="js/features/shared/chat/chat-importer.js"></script>
+  <script defer src="js/features/shared/chat/date-filter.js"></script>
+  <script defer src="js/features/stego-analysis/detect/ui/visual-diff-map.js"></script>
+  <script defer src="js/features/stego-analysis/detect/ui/threat-dashboard.js"></script>
+  <script defer src="js/features/stego-analysis/detect/steganalysis-controller.js"></script>
 
   <!-- ═══ Dynamic Templates Loader ═══ -->
-  <script src="js/shared/template-loader.js"></script>
+  <script defer src="js/shared/template-loader.js"></script>
 
   <!-- Floating Help/Guide Button -->
   <button type="button" class="floating-guide-btn" data-i18n-tooltip="floatingGuideTooltip" data-tooltip="Site Guide">

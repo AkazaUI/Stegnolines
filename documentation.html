@@ -107,11 +107,11 @@
   </script>
   <link rel="stylesheet" href="css/main.css"/>
   <link rel="stylesheet" href="css/pages/docs.css"/>
-  <script src="i18n/dictionaries/common.js"></script>
-  <script src="i18n/dictionaries/docs.js"></script>
-  <script src="i18n/dictionaries/docs-articles.js"></script>
-  <script src="i18n/dictionaries/toasts.js"></script>
-  <script src="i18n/dictionaries/index.js"></script>
+  <script defer src="i18n/dictionaries/common.js"></script>
+  <script defer src="i18n/dictionaries/docs.js"></script>
+  <script defer src="i18n/dictionaries/docs-articles.js"></script>
+  <script defer src="i18n/dictionaries/toasts.js"></script>
+  <script defer src="i18n/dictionaries/index.js"></script>
   <script>
     (function() {
       // Immediate language and font detection to avoid FOUC
@@ -132,11 +132,10 @@
       }
 
       window.DOCS_BASE = '';
-      window.translations = mergeI18n(I18N_COMMON, I18N_DOCS, I18N_TOASTS);
     })();
   </script>
   <script src="js/shared/theme-manager.js"></script>
-  <script src="js/shared/connection-monitor.js"></script>
+  <script defer src="js/shared/connection-monitor.js"></script>
 </head>
 <body class="docs-body docs-index-page">
   <!-- Top Navigation Placeholder -->
@@ -245,10 +244,10 @@
   <!-- Footer Placeholder -->
   <div id="footer-placeholder"></div>
 
-  <script src="js/docs/nav-data.js"></script>
-  <script src="js/docs/docs.js"></script>
-  <script src="js/shared/ui-helpers.js"></script>
-  <script src="js/shared/template-loader.js"></script>
+  <script defer src="js/docs/nav-data.js"></script>
+  <script defer src="js/docs/docs.js"></script>
+  <script defer src="js/shared/ui-helpers.js"></script>
+  <script defer src="js/shared/template-loader.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const savedLang = localStorage.getItem('stegoLang') || 'en';
